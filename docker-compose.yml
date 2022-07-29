@@ -1,0 +1,12 @@
+version: '3.7'
+
+services:
+    node:
+        image: node
+        command: npm run serve
+        volumes:
+            - ./:/app
+        working_dir: /app
+        user: ${UID-1000}:${GID-1000}
+        ports:
+            - ${PORT-8080}:8080
