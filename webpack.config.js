@@ -15,7 +15,6 @@ module.exports = {
         new HtmlWebpackPlugin({
             hash: true,
             template: './index.html',
-            favicon: './assets/favicon.ico',
             filename: 'index.html',
             minify: {
                 collapseWhitespace: true,
@@ -34,9 +33,13 @@ module.exports = {
                 loader: 'ts-loader',
                 exclude: /node_modules/,
             },
+            {
+                test: /\.glsl$/,
+                type: 'asset/source'
+            }
         ]
     },
     resolve: {
-        extensions: [".tsx", ".ts", ".js", ".png"]
+        extensions: [".tsx", ".ts", ".js", ".png", ".glsl"]
     },
 };
