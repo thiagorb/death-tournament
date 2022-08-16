@@ -1,55 +1,78 @@
-import { Matrix4, Vec3 } from './glm';
-import { meshCreationContextCreate } from './mesh';
+import { Matrix3, matrixCreate, matrixScale } from './glm';
 import fragmentShaderCode from './shaders/fragment.glsl';
 import vertexShaderCode from './shaders/vertex.glsl';
 
 const enum ProgramProperty {
     WebGL2Context,
     Program,
-    View,
-    ViewPosition,
+    Attributes,
+    Uniforms,
+}
+
+const enum UniformsProperty {
+    ViewTransform,
+    ModelTransform,
     CurrentTime,
-    Model,
-    Projection,
-    SkyColor,
     PerlinSampler,
+}
+
+const enum AttributesProperty {
+    VertexPosition,
+    Color,
 }
 
 export type Program = {
     [ProgramProperty.WebGL2Context]: WebGL2RenderingContext;
     [ProgramProperty.Program]: WebGLProgram;
-    [ProgramProperty.View]: WebGLUniformLocation;
-    [ProgramProperty.ViewPosition]: WebGLUniformLocation;
-    [ProgramProperty.CurrentTime]: WebGLUniformLocation;
-    [ProgramProperty.Model]: WebGLUniformLocation;
-    [ProgramProperty.Projection]: WebGLUniformLocation;
-    [ProgramProperty.SkyColor]: WebGLUniformLocation;
-    [ProgramProperty.PerlinSampler]: WebGLUniformLocation;
+    [ProgramProperty.Uniforms]: {
+        [U in UniformsProperty]: WebGLUniformLocation;
+    };
+    [ProgramProperty.Attributes]: {
+        [A in AttributesProperty]: number;
+    };
 };
 
-export const glCreateProgram = (gl: WebGL2RenderingContext): Program => {
-    const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexShaderCode);
-    const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentShaderCode);
+export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
+    const gl = canvas.getContext('webgl2');
+    if (gl === null) {
+        throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.');
+    }
 
     const program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
+    gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, vertexShaderCode));
+    gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentShaderCode));
     gl.linkProgram(program);
 
     gl.useProgram(program);
     const perlinSampler = gl.getUniformLocation(program, 'perlinSampler');
     gl.uniform1i(perlinSampler, 0);
 
+    const modelTransform = gl.getUniformLocation(program, 'modelTransform');
+    gl.uniformMatrix3fv(modelTransform, false, matrixCreate());
+
+    const viewTransform = gl.getUniformLocation(program, 'viewTransform');
+    const updateViewport = () => {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        const matrix = matrixCreate();
+        matrixScale(matrix, 1, canvas.width / canvas.height);
+        gl.uniformMatrix3fv(viewTransform, false, matrix);
+    };
+    addEventListener('resize', updateViewport);
+    updateViewport();
+
     return {
         [ProgramProperty.WebGL2Context]: gl,
         [ProgramProperty.Program]: program,
-        [ProgramProperty.View]: gl.getUniformLocation(program, 'view'),
-        [ProgramProperty.ViewPosition]: gl.getUniformLocation(program, 'viewPosition'),
-        [ProgramProperty.CurrentTime]: gl.getUniformLocation(program, 'currentTime'),
-        [ProgramProperty.Model]: gl.getUniformLocation(program, 'model'),
-        [ProgramProperty.Projection]: gl.getUniformLocation(program, 'projection'),
-        [ProgramProperty.SkyColor]: gl.getUniformLocation(program, 'skyColor'),
-        [ProgramProperty.PerlinSampler]: perlinSampler,
+        [ProgramProperty.Uniforms]: {
+            [UniformsProperty.ViewTransform]: viewTransform,
+            [UniformsProperty.ModelTransform]: modelTransform,
+            [UniformsProperty.CurrentTime]: gl.getUniformLocation(program, 'currentTime'),
+            [UniformsProperty.PerlinSampler]: perlinSampler,
+        },
+        [ProgramProperty.Attributes]: {
+            [AttributesProperty.VertexPosition]: gl.getAttribLocation(program, 'vertexPosition'),
+            [AttributesProperty.Color]: gl.getAttribLocation(program, 'color'),
+        },
     };
 };
 
@@ -64,37 +87,80 @@ const compileShader = (
     return shader;
 };
 
-export const glCreateMeshCreationContext = (program: Program) =>
-    meshCreationContextCreate(program[ProgramProperty.WebGL2Context], program[ProgramProperty.Program]);
-
-export const glSetSkyColor = (program: Program, color: [number, number, number]) => {
-    program[ProgramProperty.WebGL2Context].uniform3f(program[ProgramProperty.SkyColor], ...color);
+export const glClear = (program: Program, clearColor: [number, number, number, number] = [0, 0, 0, 1]) => {
+    program[ProgramProperty.WebGL2Context].clearColor(...clearColor);
+    program[ProgramProperty.WebGL2Context].clear(program[ProgramProperty.WebGL2Context].COLOR_BUFFER_BIT);
 };
 
-export const glSetView = (program: Program, view: Matrix4) => {
-    program[ProgramProperty.WebGL2Context].uniformMatrix4fv(program[ProgramProperty.View], false, view);
+const enum MeshProperty {
+    VertexArrayObject,
+    IndicesLength,
+    DrawMode,
+}
+
+export type Mesh = {
+    [MeshProperty.VertexArrayObject]: WebGLVertexArrayObject;
+    [MeshProperty.IndicesLength]: number;
+    [MeshProperty.DrawMode]: number;
 };
 
-export const glSetViewPosition = (program: Program, viewPosition: Matrix4) => {
-    program[ProgramProperty.WebGL2Context].uniformMatrix4fv(program[ProgramProperty.ViewPosition], false, viewPosition);
+const glMeshCreate = (program: Program, vertices: number[], colors: number[], indices: number[]): Mesh => {
+    const gl = program[ProgramProperty.WebGL2Context];
+    const vertexArrayObject = gl.createVertexArray();
+    gl.bindVertexArray(vertexArrayObject);
+
+    setArray(program, AttributesProperty.VertexPosition, vertices, 2);
+    setArray(program, AttributesProperty.Color, colors, 3);
+
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+    return [vertexArrayObject, indices.length, gl.TRIANGLES];
 };
 
-export const glSetModel = (program: Program, model: Matrix4) => {
-    program[ProgramProperty.WebGL2Context].uniformMatrix4fv(program[ProgramProperty.Model], false, model);
+export const enum VertexProperty {
+    Position,
+    Color,
+}
+
+type Vertex = {
+    [VertexProperty.Position]: [number, number];
+    [VertexProperty.Color]: [number, number, number];
 };
 
-export const glSetProjection = (program: Program, projection: Matrix4) => {
-    program[ProgramProperty.WebGL2Context].uniformMatrix4fv(program[ProgramProperty.Projection], false, projection);
+type MeshTriangle = [Vertex, Vertex, Vertex];
+
+export const glMeshTrianglesCreate = (program: Program, triangles: MeshTriangle[]) => {
+    const vertices = triangles.flat();
+    return glMeshCreate(
+        program,
+        vertices.flatMap(v => v[VertexProperty.Position]),
+        vertices.flatMap(v => v[VertexProperty.Color]),
+        [...vertices.keys()]
+    );
 };
 
-export const glSetCurrentTime = (program: Program, currentTime: number) => {
-    program[ProgramProperty.WebGL2Context].uniform1f(program[ProgramProperty.CurrentTime], currentTime);
+export const glSetModelTransform = (program: Program, transform: Matrix3) => {
+    program[ProgramProperty.WebGL2Context].uniformMatrix3fv(
+        program[ProgramProperty.Uniforms][UniformsProperty.ModelTransform],
+        false,
+        transform
+    );
 };
 
-export const glUseProgram = (program: Program) => {
-    program[ProgramProperty.WebGL2Context].useProgram(program[ProgramProperty.Program]);
+const setArray = (program: Program, attribute: AttributesProperty, values: number[], fetchSize: number) => {
+    const gl = program[ProgramProperty.WebGL2Context];
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(values), gl.STATIC_DRAW);
+    const attributeLocation = program[ProgramProperty.Attributes][attribute];
+    gl.vertexAttribPointer(attributeLocation, fetchSize, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(attributeLocation);
 };
 
-export const glGetContext = (program: Program): WebGL2RenderingContext => {
-    return program[ProgramProperty.WebGL2Context];
+export const glMeshDraw = (program: Program, mesh: Mesh) => {
+    const gl = program[ProgramProperty.WebGL2Context];
+    gl.bindVertexArray(mesh[MeshProperty.VertexArrayObject]);
+    gl.drawElements(mesh[MeshProperty.DrawMode], mesh[MeshProperty.IndicesLength], gl.UNSIGNED_SHORT, 0);
 };

@@ -73,3 +73,37 @@ const randomVector = (): PerlinVec2 => {
 
 const smootherstep = (x: number) => 6 * x ** 5 - 15 * x ** 4 + 10 * x ** 3;
 const interp = (x: number, a: number, b: number): number => a + smootherstep(x) * (b - a);
+
+export const createPerlinTexture = async (gl: WebGL2RenderingContext) => {
+    const buffer = document.createElement('canvas');
+    const size = 256;
+    buffer.width = size;
+    buffer.height = size;
+
+    const bufferContext = buffer.getContext('2d');
+
+    const perlin = perlinCreate();
+    bufferContext.clearRect(0, 0, buffer.width, buffer.height);
+    for (let x = 0; x < size; x++) {
+        for (let y = 0; y < size; y++) {
+            const brightness = 0.5 + 0.5 * perlinGet(perlin, (20 * x) / size, (20 * y) / size);
+            bufferContext.fillStyle = `rgb(${brightness * 255}, 0, 0)`;
+            bufferContext.fillRect(x, y, 1, 1);
+        }
+    }
+
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    // TODO: try to use UNSIGNED_INT OR BYTE instead of RGBA
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, await loadImage(buffer.toDataURL('image/png')));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    return texture;
+};
+
+const loadImage = (src: string) =>
+    new Promise<HTMLImageElement>(resolve => {
+        const image = new Image();
+        image.src = src;
+        image.onload = () => resolve(image);
+    });

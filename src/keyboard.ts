@@ -1,21 +1,21 @@
-export const keyboardInitialize = <Key extends string>(keys: Key[]): Map<Key, boolean> => {
-    const state = new Map(keys.map(key => [key, false]));
+export const keyboardInitialize = <Key extends string>(keys: Key[]): { [K in Key]: boolean } => {
+    const state = Object.fromEntries(keys.map(key => [key, false])) as { [K in Key]: boolean };
 
     addEventListener('keydown', (e: KeyboardEvent) => {
         const code = e.code as Key;
-        if (state.has(code)) {
+        if (code in state) {
             e.preventDefault();
             e.stopPropagation();
-            state.set(code, true);
+            state[code] = true;
         }
     });
 
     addEventListener('keyup', (e: KeyboardEvent) => {
         const code = e.code as Key;
-        if (state.has(code)) {
+        if (code in state) {
             e.preventDefault();
             e.stopPropagation();
-            state.set(code, false);
+            state[code] = false;
         }
     });
 
