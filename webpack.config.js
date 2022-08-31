@@ -5,11 +5,11 @@ module.exports = {
     mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
     entry: './src/main.ts',
     output: {
-        filename: 'main.js'
+        filename: 'main.js',
     },
     devServer: {
         hot: true,
-        liveReload: true
+        liveReload: true,
     },
     plugins: [
         new HtmlWebpackPlugin({
@@ -19,8 +19,8 @@ module.exports = {
             minify: {
                 collapseWhitespace: true,
                 minifyCSS: true,
-            }
-        })
+            },
+        }),
     ],
     module: {
         rules: [
@@ -35,11 +35,15 @@ module.exports = {
             },
             {
                 test: /\.glsl$/,
-                type: 'asset/source'
-            }
-        ]
+                type: 'asset/source',
+            },
+            {
+                test: /\.svg$/,
+                use: [{ loader: path.resolve('tools/svg2ts.js') }],
+            },
+        ],
     },
     resolve: {
-        extensions: [".tsx", ".ts", ".js", ".png", ".glsl"]
+        extensions: ['.tsx', '.ts', '.js', '.png', '.glsl'],
     },
 };

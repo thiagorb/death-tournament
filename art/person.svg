@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   sodipodi:docname="person.svg"
+   inkscape:version="1.2.1 (2ed6d7ae0b, 2022-08-22, custom)"
+   id="svg10609"
+   version="1.1"
+   viewBox="0 0 100 100"
+   height="100mm"
+   width="100mm"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview10611"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="3.7644917"
+     inkscape:cx="129.10109"
+     inkscape:cy="264.71037"
+     inkscape:window-width="1846"
+     inkscape:window-height="1016"
+     inkscape:window-x="74"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs10606" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:#ffccaa;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       d="m 39.18763,58.0533 5.213642,-0.607561 0.598357,-14.837419 -5.954604,-0.03527"
+       id="leftArm2"
+       sodipodi:nodetypes="cccc"
+       inkscape:label=""
+       inkscape:transform-center-x="-0.17517316"
+       inkscape:transform-center-y="7.635025">
+      <desc
+         id="desc18761-5-2">{
+    &quot;connectTo&quot;: &quot;leftArm1&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#ffccaa;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       d="m 39.461037,67.037093 -0.108489,3.430177 2.088649,1.512815 4.597727,-1.124962 -0.184335,-2.900439 -0.950107,-2.082783 -0.496319,-8.437998 -2.737133,-2.370044 -2.525815,2.067701"
+       id="leftArm3"
+       sodipodi:nodetypes="ccccccccc"
+       inkscape:label=""
+       inkscape:transform-center-x="-1.510401"
+       inkscape:transform-center-y="7.0148374">
+      <desc
+         id="desc18761-5-6-0">{
+    &quot;connectTo&quot;: &quot;leftArm2&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#000080;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       d="m 39.437848,36.464676 -1.442526,6.609595 8.730298,-0.0983 -0.936622,-6.57511 -1.779824,-0.987795 -2.578517,-0.0278 -1.992809,1.07941"
+       id="leftArm1"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:label=""
+       inkscape:transform-center-x="-0.12042133"
+       inkscape:transform-center-y="1.303412">
+      <desc
+         id="desc18761-3">{
+    &quot;connectTo&quot;: &quot;body&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#550000;stroke-width:0.264583"
+       d="m 26.128721,66.434109 3.460723,5.587635 8.085842,-0.08228 3.390135,-5.515867 z"
+       id="pantsTop"
+       sodipodi:nodetypes="ccccc"
+       inkscape:transform-center-x="-0.43027696"
+       inkscape:transform-center-y="7.7052848"
+       inkscape:label="">
+      <desc
+         id="desc908-9-5">{
+    &quot;connectTo&quot;: &quot;body&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#550000;stroke-width:0.264583"
+       d="M 31.748706,65.350976 32.977058,83.1377 40.644913,82.483239 41.210981,64.648502 Z"
+       id="rightLeg1"
+       sodipodi:nodetypes="ccccc"
+       inkscape:transform-center-x="-0.43027696"
+       inkscape:transform-center-y="7.7052848">
+      <desc
+         id="desc908-9">{
+    &quot;connectTo&quot;: &quot;body&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#550000;stroke-width:0.264583"
+       d="m 33.970279,78.198419 -0.998643,4.944842 0.886556,10.467098 6.884312,-0.492845 -0.138671,-10.598657 -1.518692,-4.863658 z"
+       id="rightLeg2"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:transform-center-x="-0.042614076"
+       inkscape:transform-center-y="4.6442077">
+      <desc
+         id="desc908-0-0">{
+    &quot;connectTo&quot;: &quot;rightLeg1&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#000000;stroke-width:0.264583"
+       d="m 33.466196,93.069413 -0.4538,6.86356 16.174536,0.0813 -0.362041,-2.921654 -4.142355,-0.60796 -2.941005,-3.31485 z"
+       id="rightLeg3"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:transform-center-x="-3.4307351"
+       inkscape:transform-center-y="3.358924">
+      <desc
+         id="desc1220-3">{
+    &quot;connectTo&quot;: &quot;rightLeg2&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#550000;stroke-width:0.264583"
+       d="m 26.121542,65.889514 -1.279634,16.910034 7.695668,-0.032 1.469004,-16.552731"
+       id="leftLeg1"
+       sodipodi:nodetypes="cccc"
+       inkscape:transform-center-x="0.14846029"
+       inkscape:transform-center-y="5.5769306">
+      <desc
+         id="desc908">{
+    &quot;connectTo&quot;: &quot;body&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#550000;stroke-width:0.264583"
+       d="m 26.231453,77.956806 -1.395399,4.847846 0.03688,10.504509 6.901618,0.06569 0.719197,-10.575135 -1.120253,-4.970576 z"
+       id="leftLeg2"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:transform-center-x="0.17568806"
+       inkscape:transform-center-y="4.6341045">
+      <desc
+         id="desc908-0">{
+    &quot;connectTo&quot;: &quot;leftLeg1&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#000000;stroke-width:0.264583"
+       d="m 24.300681,93.041291 -0.4538,6.863559 16.174536,0.08126 -0.362041,-2.921657 -4.142355,-0.607965 -2.941005,-3.314843 z"
+       id="leftLeg3"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:transform-center-x="-3.7710057"
+       inkscape:transform-center-y="3.4891278">
+      <desc
+         id="desc1220">{
+    &quot;connectTo&quot;: &quot;leftLeg2&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#2b0000;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       d="m 41.254126,66.71523 1.767792,-28.380362 -3.031499,-5.471311 -13.13508,0.254571 -3.169227,11.852411 1.279355,21.426937"
+       id="body"
+       sodipodi:nodetypes="cccccc"
+       inkscape:transform-center-x="0.79391521"
+       inkscape:transform-center-y="-49.981786" />
+    <path
+       style="fill:#ffccaa;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       d="m 21.981742,57.922849 5.225746,-0.492725 0.924603,-14.820667 -6.073067,-0.158729"
+       id="rightArm2"
+       sodipodi:nodetypes="cccc"
+       inkscape:label=""
+       inkscape:transform-center-x="-0.64716767"
+       inkscape:transform-center-y="6.890202">
+      <desc
+         id="desc18761-5">{
+    &quot;connectTo&quot;: &quot;rightArm1&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#ffccaa;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       d="m 22.05746,66.910483 -0.18392,3.42696 2.054865,1.558394 4.621362,-1.023549 1.504611,-3.811871 -2.630611,-0.454105 -0.20913,-9.18787 -2.684334,-2.429681 -2.570689,2.011638"
+       id="rightArm3"
+       sodipodi:nodetypes="ccccccccc"
+       inkscape:label=""
+       inkscape:transform-center-x="-1.3445985"
+       inkscape:transform-center-y="7.0079536">
+      <desc
+         id="desc18761-5-6">{
+    &quot;connectTo&quot;: &quot;rightArm2&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#ffccaa;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       d="m 41.855644,12.463017 -16.202907,-0.794312 0.07841,11.948952 2.389592,5.779425 2.184289,3.752824 6.044361,0.0306 2.588319,-3.544498 4.005339,0.05453 1.095457,-5.426869 -0.122099,-6.720152"
+       id="face"
+       sodipodi:nodetypes="cccccccccc">
+      <desc
+         id="desc230">{
+    &quot;connectTo&quot;: &quot;body&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#000080;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       d="m 22.706803,36.344953 -1.587574,6.576263 8.730347,0.09377 -0.791756,-6.594121 -1.757665,-1.026709 -2.577281,-0.08452 -2.016073,1.035308"
+       id="rightArm1"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:label=""
+       inkscape:transform-center-x="0.0350563"
+       inkscape:transform-center-y="1.0994726">
+      <desc
+         id="desc18761">{
+    &quot;connectTo&quot;: &quot;body&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#550000;stroke-width:0.29905"
+       d="m 33.226442,8.5115129 -9.144355,3.3058431 -3.126452,8.891404 3.003795,6.043294 5.0306,1.68803 -1.890806,-7.585176 2.05906,-1.866815 1.745372,4.292489 2.022046,0.281165 1.346765,-8.10303 9.158588,-1.999387 3.105267,-6.3030465 -6.527511,1.2816679 z"
+       id="hair"
+       sodipodi:nodetypes="cccccccccccccc">
+      <desc
+         id="desc793">{
+    &quot;connectTo&quot;: &quot;face&quot;
+}</desc>
+    </path>
+  </g>
+</svg>

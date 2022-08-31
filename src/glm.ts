@@ -1,21 +1,49 @@
 export type Matrix3 = Float32Array & { __matrix: boolean };
-export type Vec2 = Float32Array & { __vector: boolean };
+export type Vec2 = [number, number] & { __vector: boolean };
 
+const identity: Matrix3 = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]) as Matrix3;
 export const matrixCreate = (): Matrix3 => {
-    return new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]) as Matrix3;
+    return new Float32Array(identity) as Matrix3;
 };
 
 export const vectorCreate = (x: number = 0, y: number = 0): Vec2 => {
-    return new Float32Array([x, y]) as Vec2;
+    return [x, y] as Vec2;
 };
 
+export const vectorCopy = (v: Vec2): Vec2 => {
+    return vectorCreate(v[0], v[1]);
+};
+
+export const vectorLength = (v: Vec2): number => {
+    return (v[0] ** 2 + v[1] ** 2) ** 0.5;
+};
+
+export const vectorMultiply = (v: Vec2, value: number): Vec2 => {
+    v[0] *= value;
+    v[1] *= value;
+    return v;
+};
+
+export const vectorNormalize = (v: Vec2): Vec2 => {
+    const l = vectorLength(v);
+    return vectorMultiply(v, l === 0 ? 0 : 1 / l);
+};
+
+export const vectorPerpendicular = (v: Vec2): Vec2 => {
+    const x = v[0];
+    const y = v[1];
+    return vectorCreate(-y, x);
+};
+
+const resultBuffer = matrixCreate();
 export const matrixMultiply = (result: Matrix3, a: Matrix3, b: Matrix3): Matrix3 => {
     for (let i = 0; i < 9; i++) {
         const row = (i / 3) | 0;
         const col = i % 3;
 
-        result[i] = b[row * 3 + 0] * a[0 * 3 + col] + b[row * 3 + 1] * a[1 * 3 + col] + b[row * 3 + 2] * a[2 * 3 + col];
+        resultBuffer[i] = a[row * 3 + 0] * b[0 * 3 + col] + a[row * 3 + 1] * b[1 * 3 + col] + a[row * 3 + 2] * b[2 * 3 + col];
     }
+    matrixCopy(result, resultBuffer);
 
     return result;
 };
@@ -28,7 +56,7 @@ export const matrixMultiplyVector = (result: Vec2, m: Matrix3): void => {
 };
 
 export const matrixSetIdentity = (result: Matrix3): Matrix3 => {
-    Object.assign(result, [1, 0, 0, 0, 1, 0, 0, 0, 1]);
+    Object.assign(result, identity);
 
     return result;
 };
@@ -56,13 +84,24 @@ export const matrixScale = (result: Matrix3, x: number, y: number): void => {
 };
 
 export const matrixTranslate = (result: Matrix3, x: number, y: number): void => {
-    result[2 * 3 + 0] += x;
-    result[2 * 3 + 1] += y;
+    const m20 = result[2 * 3 + 0];
+    const m21 = result[2 * 3 + 1];
+    const m22 = result[2 * 3 + 2];
+    result[2 * 3 + 0] = x * result[0 * 3 + 0] + y * result[1 * 3 + 0] + m20;
+    result[2 * 3 + 1] = x * result[0 * 3 + 1] + y * result[1 * 3 + 1] + m21;
+    result[2 * 3 + 2] = x * result[0 * 3 + 2] + y * result[1 * 3 + 2] + m22;
 };
 
-export const vectorAdd = (result: Vec2, add: Vec2): void => {
+export const vectorAdd = (result: Vec2, add: Vec2): Vec2 => {
     result[0] += add[0];
     result[1] += add[1];
+    return result;
+};
+
+export const vectorSubtract = (result: Vec2, sub: Vec2): Vec2 => {
+    result[0] -= sub[0];
+    result[1] -= sub[1];
+    return result;
 };
 
 export const matrixSetOrtho = (

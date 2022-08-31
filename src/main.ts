@@ -1,6 +1,18 @@
 import { keyboardInitialize } from './keyboard';
-import { glClear, glMeshDraw, glMeshTrianglesCreate, glProgramCreate, glSetModelTransform, VertexProperty } from './gl';
-import { matrixCreate, matrixRotate, matrixTranslate } from './glm';
+import { glClear, glDrawBoundingBox, glDrawRect, glModelPop, glModelPush, glModelTranslate, glProgramCreate } from './gl';
+import { matrixSetIdentity, matrixTranslate, vectorCreate } from './glm';
+import {
+    deathAttack,
+    deathCreate,
+    deathDraw,
+    deathGetTransform,
+    deathInit,
+    deathStep,
+    deathTurnLeft,
+    deathTurnRight,
+    deathWalk,
+} from './death';
+import { personCreate, personDraw, personGetTransform, personInit, personStep } from './person';
 
 const main = async () => {
     addEventListener('resize', resize);
@@ -9,70 +21,79 @@ const main = async () => {
     const canvas: HTMLCanvasElement = document.querySelector('#game-canvas');
     const program = glProgramCreate(canvas);
 
-    const keyboard = keyboardInitialize(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
+    const keyboard = keyboardInitialize(['KeyA', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
     const mouseSpeed = [0, 0];
-
-    addEventListener('click', () => {
-        canvas.requestPointerLock();
-    });
 
     addEventListener('mousemove', event => {
         mouseSpeed[0] += event.movementX;
         mouseSpeed[1] += event.movementY;
     });
 
-    const triangleMesh = glMeshTrianglesCreate(program, [
-        [
-            {
-                [VertexProperty.Position]: [-0.25, -0.25],
-                [VertexProperty.Color]: [1, 0, 0],
-            },
-            {
-                [VertexProperty.Position]: [0, 0.25],
-                [VertexProperty.Color]: [0, 1, 0],
-            },
-            {
-                [VertexProperty.Position]: [0.25, -0.25],
-                [VertexProperty.Color]: [0, 0, 1],
-            },
-        ],
-    ]);
-
-    const modelTransform = matrixCreate();
+    deathInit(program);
+    personInit(program);
+    const death = deathCreate();
+    const person = personCreate();
+    const deathPosition = vectorCreate();
+    const personPosition = vectorCreate();
+    const deathSize = vectorCreate(50, 100);
 
     let previousTime = 0;
-    const loop = (time: number) => {
-        const deltaTime = time - previousTime;
-        previousTime = time;
 
+    const step = (deltaTime: number) => {
+        const speed = deltaTime * 0.3;
         if (keyboard.ArrowUp) {
-            matrixTranslate(modelTransform, 0, deltaTime * 0.001);
-        }
-
-        if (keyboard.ArrowDown) {
-            matrixTranslate(modelTransform, 0, -deltaTime * 0.001);
+            deathPosition[1] += speed;
+            deathWalk(death);
+        } else if (keyboard.ArrowDown) {
+            deathPosition[1] -= speed;
+            deathWalk(death);
         }
 
         if (keyboard.ArrowLeft) {
-            matrixTranslate(modelTransform, -deltaTime * 0.001, 0);
-        }
-
-        if (keyboard.ArrowRight) {
-            matrixTranslate(modelTransform, deltaTime * 0.001, 0);
+            deathPosition[0] -= speed;
+            deathWalk(death);
+            deathTurnLeft(death);
+        } else if (keyboard.ArrowRight) {
+            deathPosition[0] += speed;
+            deathWalk(death);
+            deathTurnRight(death);
         }
 
         if (keyboard.KeyA) {
-            matrixRotate(modelTransform, -deltaTime * 0.005);
+            deathAttack(death);
         }
 
-        if (keyboard.KeyD) {
-            matrixRotate(modelTransform, deltaTime * 0.005);
-        }
+        deathStep(death, deltaTime);
+        personStep(person, deltaTime);
+    };
 
-        glClear(program);
-        glSetModelTransform(program, modelTransform);
-        glMeshDraw(program, triangleMesh);
+    const render = () => {
+        glClear(program, [0, 0, 0.3, 1]);
+
+        glModelPush(program);
+
+        glModelTranslate(program, 0, -200);
+
+        matrixSetIdentity(deathGetTransform(death));
+        matrixTranslate(deathGetTransform(death), deathPosition[0], deathPosition[1]);
+        deathDraw(program, death);
+
+        matrixSetIdentity(personGetTransform(person));
+        matrixTranslate(personGetTransform(person), personPosition[0], personPosition[1]);
+        personDraw(program, person);
+
+        glDrawBoundingBox(program, deathPosition, deathSize);
+
+        glModelPop(program);
+    };
+
+    const loop = (time: number) => {
+        const deltaTime = (time - previousTime) * 0.5;
+        previousTime = time;
+
+        step(deltaTime);
+        render();
 
         requestAnimationFrame(loop);
     };

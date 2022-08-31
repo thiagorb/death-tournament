@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1000mm"
+   height="1000mm"
+   viewBox="0 0 1000 1000"
+   version="1.1"
+   id="svg18782"
+   inkscape:version="1.2.1 (ef4d3fba62, 2022-07-19, custom)"
+   sodipodi:docname="simple.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview18784"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.2938351"
+     inkscape:cx="1163.9181"
+     inkscape:cy="3428.7939"
+     inkscape:window-width="1846"
+     inkscape:window-height="1016"
+     inkscape:window-x="74"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs18779" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:#ec0000;stroke:#000000;stroke-width:0.264999"
+       d="M 0.28289195,999.86751 50.282891,939.86747 100.28289,999.86751 Z"
+       id="first"
+       sodipodi:nodetypes="cccc"
+       inkscape:transform-center-x="-0.30587435"
+       inkscape:transform-center-y="-28.066327" />
+    <path
+       style="fill:#ec0000;stroke:#000000;stroke-width:0.264999"
+       d="m 50.565783,939.73497 49.999997,-60 50,60 z"
+       id="second"
+       sodipodi:nodetypes="cccc"
+       inkscape:transform-center-x="-50.283018"
+       inkscape:transform-center-y="-30.126492">
+      <desc
+         id="desc18896">{
+    &quot;connectTo&quot;: &quot;first&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#ec0000;stroke:#000000;stroke-width:0.264999"
+       d="m 100.56578,879.73497 49.99999,-60 50.00001,60 z"
+       id="third"
+       sodipodi:nodetypes="cccc"
+       inkscape:transform-center-x="-50.283018"
+       inkscape:transform-center-y="-30.126492">
+      <desc
+         id="desc18898">{
+    &quot;connectTo&quot;: &quot;second&quot;
+}</desc>
+    </path>
+  </g>
+</svg>
