@@ -92,6 +92,8 @@ export const matrixTranslate = (result: Matrix3, x: number, y: number): void => 
     result[2 * 3 + 2] = x * result[0 * 3 + 2] + y * result[1 * 3 + 2] + m22;
 };
 
+export const matrixTranslateVector = (result: Matrix3, v: Vec2) => matrixTranslate(result, v[0], v[1]);
+
 export const vectorAdd = (result: Vec2, add: Vec2): Vec2 => {
     result[0] += add[0];
     result[1] += add[1];

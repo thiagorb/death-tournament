@@ -78,7 +78,8 @@ export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
         gl.viewport(0, 0, canvas.width, canvas.height);
         const matrix = matrixCreate();
         matrixScale(matrix, 1, canvas.width / canvas.height);
-        matrixScale(matrix, 0.002, 0.002);
+        const zoom = Math.min(canvas.width, canvas.height) / 300000;
+        matrixScale(matrix, zoom, zoom);
         gl.uniformMatrix3fv(viewTransform, false, matrix);
     };
     addEventListener('resize', updateViewport);
@@ -136,12 +137,8 @@ const glMeshCreate = (program: Program, vertices: Vertex[], indices: number[]): 
     const vertexArrayObject = gl.createVertexArray();
     gl.bindVertexArray(vertexArrayObject);
 
-    setArray(
-        program,
-        AttributesProperty.VertexPosition,
-        vertices.flatMap(v => v[VertexProperty.Position]),
-        2
-    );
+    const positions = vertices.map(v => v[VertexProperty.Position]);
+    setArray(program, AttributesProperty.VertexPosition, positions.flat(), 2);
     setArray(
         program,
         AttributesProperty.Color,
@@ -152,8 +149,8 @@ const glMeshCreate = (program: Program, vertices: Vertex[], indices: number[]): 
     const edgeNormals = [];
     const vLength = vertices.length;
     for (let i = 0; i < vLength; i++) {
-        const p1 = vertices[i][VertexProperty.Position];
-        const p2 = vertices[(i + 1) % vLength][VertexProperty.Position];
+        const p1 = positions[i];
+        const p2 = positions[(i + 1) % vLength];
         edgeNormals.push(vectorPerpendicular(vectorNormalize(vectorSubtract(vectorCopy(p2), p1))));
     }
 
@@ -238,10 +235,21 @@ export const glMeshTrianglesCreate = (program: Program, triangles: MeshTriangle[
 };
 
 export const glMeshPolygonCreate = (program: Program, vertices: Vertex[]) => {
-    // vertices[0] is added twice to the end to
+    const positions = vertices.map(v => v[VertexProperty.Position]);
+    const minX = Math.min(...positions.map(v => v[0]));
+    const maxX = Math.max(...positions.map(v => v[0]));
+    const minY = Math.min(...positions.map(v => v[1]));
+    const maxY = Math.max(...positions.map(v => v[1]));
+    const center: Vertex = {
+        [VertexProperty.Position]: vectorMultiply(vectorAdd(vectorCreate(maxX, maxY), vectorCreate(minX, minY)), 0.5),
+        [VertexProperty.Color]: vertices[0][VertexProperty.Color],
+    };
+
+    // center is added twice to the end to
     // (1) close the polygon and
     // (2) because of trick with stencil test to render concave polygons
-    const plus1: Vertex[] = [...vertices, vertices[0], vertices[0]];
+    const plus1: Vertex[] = vertices;
+
     return glMeshCreate(program, plus1, [...plus1.keys()]);
 };
 
@@ -279,6 +287,8 @@ export const glModelTranslate = (program: Program, x: number, y: number) => {
     matrixTranslate(matrix, x, y);
     updateCurrentMatrix(program);
 };
+
+export const glModelTranslateVector = (program: Program, v: Vec2) => glModelTranslate(program, v[0], v[1]);
 
 export const glModelScale = (program: Program, x: number, y: number) => {
     const matrix = program[ProgramProperty.ModelMatrixStack][program[ProgramProperty.CurrentModelMatrix]];

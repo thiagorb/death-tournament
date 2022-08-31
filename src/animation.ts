@@ -40,7 +40,7 @@ export const animationStep = (animation: Animation, deltaTime: number): boolean 
 
     let endOfFrame = true;
     const frame = animation[AnimationProperties.Frames][animation[AnimationProperties.CurrentFrame]];
-    for (const frameItem of frame) {
+    for (const frameItem of frame[FrameProperties.Items]) {
         if (frameItem[FrameItemProperties.Element][ElementProperties.AnimatedInStep]) {
             continue;
         }
@@ -52,6 +52,8 @@ export const animationStep = (animation: Animation, deltaTime: number): boolean 
     }
 
     if (endOfFrame) {
+        frame[FrameProperties.AfterTrigger]?.();
+
         animation[AnimationProperties.CurrentFrame]++;
         if (animationIsEnd(animation)) {
             animation[AnimationProperties.Running] = false;
@@ -86,13 +88,25 @@ export type AnimationFrameItem = {
     [FrameItemProperties.Speed]: number;
 };
 
+const enum FrameProperties {
+    Items,
+    AfterTrigger,
+}
+
+type AnimationFrame = {
+    [FrameProperties.Items]: Array<AnimationFrameItem>;
+    [FrameProperties.AfterTrigger]: AnimationTrigger;
+};
+
 export type Animation = {
-    [AnimationProperties.Frames]: Array<Array<AnimationFrameItem>>;
+    [AnimationProperties.Frames]: Array<AnimationFrame>;
     [AnimationProperties.Running]: boolean;
     [AnimationProperties.CurrentFrame]: number;
 };
 
-export const animationCreate = (frames: Array<Array<AnimationFrameItem>>): Animation => ({
+export type AnimationTrigger = () => {};
+
+export const animationCreate = (frames: Animation[AnimationProperties.Frames]): Animation => ({
     [AnimationProperties.Frames]: frames,
     [AnimationProperties.Running]: false,
     [AnimationProperties.CurrentFrame]: 0,
@@ -118,4 +132,12 @@ export const animationFrameItemCreate = (element: AnimationElement, targetValue:
     [FrameItemProperties.Element]: element,
     [FrameItemProperties.TargetValue]: targetValue,
     [FrameItemProperties.Speed]: speed,
+});
+
+export const animationFrameCreate = (
+    items: AnimationFrame[FrameProperties.Items],
+    afterTrigger: AnimationTrigger = null
+): AnimationFrame => ({
+    [FrameProperties.Items]: items,
+    [FrameProperties.AfterTrigger]: afterTrigger,
 });
