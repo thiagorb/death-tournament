@@ -42,7 +42,9 @@ const main = async () => {
         }
 
         deathStep(death, deltaTime);
-        for (const person of people) {
+        let i = people.length;
+        while (i--) {
+            const person = people[i];
             if (deathIsHitting(death, person)) {
                 personDie(person);
             }
@@ -64,7 +66,9 @@ const main = async () => {
 
         backgroundDraw(program);
         deathDraw(death, program);
-        for (const person of people) {
+        let i = people.length;
+        while (i--) {
+            const person = people[i];
             personDraw(person, program);
         }
 

@@ -1,4 +1,4 @@
--   add more people
+-   make people move
 -   add timer
 -   add object to increase timer
 -   add dog

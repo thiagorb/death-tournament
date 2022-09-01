@@ -44,7 +44,10 @@ export const animationStep = (animation: Animation, deltaTime: number): boolean 
 
     let endOfFrame = true;
     const frame = animation[AnimationProperties.Frames][animation[AnimationProperties.CurrentFrame]];
-    for (const frameItem of frame[FrameProperties.Items]) {
+    const frameItems = frame[FrameProperties.Items];
+    let i = frameItems.length;
+    while (i--) {
+        const frameItem = frameItems[i];
         if (frameItem[FrameItemProperties.Element][ElementProperties.AnimatedInStep]) {
             continue;
         }
@@ -171,12 +174,18 @@ export type Animatable = {
 };
 
 export const animatableBeginStep = (animatable: Animatable) => {
-    for (const boundElement of animatable[AnimatableProperties.AnimationElements]) {
+    const elements = animatable[AnimatableProperties.AnimationElements];
+    let i = elements.length;
+    while (i--) {
+        const boundElement = elements[i];
         animationElementBeginStep(boundElement[BoundElementProperties.AnimationElement]);
     }
 };
 export const animatableStep = (animatable: Animatable) => {
-    for (const boundElement of animatable[AnimatableProperties.AnimationElements]) {
+    const elements = animatable[AnimatableProperties.AnimationElements];
+    let i = elements.length;
+    while (i--) {
+        const boundElement = elements[i];
         const transform = objectGetComponentTransform(
             animatable[AnimatableProperties.Object],
             boundElement[BoundElementProperties.TransformPath]

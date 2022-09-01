@@ -75,12 +75,13 @@ export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
     const viewTransform = gl.getUniformLocation(program, 'viewTransform');
     const updateViewport = () => {
         const pixelSize = 1;
-        canvas.width = (document.body.clientWidth * devicePixelRatio) / pixelSize;
-        canvas.height = (document.body.clientHeight * devicePixelRatio) / pixelSize;
+        canvas.width = document.body.clientWidth / pixelSize;
+        canvas.height = document.body.clientHeight / pixelSize;
 
         gl.viewport(0, 0, canvas.width, canvas.height);
         const matrix = matrixCreate();
         matrixScale(matrix, 1, canvas.width / canvas.height);
+
         const zoom = (pixelSize * Math.min(canvas.width, canvas.height)) / 500000;
         matrixScale(matrix, zoom, zoom);
         gl.uniformMatrix3fv(viewTransform, false, matrix);
@@ -189,16 +190,19 @@ const glDrawLines = (program: Program, vertices: Array<[number, number]>) => {
     gl.drawElements(gl.LINES, vertices.length, gl.UNSIGNED_SHORT, 0);
 };
 
+const corners = [
+    [0, 0],
+    [0, 1],
+    [1, 1],
+    [1, 0],
+    [0, 0],
+];
 export const glDrawRect = (program: Program, position: [number, number], size: Vec2) => {
     const vertices = [];
     const colors = [];
-    for (const v of [
-        [0, 0],
-        [0, 1],
-        [1, 1],
-        [1, 0],
-        [0, 0],
-    ]) {
+    let i = corners.length;
+    while (i--) {
+        const v = corners[i];
         vertices.push([position[0] + size[0] * v[0], position[1] + size[1] * v[1]]);
         colors.push([1, 1, 1]);
     }

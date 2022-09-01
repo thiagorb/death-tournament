@@ -56,7 +56,7 @@ export const matrixMultiplyVector = (result: Vec2, m: Matrix3): void => {
 };
 
 export const matrixSetIdentity = (result: Matrix3): Matrix3 => {
-    Object.assign(result, identity);
+    result.set(identity, 0);
 
     return result;
 };
@@ -127,7 +127,7 @@ export const matrixSetOrtho = (
 };
 
 export const matrixCopy = (result: Matrix3, a: Matrix3): Matrix3 => {
-    Object.assign(result, a);
+    result.set(a, 0);
 
     return result;
 };
