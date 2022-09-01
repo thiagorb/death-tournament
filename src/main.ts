@@ -1,14 +1,11 @@
 import { backgroundDraw, backgroundInit } from './background';
 import { deathAttack, deathCreate, deathDraw, deathInit, deathIsHitting, deathStep, deathWalk } from './death';
-import { glClear, glDrawBoundingBox, glModelPop, glModelPush, glModelTranslate, glProgramCreate } from './gl';
-import { Vec2, vectorCreate } from './glm';
+import { glClear, glModelPop, glModelPush, glModelTranslate, glProgramCreate } from './gl';
+import { Vec2 } from './glm';
 import { keyboardInitialize } from './keyboard';
 import { personCreate, personDie, personDraw, personInit, personStep } from './person';
 
 const main = async () => {
-    addEventListener('resize', resize);
-    resize();
-
     const canvas: HTMLCanvasElement = document.querySelector('#game-canvas');
     const program = glProgramCreate(canvas);
 
@@ -25,9 +22,9 @@ const main = async () => {
     personInit(program);
     backgroundInit(program);
     const death = deathCreate();
-    const person = personCreate();
-    const deathPosition = vectorCreate();
-    const deathSize = vectorCreate(50, 100);
+    const people = [];
+    const pepoleInterval = 3000;
+    let nextPerson = pepoleInterval;
 
     let previousTime = 0;
 
@@ -44,12 +41,19 @@ const main = async () => {
             deathAttack(death);
         }
 
-        if (deathIsHitting(death, person)) {
-            personDie(person);
+        deathStep(death, deltaTime);
+        for (const person of people) {
+            if (deathIsHitting(death, person)) {
+                personDie(person);
+            }
+            personStep(person, deltaTime);
         }
 
-        deathStep(death, deltaTime);
-        personStep(person, deltaTime);
+        nextPerson -= deltaTime;
+        if (nextPerson < 0) {
+            people.push(personCreate());
+            nextPerson = pepoleInterval;
+        }
     };
 
     const render = () => {
@@ -60,9 +64,10 @@ const main = async () => {
 
         backgroundDraw(program);
         deathDraw(death, program);
-        personDraw(person, program);
+        for (const person of people) {
+            personDraw(person, program);
+        }
 
-        glDrawBoundingBox(program, deathPosition, deathSize);
         glModelPop(program);
     };
 
@@ -81,15 +86,6 @@ const main = async () => {
 
 const x = (p1: Vec2, s1: Vec2, p2: Vec2, s2: Vec2) => {
     return p1[0] <= p2[0] + s2[0] && p1[1] < p2[1] + s2[1];
-};
-
-const resize = () => {
-    const pixelSize = 1;
-    const canvas = document.querySelector<HTMLCanvasElement>('#game-canvas');
-    canvas.width = (document.body.clientWidth * devicePixelRatio) / pixelSize;
-    canvas.height = (document.body.clientHeight * devicePixelRatio) / pixelSize;
-    const vMin = Math.min(document.body.clientWidth, document.body.clientHeight) / 100;
-    document.documentElement.style.fontSize = `${vMin}px`;
 };
 
 window.onload = main;

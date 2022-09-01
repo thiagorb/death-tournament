@@ -143,7 +143,7 @@ export const deathDraw = (death: Death, program: Program) => {
 
     glModelPop(program);
 
-    glDrawRect(program, vectorCreate(getAttackLeft(death), 0), vectorCreate(ATTACK_WIDTH, 100));
+    // glDrawRect(program, vectorCreate(getAttackLeft(death), 0), vectorCreate(ATTACK_WIDTH, 100));
 };
 
 const ATTACK_COOLDOWN_TIME = 100;

@@ -53,7 +53,7 @@ export type Program = {
 };
 
 export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
-    const gl = canvas.getContext('webgl2', { stencil: true });
+    const gl = canvas.getContext('webgl2', { stencil: true, antialias: false });
     if (gl === null) {
         throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.');
     }
@@ -74,10 +74,14 @@ export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
 
     const viewTransform = gl.getUniformLocation(program, 'viewTransform');
     const updateViewport = () => {
+        const pixelSize = 1;
+        canvas.width = (document.body.clientWidth * devicePixelRatio) / pixelSize;
+        canvas.height = (document.body.clientHeight * devicePixelRatio) / pixelSize;
+
         gl.viewport(0, 0, canvas.width, canvas.height);
         const matrix = matrixCreate();
         matrixScale(matrix, 1, canvas.width / canvas.height);
-        const zoom = Math.min(canvas.width, canvas.height) / 500000;
+        const zoom = (pixelSize * Math.min(canvas.width, canvas.height)) / 500000;
         matrixScale(matrix, zoom, zoom);
         gl.uniformMatrix3fv(viewTransform, false, matrix);
     };
@@ -280,7 +284,7 @@ export const glModelTranslate = (program: Program, x: number, y: number) => {
     updateCurrentMatrix(program);
 };
 
-export const glModelTranslateVector = (program: Program, v: Vec2) => glModelTranslate(program, v[0], v[1]);
+export const glModelTranslateVector = (program: Program, v: [number, number]) => glModelTranslate(program, v[0], v[1]);
 
 export const glModelScale = (program: Program, x: number, y: number) => {
     const matrix = program[ProgramProperty.ModelMatrixStack][program[ProgramProperty.CurrentModelMatrix]];

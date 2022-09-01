@@ -135,6 +135,12 @@ module.exports.default = function (source) {
         hierarchy.get(parent).push(path);
     }
 
+    const statements = [];
+    let nextIndex = 0;
+    const addTransformPath = id => {
+        statements.push(`export const ${id}TransformPath = ${nextIndex++};`);
+    };
+
     const createPolygon = (path, origin) => {
         const relativeOrigin = translateVerticeToOrigin(path.transformOrigin, origin);
         const polygon = [translateVerticesToOrigin(path.vertices, path.transformOrigin), path.color];
@@ -144,40 +150,34 @@ module.exports.default = function (source) {
             polygon.push([0, 0]);
         }
 
-        if (hierarchy.has(path.id)) {
-            const children = hierarchy.get(path.id);
-            const subpolygons = children.map(p => createPolygon(p, path.transformOrigin));
-            const back = children
-                .map((p, i) => ({ p, i }))
-                .filter(({ p, i }) => zIndex.get(p.id) < zIndex.get(path.id))
-                .map(({ p, i }) => i);
-            const front = children
-                .map((p, i) => ({ p, i }))
-                .filter(({ p, i }) => zIndex.get(p.id) > zIndex.get(path.id))
-                .map(({ p, i }) => i);
+        const subpolygons = [];
 
-            polygon.push(subpolygons);
-            polygon.push(back);
-            polygon.push(front);
-        }
+        const back = (hierarchy.get(path.id) || [])
+            .map((p, i) => ({ p, i }))
+            .filter(({ p, i }) => zIndex.get(p.id) < zIndex.get(path.id))
+            .map(({ p, i }) => {
+                subpolygons.push(createPolygon(p, path.transformOrigin));
+                return i;
+            });
+
+        addTransformPath(path.id);
+
+        const front = (hierarchy.get(path.id) || [])
+            .map((p, i) => ({ p, i }))
+            .filter(({ p, i }) => zIndex.get(p.id) > zIndex.get(path.id))
+            .map(({ p, i }) => {
+                subpolygons.push(createPolygon(p, path.transformOrigin));
+                return i;
+            });
+
+        polygon.push(subpolygons);
+        polygon.push(back);
+        polygon.push(front);
 
         return polygon;
     };
 
     const model = [(hierarchy.get('@root') ?? []).map(p => createPolygon(p, [0, 0]))];
-
-    const statements = [];
-
-    const addTransformPath = (parentId, hierarchyPath) => {
-        const children = hierarchy.get(parentId) ?? [];
-        for (let i = 0; i < children.length; i++) {
-            const child = children[i];
-            const newHierarchyPath = hierarchyPath.concat(i);
-            statements.push(`export const ${child.id}TransformPath = ${JSON.stringify(newHierarchyPath, null, 4)};`);
-            addTransformPath(child.id, newHierarchyPath);
-        }
-    };
-    addTransformPath('@root', []);
 
     statements.push(
         `export const model = ${JSON.stringify(

@@ -153,10 +153,10 @@ const enum BoundElementProperties {
 
 type BoundElement = {
     [BoundElementProperties.AnimationElement]: AnimationElement;
-    [BoundElementProperties.TransformPath]: Array<number>;
+    [BoundElementProperties.TransformPath]: number;
 };
 
-export const boundElementCreate = (element: AnimationElement, transformPath: Array<number>) => ({
+export const boundElementCreate = (element: AnimationElement, transformPath: number) => ({
     [BoundElementProperties.AnimationElement]: element,
     [BoundElementProperties.TransformPath]: transformPath,
 });

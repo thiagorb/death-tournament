@@ -1,4 +1,14 @@
-import { ColorRGB, glMeshDraw, glMeshPolygonCreate, glModelMultiply, glModelPop, glModelPush, glModelTranslate, Mesh, Program } from './gl';
+import {
+    ColorRGB,
+    glMeshDraw,
+    glMeshPolygonCreate,
+    glModelMultiply,
+    glModelPop,
+    glModelPush,
+    glModelTranslateVector,
+    Mesh,
+    Program,
+} from './gl';
 import { Matrix3, matrixCreate, Vec2 } from './glm';
 
 const enum PolygonProperty {
@@ -58,17 +68,19 @@ const enum ObjectComponentProperty {
 export type ObjectComponent = {
     [ObjectComponentProperty.Mesh]: ModelMesh;
     [ObjectComponentProperty.Subcomponents]: Array<ObjectComponent>;
-    [ObjectComponentProperty.SubcomponentsBack]: Array<number>;
-    [ObjectComponentProperty.SubcomponentsFront]: Array<number>;
+    [ObjectComponentProperty.SubcomponentsBack]: Array<ObjectComponent>;
+    [ObjectComponentProperty.SubcomponentsFront]: Array<ObjectComponent>;
     [ObjectComponentProperty.Matrix]: Matrix3;
 };
 
 const enum ObjectProperty {
     Components,
+    InOrderComponents,
 }
 
 export type Object = {
     [ObjectProperty.Components]: Array<ObjectComponent>;
+    [ObjectProperty.InOrderComponents]: Array<ObjectComponent>;
 };
 
 export type Model = {
@@ -81,18 +93,31 @@ export const modelCreate = (program: Program, data: ModelData): Model => {
     };
 };
 
+const visitComponentsInOrder = (components: Array<ObjectComponent>, inOrder: Array<ObjectComponent> = []) => {
+    for (const component of components) {
+        visitComponentsInOrder(component[ObjectComponentProperty.SubcomponentsBack], inOrder);
+        inOrder.push(component);
+        visitComponentsInOrder(component[ObjectComponentProperty.SubcomponentsFront], inOrder);
+    }
+
+    return inOrder;
+};
+
 export const objectCreate = (model: Model): Object => {
+    const components = model[ModelProperty.Meshes].map(mesh => objectComponentFromMesh(mesh));
     return {
-        [ObjectProperty.Components]: model[ModelProperty.Meshes].map(mesh => objectComponentFromMesh(mesh)),
+        [ObjectProperty.Components]: components,
+        [ObjectProperty.InOrderComponents]: visitComponentsInOrder(components),
     };
 };
 
 const objectComponentFromMesh = (mesh: ModelMesh): ObjectComponent => {
+    const subcomponents = mesh[ModelMeshProperty.Submeshes].map(sm => objectComponentFromMesh(sm));
     return {
         [ObjectComponentProperty.Mesh]: mesh,
-        [ObjectComponentProperty.Subcomponents]: mesh[ModelMeshProperty.Submeshes].map(sm => objectComponentFromMesh(sm)),
-        [ObjectComponentProperty.SubcomponentsBack]: mesh[ModelMeshProperty.SubmeshesBack],
-        [ObjectComponentProperty.SubcomponentsFront]: mesh[ModelMeshProperty.SubmeshesFront],
+        [ObjectComponentProperty.Subcomponents]: subcomponents,
+        [ObjectComponentProperty.SubcomponentsBack]: mesh[ModelMeshProperty.SubmeshesBack].map(i => subcomponents[i]),
+        [ObjectComponentProperty.SubcomponentsFront]: mesh[ModelMeshProperty.SubmeshesFront].map(i => subcomponents[i]),
         [ObjectComponentProperty.Matrix]: matrixCreate(),
     };
 };
@@ -106,14 +131,14 @@ export const objectDraw = (object: Object, program: Program) => {
 const objectDrawComponent = (program: Program, component: ObjectComponent) => {
     glModelPush(program);
     const origin = component[ObjectComponentProperty.Mesh][ModelMeshProperty.TransformOrigin] ?? [0, 0];
-    glModelTranslate(program, origin[0], origin[1]);
+    glModelTranslateVector(program, origin);
     glModelMultiply(program, component[ObjectComponentProperty.Matrix]);
     for (const subcomponent of component[ObjectComponentProperty.SubcomponentsBack]) {
-        objectDrawComponent(program, component[ObjectComponentProperty.Subcomponents][subcomponent]);
+        objectDrawComponent(program, subcomponent);
     }
     glMeshDraw(program, component[ObjectComponentProperty.Mesh][ModelMeshProperty.Mesh]);
     for (const subcomponent of component[ObjectComponentProperty.SubcomponentsFront]) {
-        objectDrawComponent(program, component[ObjectComponentProperty.Subcomponents][subcomponent]);
+        objectDrawComponent(program, subcomponent);
     }
     glModelPop(program);
 };
@@ -131,11 +156,8 @@ const modelMeshFromPolygon = (program: Program, polygon: Polygon): ModelMesh => 
     };
 };
 
-export const objectGetComponentTransform = (object: Object, componentPath: Array<number>) => {
-    let component = object[ObjectProperty.Components][componentPath[0]];
-    for (let i = 1; i < componentPath.length; i++) {
-        component = component[ObjectComponentProperty.Subcomponents][componentPath[i]];
-    }
+export const objectGetComponentTransform = (object: Object, componentPath: number) => {
+    const component = object[ObjectProperty.InOrderComponents][componentPath];
 
     return component[ObjectComponentProperty.Matrix];
 };
