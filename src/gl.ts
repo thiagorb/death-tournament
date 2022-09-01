@@ -23,6 +23,7 @@ const enum ProgramProperty {
     Attributes,
     Uniforms,
     ModelMatrixStack,
+    MatrixUpdated,
     CurrentModelMatrix,
 }
 
@@ -49,6 +50,7 @@ export type Program = {
         [A in AttributesProperty]: number;
     };
     [ProgramProperty.ModelMatrixStack]: Array<Matrix3>;
+    [ProgramProperty.MatrixUpdated]: boolean;
     [ProgramProperty.CurrentModelMatrix]: number;
 };
 
@@ -104,6 +106,7 @@ export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
             [AttributesProperty.Normal]: gl.getAttribLocation(program, 'normal'),
         },
         [ProgramProperty.ModelMatrixStack]: [...new Array(10)].map(() => matrixCreate()),
+        [ProgramProperty.MatrixUpdated]: false,
         [ProgramProperty.CurrentModelMatrix]: 0,
     };
 };
@@ -176,6 +179,7 @@ const glDrawLineStrip = (program: Program, vertices: Array<[number, number]>, co
     setArray(program, AttributesProperty.VertexPosition, vertices.flat(), 2);
     setArray(program, AttributesProperty.Color, colors.flat(), 3);
 
+    updateCurrentMatrix(program);
     gl.drawArrays(gl.LINE_STRIP, 0, vertices.length);
 };
 
@@ -184,10 +188,8 @@ const glDrawLines = (program: Program, vertices: Array<[number, number]>) => {
     setArray(program, AttributesProperty.VertexPosition, vertices.flat(), 2);
     setArray(program, AttributesProperty.Color, vertices.map(v => [1, 0, 0]).flat(), 3);
 
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([...vertices.keys()]), gl.DYNAMIC_DRAW);
-    gl.drawElements(gl.LINES, vertices.length, gl.UNSIGNED_SHORT, 0);
+    updateCurrentMatrix(program);
+    gl.drawArrays(gl.LINES, 0, vertices.length);
 };
 
 const corners = [
@@ -271,10 +273,19 @@ export const glModelPop = (program: Program) => {
     }
 
     program[ProgramProperty.CurrentModelMatrix]--;
-    updateCurrentMatrix(program);
+    invalidateCurrentMatrix(program);
+};
+
+const invalidateCurrentMatrix = (program: Program) => {
+    program[ProgramProperty.MatrixUpdated] = false;
 };
 
 const updateCurrentMatrix = (program: Program) => {
+    if (program[ProgramProperty.MatrixUpdated]) {
+        return;
+    }
+
+    program[ProgramProperty.MatrixUpdated] = true;
     program[ProgramProperty.WebGL2Context].uniformMatrix3fv(
         program[ProgramProperty.Uniforms][UniformsProperty.ModelTransform],
         false,
@@ -285,7 +296,7 @@ const updateCurrentMatrix = (program: Program) => {
 export const glModelTranslate = (program: Program, x: number, y: number) => {
     const matrix = program[ProgramProperty.ModelMatrixStack][program[ProgramProperty.CurrentModelMatrix]];
     matrixTranslate(matrix, x, y);
-    updateCurrentMatrix(program);
+    invalidateCurrentMatrix(program);
 };
 
 export const glModelTranslateVector = (program: Program, v: [number, number]) => glModelTranslate(program, v[0], v[1]);
@@ -293,19 +304,19 @@ export const glModelTranslateVector = (program: Program, v: [number, number]) =>
 export const glModelScale = (program: Program, x: number, y: number) => {
     const matrix = program[ProgramProperty.ModelMatrixStack][program[ProgramProperty.CurrentModelMatrix]];
     matrixScale(matrix, x, y);
-    updateCurrentMatrix(program);
+    invalidateCurrentMatrix(program);
 };
 
 export const glModelRotate = (program: Program, angle: number) => {
     const matrix = program[ProgramProperty.ModelMatrixStack][program[ProgramProperty.CurrentModelMatrix]];
     matrixRotate(matrix, angle);
-    updateCurrentMatrix(program);
+    invalidateCurrentMatrix(program);
 };
 
 export const glModelMultiply = (program: Program, matrix: Matrix3) => {
     const current = program[ProgramProperty.ModelMatrixStack][program[ProgramProperty.CurrentModelMatrix]];
     matrixMultiply(current, matrix, current);
-    updateCurrentMatrix(program);
+    invalidateCurrentMatrix(program);
 };
 
 const setArray = (program: Program, attribute: AttributesProperty, values: number[], fetchSize: number) => {
@@ -322,13 +333,13 @@ export const glMeshDraw = (program: Program, mesh: Mesh) => {
     const gl = program[ProgramProperty.WebGL2Context];
     gl.bindVertexArray(mesh[MeshProperty.VertexArrayObject]);
 
-    gl.enable(gl.STENCIL_TEST);
     gl.clear(gl.STENCIL_BUFFER_BIT);
     gl.colorMask(false, false, false, false);
     gl.stencilFunc(gl.ALWAYS, 1, 1);
     gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
     gl.stencilMask(1);
 
+    updateCurrentMatrix(program);
     gl.drawArrays(mesh[MeshProperty.DrawMode], 0, mesh[MeshProperty.VerticesLength]);
     gl.colorMask(true, true, true, true);
     gl.stencilFunc(gl.EQUAL, 1, 1);
@@ -336,5 +347,4 @@ export const glMeshDraw = (program: Program, mesh: Mesh) => {
     gl.drawArrays(mesh[MeshProperty.DrawMode], 0, mesh[MeshProperty.VerticesLength]);
 
     gl.bindVertexArray(null);
-    gl.disable(gl.STENCIL_TEST);
 };

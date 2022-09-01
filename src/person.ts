@@ -16,7 +16,7 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
-import { glModelPop, glModelPush, glModelTranslateVector, Program } from './gl';
+import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
 import { Vec2, vectorCreate } from './glm';
 import { Model, modelCreate, objectCreate } from './model';
 
@@ -33,6 +33,8 @@ const enum PersonProperties {
     DeadAnimation,
     FacingLeft,
     Animatable,
+    Dead,
+    DeadTime,
 }
 
 export type Person = {
@@ -42,6 +44,8 @@ export type Person = {
     [PersonProperties.DeadAnimation]: Animation;
     [PersonProperties.FacingLeft]: boolean;
     [PersonProperties.Animatable]: Animatable;
+    [PersonProperties.Dead]: boolean;
+    [PersonProperties.DeadTime]: number;
 };
 
 export const personCreate = (): Person => {
@@ -78,20 +82,6 @@ export const personCreate = (): Person => {
         ]),
     ]);
 
-    const deadAnimation = animationCreate([
-        animationFrameCreate([
-            animationFrameItemCreate(leftArm1, -3.1, 0.007),
-            animationFrameItemCreate(leftArm2, REST_ARM_LEFT_2, 0.005),
-            animationFrameItemCreate(rightArm1, REST_ARM_RIGHT_1, 0.005),
-            animationFrameItemCreate(rightArm2, -2.2, 0.003),
-            animationFrameItemCreate(leftLeg1, REST_LEG_LEFT_1, 0.005),
-            animationFrameItemCreate(leftLeg2, 0.1, 0.005),
-            animationFrameItemCreate(rightLeg1, REST_LEG_RIGHT_1, 0.005),
-            animationFrameItemCreate(rightLeg2, 0.4, 0.005),
-            animationFrameItemCreate(body, 1.5, 0.003),
-        ]),
-    ]);
-
     const walkAnimation = animationCreate([
         animationFrameCreate([
             animationFrameItemCreate(leftArm1, -1, 0.01),
@@ -115,7 +105,7 @@ export const personCreate = (): Person => {
         ]),
     ]);
 
-    return {
+    const person: Person = {
         [PersonProperties.Position]: vectorCreate(),
         [PersonProperties.Animatable]: animatableCreate(objectCreate(modelRight), [
             boundElementCreate(leftArm1, modelDataRight.leftArm1TransformPath),
@@ -130,14 +120,35 @@ export const personCreate = (): Person => {
         ]),
         [PersonProperties.RestAnimation]: restAnimation,
         [PersonProperties.WalkAnimation]: walkAnimation,
-        [PersonProperties.DeadAnimation]: deadAnimation,
+        [PersonProperties.DeadAnimation]: null,
         [PersonProperties.FacingLeft]: false,
+        [PersonProperties.Dead]: false,
+        [PersonProperties.DeadTime]: 0,
     };
+
+    person[PersonProperties.DeadAnimation] = animationCreate([
+        animationFrameCreate([
+            animationFrameItemCreate(leftArm1, -3.1, 0.007),
+            animationFrameItemCreate(leftArm2, REST_ARM_LEFT_2, 0.005),
+            animationFrameItemCreate(rightArm1, REST_ARM_RIGHT_1, 0.005),
+            animationFrameItemCreate(rightArm2, -2.2, 0.003),
+            animationFrameItemCreate(leftLeg1, REST_LEG_LEFT_1, 0.005),
+            animationFrameItemCreate(leftLeg2, 0.1, 0.005),
+            animationFrameItemCreate(rightLeg1, REST_LEG_RIGHT_1, 0.005),
+            animationFrameItemCreate(rightLeg2, 0.4, 0.005),
+            animationFrameItemCreate(body, 1.5, 0.003),
+        ]),
+    ]);
+
+    return person;
 };
 
 export const personDraw = (person: Person, program: Program) => {
     glModelPush(program);
     glModelTranslateVector(program, person[PersonProperties.Position]);
+    if (person[PersonProperties.FacingLeft]) {
+        glModelScale(program, -1, 1);
+    }
     animatableDraw(person[PersonProperties.Animatable], program);
     glModelPop(program);
 };
@@ -148,6 +159,7 @@ export const personWalk = (person: Person) => {
 
 export const personDie = (person: Person) => {
     animationStart(person[PersonProperties.DeadAnimation]);
+    person[PersonProperties.Dead] = true;
 };
 
 export const personTurnLeft = (person: Person) => {
@@ -158,7 +170,21 @@ export const personTurnRight = (person: Person) => {
     person[PersonProperties.FacingLeft] = false;
 };
 
+export const personGetDeadTime = (person: Person) => {
+    return person[PersonProperties.DeadTime];
+};
+
+export const personSetPositionX = (person: Person, x: number) => {
+    person[PersonProperties.Position][0] = x;
+};
+
 export const personStep = (person: Person, deltaTime: number) => {
+    if (person[PersonProperties.Dead]) {
+        person[PersonProperties.DeadTime] += deltaTime;
+    } else {
+        person[PersonProperties.Position][0] += (person[PersonProperties.FacingLeft] ? -1 : 1) * deltaTime * 0.2;
+    }
+
     animatableBeginStep(person[PersonProperties.Animatable]);
 
     if (animationStep(person[PersonProperties.DeadAnimation], deltaTime)) {

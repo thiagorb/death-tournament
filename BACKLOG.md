@@ -1,4 +1,4 @@
--   make people move
+-   try to replace stencil trick with triangulation (delaunator)
 -   add timer
 -   add object to increase timer
 -   add dog

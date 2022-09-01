@@ -3,7 +3,18 @@ import { deathAttack, deathCreate, deathDraw, deathInit, deathIsHitting, deathSt
 import { glClear, glModelPop, glModelPush, glModelTranslate, glProgramCreate } from './gl';
 import { Vec2 } from './glm';
 import { keyboardInitialize } from './keyboard';
-import { personCreate, personDie, personDraw, personInit, personStep } from './person';
+import {
+    Person,
+    personCreate,
+    personDie,
+    personDraw,
+    personGetBoundingLeft,
+    personGetDeadTime,
+    personInit,
+    personSetPositionX,
+    personStep,
+    personTurnLeft,
+} from './person';
 
 const main = async () => {
     const canvas: HTMLCanvasElement = document.querySelector('#game-canvas');
@@ -22,9 +33,9 @@ const main = async () => {
     personInit(program);
     backgroundInit(program);
     const death = deathCreate();
-    const people = [];
-    const pepoleInterval = 3000;
-    let nextPerson = pepoleInterval;
+    const people = new Set<Person>();
+    const pepoleInterval = 300;
+    let nextPerson = 0;
 
     let previousTime = 0;
 
@@ -42,18 +53,24 @@ const main = async () => {
         }
 
         deathStep(death, deltaTime);
-        let i = people.length;
-        while (i--) {
-            const person = people[i];
+        for (const person of people) {
             if (deathIsHitting(death, person)) {
                 personDie(person);
             }
             personStep(person, deltaTime);
+            if (personGetDeadTime(person) > 2000 || personGetBoundingLeft(person) > 1000 || personGetBoundingLeft(person) < -1000) {
+                people.delete(person);
+            }
         }
 
         nextPerson -= deltaTime;
         if (nextPerson < 0) {
-            people.push(personCreate());
+            const person = personCreate();
+            people.add(person);
+            personSetPositionX(person, (Math.random() - 0.5) * 1000);
+            if (Math.random() < 0.5) {
+                personTurnLeft(person);
+            }
             nextPerson = pepoleInterval;
         }
     };
@@ -66,9 +83,7 @@ const main = async () => {
 
         backgroundDraw(program);
         deathDraw(death, program);
-        let i = people.length;
-        while (i--) {
-            const person = people[i];
+        for (const person of people) {
             personDraw(person, program);
         }
 

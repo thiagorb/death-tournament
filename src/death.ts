@@ -190,14 +190,15 @@ export const deathStep = (death: Death, deltaTime: number) => {
     animatableStep(death[death[DeathProperties.FacingLeft] ? DeathProperties.AnimatableLeft : DeathProperties.AnimatableRight]);
 };
 
-const ATTACK_WIDTH = 90;
-const getAttackLeft = (death: Death) => death[DeathProperties.Position][0] - (death[DeathProperties.FacingLeft] ? ATTACK_WIDTH : 0);
+const ATTACK_GAP = 20;
+const ATTACK_WIDTH = 70;
+const ATTACK_LEFT = [-ATTACK_GAP - ATTACK_WIDTH, ATTACK_GAP];
 export const deathIsHitting = (death: Death, person: Person) => {
     if (!death[DeathProperties.Attacking]) {
         return false;
     }
 
-    const attackLeft = getAttackLeft(death);
+    const attackLeft = death[DeathProperties.Position][0] + ATTACK_LEFT[death[DeathProperties.FacingLeft] ? 0 : 1];
     const attackRight = attackLeft + ATTACK_WIDTH;
     return attackLeft < personGetBoundingRight(person) && attackRight >= personGetBoundingLeft(person);
 };

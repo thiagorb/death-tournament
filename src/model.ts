@@ -15,69 +15,75 @@ const enum PolygonProperty {
     Vertices,
     Color,
     TransformOrigin,
-    Subpolygons,
-    SubpolygonsBack,
-    SubpolygonsFront,
 }
 
 type Polygon = {
     [PolygonProperty.Vertices]: Array<Vec2>;
     [PolygonProperty.Color]: ColorRGB;
     [PolygonProperty.TransformOrigin]: [number, number];
-    [PolygonProperty.Subpolygons]?: Array<Polygon>;
-    [PolygonProperty.SubpolygonsBack]?: Array<number>;
-    [PolygonProperty.SubpolygonsFront]?: Array<number>;
+};
+
+const enum PolygonHierarchyProperties {
+    Index,
+    SubpolygonsBack,
+    SubpolygonsFront,
+}
+
+type PolygonHierarchy = {
+    [PolygonHierarchyProperties.Index]: number;
+    [PolygonHierarchyProperties.SubpolygonsBack]: Array<PolygonHierarchy>;
+    [PolygonHierarchyProperties.SubpolygonsFront]: Array<PolygonHierarchy>;
 };
 
 const enum ModelDataProperty {
     Polygons,
+    PolygonHierarchy,
 }
 
 export type ModelData = {
     [ModelDataProperty.Polygons]: Array<Polygon>;
+    [ModelDataProperty.PolygonHierarchy]: Array<PolygonHierarchy>;
 };
 
 const enum ModelMeshProperty {
     Mesh,
-    Submeshes,
-    SubmeshesBack,
-    SubmeshesFront,
     TransformOrigin,
 }
 
 export type ModelMesh = {
     [ModelMeshProperty.Mesh]: Mesh;
-    [ModelMeshProperty.Submeshes]: Array<ModelMesh>;
-    [ModelMeshProperty.SubmeshesBack]: Array<number>;
-    [ModelMeshProperty.SubmeshesFront]: Array<number>;
     [ModelMeshProperty.TransformOrigin]: [number, number];
 };
 
-const enum ModelProperty {
-    Meshes,
-}
-
 const enum ObjectComponentProperty {
     Mesh,
-    Subcomponents,
-    SubcomponentsBack,
-    SubcomponentsFront,
     Matrix,
 }
 
 export type ObjectComponent = {
     [ObjectComponentProperty.Mesh]: ModelMesh;
-    [ObjectComponentProperty.Subcomponents]: Array<ObjectComponent>;
-    [ObjectComponentProperty.SubcomponentsBack]: Array<ObjectComponent>;
-    [ObjectComponentProperty.SubcomponentsFront]: Array<ObjectComponent>;
     [ObjectComponentProperty.Matrix]: Matrix3;
+};
+
+const enum ModelProperty {
+    Meshes,
+    ReversedDrawInstructions,
+}
+
+export type Model = {
+    [ModelProperty.Meshes]: Array<ModelMesh>;
+    [ModelProperty.ReversedDrawInstructions]: Array<DrawInstruction>;
 };
 
 const enum ObjectProperty {
     Components,
-    InOrderComponents,
-    ReversedDrawInstructions,
+    Model,
 }
+
+export type Object = {
+    [ObjectProperty.Components]: Array<ObjectComponent>;
+    [ObjectProperty.Model]: Model;
+};
 
 const enum DrawInstructionType {
     Begin,
@@ -87,81 +93,69 @@ const enum DrawInstructionType {
 
 const enum DrawInstructionProperties {
     Type,
-    Component,
+    ComponentIndex,
 }
 
 type DrawInstruction =
-    | { [DrawInstructionProperties.Type]: DrawInstructionType.Begin; [DrawInstructionProperties.Component]: ObjectComponent }
-    | { [DrawInstructionProperties.Type]: DrawInstructionType.Draw; [DrawInstructionProperties.Component]: ObjectComponent }
+    | { [DrawInstructionProperties.Type]: DrawInstructionType.Begin; [DrawInstructionProperties.ComponentIndex]: number }
+    | { [DrawInstructionProperties.Type]: DrawInstructionType.Draw; [DrawInstructionProperties.ComponentIndex]: number }
     | { [DrawInstructionProperties.Type]: DrawInstructionType.End };
 
-export type Object = {
-    [ObjectProperty.Components]: Array<ObjectComponent>;
-    [ObjectProperty.InOrderComponents]: Array<ObjectComponent>;
-    [ObjectProperty.ReversedDrawInstructions]: Array<DrawInstruction>;
-};
-
-export type Model = {
-    [ModelProperty.Meshes]: Array<ModelMesh>;
-};
-
 export const modelCreate = (program: Program, data: ModelData): Model => {
+    const meshes = data[ModelDataProperty.Polygons].map(polygon => modelMeshFromPolygon(program, polygon));
+    const drawInstructions: Array<DrawInstruction> = [];
+
+    const visitInOrder = (polygonHierarchyLevel: Array<PolygonHierarchy>) => {
+        for (const polygonHierarhcy of polygonHierarchyLevel) {
+            drawInstructions.push({
+                [DrawInstructionProperties.Type]: DrawInstructionType.Begin,
+                [DrawInstructionProperties.ComponentIndex]: polygonHierarhcy[PolygonHierarchyProperties.Index],
+            });
+
+            visitInOrder(polygonHierarhcy[PolygonHierarchyProperties.SubpolygonsBack]);
+
+            drawInstructions.push({
+                [DrawInstructionProperties.Type]: DrawInstructionType.Draw,
+                [DrawInstructionProperties.ComponentIndex]: polygonHierarhcy[PolygonHierarchyProperties.Index],
+            });
+
+            visitInOrder(polygonHierarhcy[PolygonHierarchyProperties.SubpolygonsFront]);
+
+            drawInstructions.push({ [DrawInstructionProperties.Type]: DrawInstructionType.End });
+        }
+    };
+    visitInOrder(data[ModelDataProperty.PolygonHierarchy]);
+
     return {
-        [ModelProperty.Meshes]: data[ModelDataProperty.Polygons].map(polygon => modelMeshFromPolygon(program, polygon)),
+        [ModelProperty.Meshes]: meshes,
+        [ModelProperty.ReversedDrawInstructions]: drawInstructions.reverse(),
     };
 };
 
 export const objectCreate = (model: Model): Object => {
     const components = model[ModelProperty.Meshes].map(mesh => objectComponentFromMesh(mesh));
-    const inOrder = [];
-    const drawInstructions: Array<DrawInstruction> = [];
-
-    const visitInOrder = (components: Array<ObjectComponent>) => {
-        for (const component of components) {
-            drawInstructions.push({
-                [DrawInstructionProperties.Type]: DrawInstructionType.Begin,
-                [DrawInstructionProperties.Component]: component,
-            });
-
-            visitInOrder(component[ObjectComponentProperty.SubcomponentsBack]);
-            inOrder.push(component);
-            drawInstructions.push({
-                [DrawInstructionProperties.Type]: DrawInstructionType.Draw,
-                [DrawInstructionProperties.Component]: component,
-            });
-            visitInOrder(component[ObjectComponentProperty.SubcomponentsFront]);
-
-            drawInstructions.push({ [DrawInstructionProperties.Type]: DrawInstructionType.End });
-        }
-    };
-    visitInOrder(components);
 
     return {
         [ObjectProperty.Components]: components,
-        [ObjectProperty.InOrderComponents]: inOrder,
-        [ObjectProperty.ReversedDrawInstructions]: drawInstructions.reverse(),
+        [ObjectProperty.Model]: model,
     };
 };
 
 const objectComponentFromMesh = (mesh: ModelMesh): ObjectComponent => {
-    const subcomponents = mesh[ModelMeshProperty.Submeshes].map(sm => objectComponentFromMesh(sm));
     return {
         [ObjectComponentProperty.Mesh]: mesh,
-        [ObjectComponentProperty.Subcomponents]: subcomponents,
-        [ObjectComponentProperty.SubcomponentsBack]: mesh[ModelMeshProperty.SubmeshesBack].map(i => subcomponents[i]),
-        [ObjectComponentProperty.SubcomponentsFront]: mesh[ModelMeshProperty.SubmeshesFront].map(i => subcomponents[i]),
         [ObjectComponentProperty.Matrix]: matrixCreate(),
     };
 };
 
 export const objectDraw = (object: Object, program: Program) => {
-    const instructions = object[ObjectProperty.ReversedDrawInstructions];
+    const instructions = object[ObjectProperty.Model][ModelProperty.ReversedDrawInstructions];
     let i = instructions.length;
     while (i--) {
         const instruction = instructions[i];
         switch (instruction[DrawInstructionProperties.Type]) {
             case DrawInstructionType.Begin: {
-                const component = instruction[DrawInstructionProperties.Component];
+                const component = object[ObjectProperty.Components][instruction[DrawInstructionProperties.ComponentIndex]];
                 glModelPush(program);
                 const origin = component[ObjectComponentProperty.Mesh][ModelMeshProperty.TransformOrigin];
                 glModelTranslateVector(program, origin);
@@ -169,7 +163,7 @@ export const objectDraw = (object: Object, program: Program) => {
                 break;
             }
             case DrawInstructionType.Draw: {
-                const component = instruction[DrawInstructionProperties.Component];
+                const component = object[ObjectProperty.Components][instruction[DrawInstructionProperties.ComponentIndex]];
                 glMeshDraw(program, component[ObjectComponentProperty.Mesh][ModelMeshProperty.Mesh]);
                 break;
             }
@@ -186,15 +180,12 @@ const modelMeshFromPolygon = (program: Program, polygon: Polygon): ModelMesh => 
             program,
             polygon[PolygonProperty.Vertices].map((v, i) => [v, polygon[PolygonProperty.Color]])
         ),
-        [ModelMeshProperty.Submeshes]: (polygon[PolygonProperty.Subpolygons] ?? []).map(sp => modelMeshFromPolygon(program, sp)),
-        [ModelMeshProperty.SubmeshesBack]: polygon[PolygonProperty.SubpolygonsBack] ?? [],
-        [ModelMeshProperty.SubmeshesFront]: polygon[PolygonProperty.SubpolygonsFront] ?? [],
         [ModelMeshProperty.TransformOrigin]: polygon[PolygonProperty.TransformOrigin] ?? [0, 0],
     };
 };
 
 export const objectGetComponentTransform = (object: Object, componentPath: number) => {
-    const component = object[ObjectProperty.InOrderComponents][componentPath];
+    const component = object[ObjectProperty.Components][componentPath];
 
     return component[ObjectComponentProperty.Matrix];
 };

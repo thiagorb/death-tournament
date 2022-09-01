@@ -141,7 +141,10 @@ module.exports.default = function (source) {
         statements.push(`export const ${id}TransformPath = ${nextIndex++};`);
     };
 
-    const createPolygon = (path, origin) => {
+    const polygons = [];
+    const transformedHierarchy = [];
+
+    const addPolygon = (path, origin) => {
         const relativeOrigin = translateVerticeToOrigin(path.transformOrigin, origin);
         const polygon = [translateVerticesToOrigin(path.vertices, path.transformOrigin), path.color];
         if (path.meta.connectTo) {
@@ -150,34 +153,32 @@ module.exports.default = function (source) {
             polygon.push([0, 0]);
         }
 
-        const subpolygons = [];
-
         const back = (hierarchy.get(path.id) || [])
             .map((p, i) => ({ p, i }))
             .filter(({ p, i }) => zIndex.get(p.id) < zIndex.get(path.id))
             .map(({ p, i }) => {
-                subpolygons.push(createPolygon(p, path.transformOrigin));
-                return i;
+                return addPolygon(p, path.transformOrigin);
             });
 
+        const index = nextIndex;
+        polygons.push(polygon);
         addTransformPath(path.id);
 
         const front = (hierarchy.get(path.id) || [])
             .map((p, i) => ({ p, i }))
             .filter(({ p, i }) => zIndex.get(p.id) > zIndex.get(path.id))
             .map(({ p, i }) => {
-                subpolygons.push(createPolygon(p, path.transformOrigin));
-                return i;
+                return addPolygon(p, path.transformOrigin);
             });
 
-        polygon.push(subpolygons);
-        polygon.push(back);
-        polygon.push(front);
-
-        return polygon;
+        return [index, back, front];
     };
 
-    const model = [(hierarchy.get('@root') ?? []).map(p => createPolygon(p, [0, 0]))];
+    for (const polygon of hierarchy.get('@root') ?? []) {
+        transformedHierarchy.push(addPolygon(polygon, [0, 0]));
+    }
+
+    const model = [polygons, transformedHierarchy];
 
     statements.push(
         `export const model = ${JSON.stringify(
