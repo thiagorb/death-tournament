@@ -1,12 +1,14 @@
 import * as modelDataRight from '../art/death.svg';
 import * as modelDataLeft from '../art/death_left.svg';
 import {
+    Animatable,
+    animatableBeginStep,
+    animatableCreate,
+    animatableDraw,
+    animatableStep,
     Animation,
     animationCreate,
-    AnimationElement,
-    animationElementBeginStep,
     animationElementCreate,
-    animationElementGetValue,
     animationFrameCreate,
     animationFrameItemCreate,
     animationIsRunning,
@@ -14,10 +16,11 @@ import {
     animationResume,
     animationStart,
     animationStep,
+    boundElementCreate,
 } from './animation';
-import { glDrawBoundingBox, glDrawRect, glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
-import { matrixRotate, matrixSetIdentity, Vec2, vectorCreate } from './glm';
-import { Model, modelCreate, Object, objectCreate, objectDraw, objectGetComponentTransform } from './model';
+import { glDrawRect, glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
+import { Vec2, vectorCreate } from './glm';
+import { Model, modelCreate, objectCreate } from './model';
 import { Person, personGetBoundingLeft, personGetBoundingRight } from './person';
 
 let modelRight: Model;
@@ -30,13 +33,9 @@ export const deathInit = (program: Program) => {
 
 const enum DeathProperties {
     Position,
-    ObjectRight,
-    ObjectLeft,
     AttackCooldown,
-    LeftArmRotation1,
-    LeftArmRotation2,
-    RightArmRotation1,
-    RightArmRotation2,
+    AnimatableRight,
+    AnimatableLeft,
     AttackAnimation,
     RestAnimation,
     WalkAnimation,
@@ -46,13 +45,9 @@ const enum DeathProperties {
 
 export type Death = {
     [DeathProperties.Position]: Vec2;
-    [DeathProperties.ObjectRight]: Object;
-    [DeathProperties.ObjectLeft]: Object;
     [DeathProperties.AttackCooldown]: number;
-    [DeathProperties.LeftArmRotation1]: AnimationElement;
-    [DeathProperties.LeftArmRotation2]: AnimationElement;
-    [DeathProperties.RightArmRotation1]: AnimationElement;
-    [DeathProperties.RightArmRotation2]: AnimationElement;
+    [DeathProperties.AnimatableRight]: Animatable;
+    [DeathProperties.AnimatableLeft]: Animatable;
     [DeathProperties.AttackAnimation]: Animation;
     [DeathProperties.RestAnimation]: Animation;
     [DeathProperties.WalkAnimation]: Animation;
@@ -99,13 +94,19 @@ export const deathCreate = (): Death => {
 
     const death: Death = {
         [DeathProperties.Position]: vectorCreate(),
-        [DeathProperties.ObjectRight]: objectCreate(modelRight),
-        [DeathProperties.ObjectLeft]: objectCreate(modelLeft),
         [DeathProperties.AttackCooldown]: 0,
-        [DeathProperties.LeftArmRotation1]: leftArm1,
-        [DeathProperties.LeftArmRotation2]: leftArm2,
-        [DeathProperties.RightArmRotation1]: rightArm1,
-        [DeathProperties.RightArmRotation2]: rightArm2,
+        [DeathProperties.AnimatableRight]: animatableCreate(objectCreate(modelRight), [
+            boundElementCreate(leftArm1, modelDataRight.leftArm1TransformPath),
+            boundElementCreate(leftArm2, modelDataRight.leftArm2TransformPath),
+            boundElementCreate(rightArm1, modelDataRight.rightArm1TransformPath),
+            boundElementCreate(rightArm2, modelDataRight.rightArm2TransformPath),
+        ]),
+        [DeathProperties.AnimatableLeft]: animatableCreate(objectCreate(modelLeft), [
+            boundElementCreate(leftArm1, modelDataLeft.leftArm1TransformPath),
+            boundElementCreate(leftArm2, modelDataLeft.leftArm2TransformPath),
+            boundElementCreate(rightArm1, modelDataLeft.rightArm1TransformPath),
+            boundElementCreate(rightArm2, modelDataLeft.rightArm2TransformPath),
+        ]),
         [DeathProperties.AttackAnimation]: null,
         [DeathProperties.RestAnimation]: restAnimation,
         [DeathProperties.WalkAnimation]: walkAnimation,
@@ -130,14 +131,14 @@ export const deathCreate = (): Death => {
     return death;
 };
 
-export const deathDraw = (program: Program, death: Death) => {
+export const deathDraw = (death: Death, program: Program) => {
     glModelPush(program);
     glModelTranslateVector(program, death[DeathProperties.Position]);
     if (death[DeathProperties.FacingLeft]) {
         glModelScale(program, -1, 1);
-        objectDraw(program, death[DeathProperties.ObjectLeft]);
+        animatableDraw(death[DeathProperties.AnimatableLeft], program);
     } else {
-        objectDraw(program, death[DeathProperties.ObjectRight]);
+        animatableDraw(death[DeathProperties.AnimatableRight], program);
     }
 
     glModelPop(program);
@@ -171,10 +172,7 @@ export const deathIsAttacking = (death: Death) => {
 };
 
 export const deathStep = (death: Death, deltaTime: number) => {
-    animationElementBeginStep(death[DeathProperties.LeftArmRotation1]);
-    animationElementBeginStep(death[DeathProperties.LeftArmRotation2]);
-    animationElementBeginStep(death[DeathProperties.RightArmRotation1]);
-    animationElementBeginStep(death[DeathProperties.RightArmRotation2]);
+    animatableBeginStep(death[DeathProperties.AnimatableRight]);
 
     death[DeathProperties.AttackCooldown] = Math.max(0, death[DeathProperties.AttackCooldown] - deltaTime);
     if (animationStep(death[DeathProperties.AttackAnimation], deltaTime)) {
@@ -189,20 +187,7 @@ export const deathStep = (death: Death, deltaTime: number) => {
 
     animationPause(death[DeathProperties.WalkAnimation]);
 
-    const object = death[death[DeathProperties.FacingLeft] ? DeathProperties.ObjectLeft : DeathProperties.ObjectRight];
-    const model = death[DeathProperties.FacingLeft] ? modelDataLeft : modelDataRight;
-    const leftArm1Transform = objectGetComponentTransform(object, model.leftArm1TransformPath);
-    const leftArm2Transform = objectGetComponentTransform(object, model.leftArm2TransformPath);
-    const rightArm1Transform = objectGetComponentTransform(object, model.rightArm1TransformPath);
-    const rightArm2Transform = objectGetComponentTransform(object, model.rightArm2TransformPath);
-    matrixSetIdentity(leftArm1Transform);
-    matrixSetIdentity(leftArm2Transform);
-    matrixSetIdentity(rightArm1Transform);
-    matrixSetIdentity(rightArm2Transform);
-    matrixRotate(leftArm1Transform, animationElementGetValue(death[DeathProperties.LeftArmRotation1]));
-    matrixRotate(leftArm2Transform, animationElementGetValue(death[DeathProperties.LeftArmRotation2]));
-    matrixRotate(rightArm1Transform, animationElementGetValue(death[DeathProperties.RightArmRotation1]));
-    matrixRotate(rightArm2Transform, animationElementGetValue(death[DeathProperties.RightArmRotation2]));
+    animatableStep(death[death[DeathProperties.FacingLeft] ? DeathProperties.AnimatableLeft : DeathProperties.AnimatableRight]);
 };
 
 const ATTACK_WIDTH = 90;

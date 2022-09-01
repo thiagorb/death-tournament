@@ -6,14 +6,13 @@ import {
     matrixRotate,
     matrixScale,
     matrixTranslate,
-    vectorNormalize,
     Vec2,
-    vectorCopy,
-    vectorCreate,
-    vectorSubtract,
-    vectorPerpendicular,
     vectorAdd,
+    vectorCopy,
     vectorMultiply,
+    vectorNormalize,
+    vectorPerpendicular,
+    vectorSubtract,
 } from './glm';
 import fragmentShaderCode from './shaders/fragment.glsl';
 import vertexShaderCode from './shaders/vertex.glsl';
@@ -78,7 +77,7 @@ export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
         gl.viewport(0, 0, canvas.width, canvas.height);
         const matrix = matrixCreate();
         matrixScale(matrix, 1, canvas.width / canvas.height);
-        const zoom = Math.min(canvas.width, canvas.height) / 300000;
+        const zoom = Math.min(canvas.width, canvas.height) / 500000;
         matrixScale(matrix, zoom, zoom);
         gl.uniformMatrix3fv(viewTransform, false, matrix);
     };
@@ -122,17 +121,17 @@ export const glClear = (program: Program, clearColor: [number, number, number, n
 
 const enum MeshProperty {
     VertexArrayObject,
-    IndicesLength,
+    VerticesLength,
     DrawMode,
 }
 
 export type Mesh = {
     [MeshProperty.VertexArrayObject]: WebGLVertexArrayObject;
-    [MeshProperty.IndicesLength]: number;
+    [MeshProperty.VerticesLength]: number;
     [MeshProperty.DrawMode]: number;
 };
 
-const glMeshCreate = (program: Program, vertices: Vertex[], indices: number[]): Mesh => {
+const glMeshCreate = (program: Program, vertices: Vertex[]): Mesh => {
     const gl = program[ProgramProperty.WebGL2Context];
     const vertexArrayObject = gl.createVertexArray();
     gl.bindVertexArray(vertexArrayObject);
@@ -164,11 +163,7 @@ const glMeshCreate = (program: Program, vertices: Vertex[], indices: number[]): 
 
     setArray(program, AttributesProperty.Normal, normals.flat(), 2);
 
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
-    return [vertexArrayObject, indices.length, gl.TRIANGLE_FAN];
+    return [vertexArrayObject, vertices.length, gl.TRIANGLE_FAN];
 };
 
 const glDrawLineStrip = (program: Program, vertices: Array<[number, number]>, colors: Array<ColorRGB>) => {
@@ -176,11 +171,7 @@ const glDrawLineStrip = (program: Program, vertices: Array<[number, number]>, co
     setArray(program, AttributesProperty.VertexPosition, vertices.flat(), 2);
     setArray(program, AttributesProperty.Color, colors.flat(), 3);
 
-    gl.disable(gl.STENCIL);
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([...vertices.keys()]), gl.DYNAMIC_DRAW);
-    gl.drawElements(gl.LINE_STRIP, vertices.length, gl.UNSIGNED_SHORT, 0);
+    gl.drawArrays(gl.LINE_STRIP, 0, vertices.length);
 };
 
 const glDrawLines = (program: Program, vertices: Array<[number, number]>) => {
@@ -231,10 +222,14 @@ type MeshTriangle = [Vertex, Vertex, Vertex];
 
 export const glMeshTrianglesCreate = (program: Program, triangles: MeshTriangle[]) => {
     const vertices = triangles.flat();
-    return glMeshCreate(program, vertices, [...vertices.keys()]);
+    return glMeshCreate(program, vertices);
 };
 
 export const glMeshPolygonCreate = (program: Program, vertices: Vertex[]) => {
+    /*
+    // center is added twice to the end to
+    // (1) close the polygon and
+    // (2) because of trick with stencil test to render concave polygons
     const positions = vertices.map(v => v[VertexProperty.Position]);
     const minX = Math.min(...positions.map(v => v[0]));
     const maxX = Math.max(...positions.map(v => v[0]));
@@ -244,13 +239,10 @@ export const glMeshPolygonCreate = (program: Program, vertices: Vertex[]) => {
         [VertexProperty.Position]: vectorMultiply(vectorAdd(vectorCreate(maxX, maxY), vectorCreate(minX, minY)), 0.5),
         [VertexProperty.Color]: vertices[0][VertexProperty.Color],
     };
+    const plus1: Vertex[] = [...vertices, center, center];
+    */
 
-    // center is added twice to the end to
-    // (1) close the polygon and
-    // (2) because of trick with stencil test to render concave polygons
-    const plus1: Vertex[] = vertices;
-
-    return glMeshCreate(program, plus1, [...plus1.keys()]);
+    return glMeshCreate(program, vertices);
 };
 
 export const glModelPush = (program: Program) => {
@@ -329,11 +321,11 @@ export const glMeshDraw = (program: Program, mesh: Mesh) => {
     gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
     gl.stencilMask(1);
 
-    gl.drawElements(mesh[MeshProperty.DrawMode], mesh[MeshProperty.IndicesLength], gl.UNSIGNED_SHORT, 0);
+    gl.drawArrays(mesh[MeshProperty.DrawMode], 0, mesh[MeshProperty.VerticesLength]);
     gl.colorMask(true, true, true, true);
     gl.stencilFunc(gl.EQUAL, 1, 1);
     gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-    gl.drawElements(mesh[MeshProperty.DrawMode], mesh[MeshProperty.IndicesLength], gl.UNSIGNED_SHORT, 0);
+    gl.drawArrays(mesh[MeshProperty.DrawMode], 0, mesh[MeshProperty.VerticesLength]);
 
     gl.bindVertexArray(null);
     gl.disable(gl.STENCIL_TEST);

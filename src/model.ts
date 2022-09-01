@@ -97,7 +97,7 @@ const objectComponentFromMesh = (mesh: ModelMesh): ObjectComponent => {
     };
 };
 
-export const objectDraw = (program: Program, object: Object) => {
+export const objectDraw = (object: Object, program: Program) => {
     for (const component of object[ObjectProperty.Components]) {
         objectDrawComponent(program, component);
     }

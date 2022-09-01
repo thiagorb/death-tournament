@@ -1,3 +1,4 @@
+import { backgroundDraw, backgroundInit } from './background';
 import { deathAttack, deathCreate, deathDraw, deathInit, deathIsHitting, deathStep, deathWalk } from './death';
 import { glClear, glDrawBoundingBox, glModelPop, glModelPush, glModelTranslate, glProgramCreate } from './gl';
 import { Vec2, vectorCreate } from './glm';
@@ -22,6 +23,7 @@ const main = async () => {
 
     deathInit(program);
     personInit(program);
+    backgroundInit(program);
     const death = deathCreate();
     const person = personCreate();
     const deathPosition = vectorCreate();
@@ -56,8 +58,9 @@ const main = async () => {
         glModelPush(program);
         glModelTranslate(program, 0, -50);
 
-        deathDraw(program, death);
-        personDraw(program, person);
+        backgroundDraw(program);
+        deathDraw(death, program);
+        personDraw(person, program);
 
         glDrawBoundingBox(program, deathPosition, deathSize);
         glModelPop(program);

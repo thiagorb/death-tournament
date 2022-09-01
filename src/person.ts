@@ -1,21 +1,24 @@
-import { glModelMultiply, glModelPop, glModelPush, glModelTranslate, glModelTranslateVector, Program } from './gl';
 import * as modelDataRight from '../art/person.svg';
-import { Model, modelCreate, Object, objectCreate, objectDraw, objectGetComponentTransform } from './model';
-import { Matrix3, matrixCreate, matrixRotate, matrixScale, matrixSetIdentity, Vec2, vectorCreate } from './glm';
 import {
+    Animatable,
+    animatableBeginStep,
+    animatableCreate,
+    animatableDraw,
+    animatableStep,
     Animation,
     animationCreate,
-    AnimationElement,
-    animationElementBeginStep,
     animationElementCreate,
-    animationElementGetValue,
     animationFrameCreate,
     animationFrameItemCreate,
     animationIsRunning,
     animationResume,
     animationStart,
     animationStep,
+    boundElementCreate,
 } from './animation';
+import { glModelPop, glModelPush, glModelTranslateVector, Program } from './gl';
+import { Vec2, vectorCreate } from './glm';
+import { Model, modelCreate, objectCreate } from './model';
 
 let modelRight: Model;
 
@@ -25,38 +28,21 @@ export const personInit = (program: Program) => {
 
 const enum PersonProperties {
     Position,
-    ObjectRight,
-    AnimationElements,
     RestAnimation,
     WalkAnimation,
     DeadAnimation,
     FacingLeft,
+    Animatable,
 }
-
-const enum BoundElementProperties {
-    AnimationElement,
-    TransformPath,
-}
-
-type BoundElement = {
-    [BoundElementProperties.AnimationElement]: AnimationElement;
-    [BoundElementProperties.TransformPath]: Array<number>;
-};
 
 export type Person = {
     [PersonProperties.Position]: Vec2;
-    [PersonProperties.ObjectRight]: Object;
-    [PersonProperties.AnimationElements]: Array<BoundElement>;
     [PersonProperties.RestAnimation]: Animation;
     [PersonProperties.WalkAnimation]: Animation;
     [PersonProperties.DeadAnimation]: Animation;
     [PersonProperties.FacingLeft]: boolean;
+    [PersonProperties.Animatable]: Animatable;
 };
-
-const boundElementCreate = (element: AnimationElement, transformPath: Array<number>) => ({
-    [BoundElementProperties.AnimationElement]: element,
-    [BoundElementProperties.TransformPath]: transformPath,
-});
 
 export const personCreate = (): Person => {
     const REST_ARM_LEFT_1 = 0;
@@ -121,7 +107,7 @@ export const personCreate = (): Person => {
             animationFrameItemCreate(leftArm1, 1, 0.01),
             animationFrameItemCreate(leftArm2, -2, 0.008),
             animationFrameItemCreate(rightArm1, -1, 0.01),
-            animationFrameItemCreate(rightArm2, -0.4, 0.005),
+            animationFrameItemCreate(rightArm2, -1.4, 0.005),
             animationFrameItemCreate(leftLeg1, 1, 0.01),
             animationFrameItemCreate(leftLeg2, 2, 0.008),
             animationFrameItemCreate(rightLeg1, -1.2, 0.01),
@@ -131,8 +117,7 @@ export const personCreate = (): Person => {
 
     return {
         [PersonProperties.Position]: vectorCreate(),
-        [PersonProperties.ObjectRight]: objectCreate(modelRight),
-        [PersonProperties.AnimationElements]: [
+        [PersonProperties.Animatable]: animatableCreate(objectCreate(modelRight), [
             boundElementCreate(leftArm1, modelDataRight.leftArm1TransformPath),
             boundElementCreate(leftArm2, modelDataRight.leftArm3TransformPath),
             boundElementCreate(rightArm1, modelDataRight.rightArm1TransformPath),
@@ -142,7 +127,7 @@ export const personCreate = (): Person => {
             boundElementCreate(rightLeg1, modelDataRight.rightLeg1TransformPath),
             boundElementCreate(rightLeg2, modelDataRight.rightLeg2TransformPath),
             boundElementCreate(body, modelDataRight.bodyTransformPath),
-        ],
+        ]),
         [PersonProperties.RestAnimation]: restAnimation,
         [PersonProperties.WalkAnimation]: walkAnimation,
         [PersonProperties.DeadAnimation]: deadAnimation,
@@ -150,10 +135,10 @@ export const personCreate = (): Person => {
     };
 };
 
-export const personDraw = (program: Program, person: Person) => {
+export const personDraw = (person: Person, program: Program) => {
     glModelPush(program);
     glModelTranslateVector(program, person[PersonProperties.Position]);
-    objectDraw(program, person[PersonProperties.ObjectRight]);
+    animatableDraw(person[PersonProperties.Animatable], program);
     glModelPop(program);
 };
 
@@ -174,9 +159,7 @@ export const personTurnRight = (person: Person) => {
 };
 
 export const personStep = (person: Person, deltaTime: number) => {
-    for (const boundElement of person[PersonProperties.AnimationElements]) {
-        animationElementBeginStep(boundElement[BoundElementProperties.AnimationElement]);
-    }
+    animatableBeginStep(person[PersonProperties.Animatable]);
 
     if (animationStep(person[PersonProperties.DeadAnimation], deltaTime)) {
         animationStart(person[PersonProperties.DeadAnimation]);
@@ -193,14 +176,7 @@ export const personStep = (person: Person, deltaTime: number) => {
     }
     animationStep(person[PersonProperties.RestAnimation], deltaTime);
 
-    for (const boundElement of person[PersonProperties.AnimationElements]) {
-        const transform = objectGetComponentTransform(
-            person[PersonProperties.ObjectRight],
-            boundElement[BoundElementProperties.TransformPath]
-        );
-        matrixSetIdentity(transform);
-        matrixRotate(transform, animationElementGetValue(boundElement[BoundElementProperties.AnimationElement]));
-    }
+    animatableStep(person[PersonProperties.Animatable]);
 };
 
 const PERSON_WIDTH = 50;

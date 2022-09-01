@@ -10,7 +10,120 @@ module.exports.default = function (source) {
     const jObj = parser.parse(source);
 
     const viewBox = jObj.svg.viewBox.split(' ').map(x => parseFloat(x));
-    const paths = getPaths(jObj.svg.g?.path).map(p => convertPathD(viewBox, p));
+    const parseCoordinates = v => v.split(',').map(x => parseFloat(x));
+    const toAbsolute = ([x, y]) => [x, viewBox[3] - y];
+
+    const convertPathD = path => {
+        const v = path.d.split(' ');
+        const vertices = [];
+        let state = 'start';
+        let penPosition = [0, viewBox[3]];
+        const parseAbsoluteCoordinates = v => toAbsolute(parseCoordinates(v));
+        const parseRelativeCoordinates = v => {
+            const [x, y] = parseCoordinates(v);
+            return [penPosition[0] + x, penPosition[1] - y];
+        };
+
+        const isPairOfCooridnates = v => /^(-?[0-9]+(\.[0-9]+)?(,|$)){2}/.test(v);
+
+        for (let i = 0; i < v.length; ) {
+            switch (state) {
+                case 'start':
+                    switch (v[i]) {
+                        case 'M':
+                            state = 'after_M';
+                            break;
+                        case 'm':
+                            state = 'after_m';
+                            break;
+                        case 'L':
+                            state = 'after_L';
+                            break;
+                        case 'l':
+                            state = 'after_l';
+                            break;
+                        case 'z':
+                        case 'Z':
+                            state = 'end';
+                            break;
+                        default:
+                            throw new Error(`Unrecognized path ${path.id}. Not sure what to do with ${v[i]}.`);
+                    }
+
+                    i++;
+                    break;
+
+                case 'end':
+                    throw new Error(`Unrecognized path ${path.id}. Expected end of string but found ${v[i]}.`);
+
+                case 'after_M': {
+                    if (!isPairOfCooridnates(v[i])) {
+                        state = 'start';
+                        break;
+                    }
+
+                    const coords = parseAbsoluteCoordinates(v[i]);
+                    vertices.push(coords);
+                    penPosition = coords;
+                    i++;
+                    break;
+                }
+
+                case 'after_m': {
+                    if (!isPairOfCooridnates(v[i])) {
+                        state = 'start';
+                        break;
+                    }
+
+                    const coords = parseRelativeCoordinates(v[i]);
+                    vertices.push(coords);
+                    penPosition = coords;
+                    i++;
+                    break;
+                }
+
+                case 'after_L': {
+                    if (!isPairOfCooridnates(v[i])) {
+                        state = 'start';
+                        break;
+                    }
+
+                    const coords = parseAbsoluteCoordinates(v[i]);
+                    vertices.push(coords);
+                    penPosition = coords;
+                    i++;
+                    break;
+                }
+
+                case 'after_l': {
+                    if (!isPairOfCooridnates(v[i])) {
+                        state = 'start';
+                        break;
+                    }
+
+                    const coords = parseRelativeCoordinates(v[i]);
+                    vertices.push(coords);
+                    penPosition = coords;
+                    i++;
+                    break;
+                }
+            }
+        }
+
+        return buildPathDefinition(path, vertices);
+    };
+
+    const convertRect = rect => {
+        let x = parseFloat(rect.x);
+        let y = parseFloat(rect.y);
+        let width = parseFloat(rect.width);
+        let height = parseFloat(rect.height);
+        const vertices = [toAbsolute([x, y]), toAbsolute([x + width, y]), toAbsolute([x + width, y + height]), toAbsolute([x, y + height])];
+
+        return buildPathDefinition(rect, vertices);
+    };
+
+    const paths = [...getNodes(jObj.svg.g?.path).map(p => convertPathD(p)), ...getNodes(jObj.svg.g?.rect).map(p => convertRect(p))];
     const zIndex = new Map(paths.map((p, i) => [p.id, i]));
     const hierarchy = new Map();
     for (const path of paths) {
@@ -83,12 +196,12 @@ module.exports.default = function (source) {
     return statements.join('\n\n');
 };
 
-const getPaths = paths => {
-    if (!paths) {
+const getNodes = nodes => {
+    if (!nodes) {
         return [];
     }
 
-    return Array.isArray(paths) ? paths : [paths];
+    return Array.isArray(nodes) ? nodes : [nodes];
 };
 
 const translateVerticeToOrigin = (vertice, origin) => {
@@ -99,115 +212,17 @@ const translateVerticesToOrigin = (vertices, origin) => {
     return vertices.map(v => translateVerticeToOrigin(v, origin));
 };
 
-const convertPathD = (viewBox, path) => {
-    const v = path.d.split(' ');
-    const vertices = [];
-    let penPosition = [0, viewBox[3]];
-    let state = 'start';
-
-    const parseCoordinates = v => v.split(',').map(x => parseFloat(x));
-    const parseAbsoluteCoordinates = v => {
-        const [x, y] = parseCoordinates(v);
-        return [x, viewBox[3] - y];
-    };
-    const parseRelativeCoordinates = v => {
-        const [x, y] = parseCoordinates(v);
-        return [penPosition[0] + x, penPosition[1] - y];
-    };
-    const isPairOfCooridnates = v => /^(-?[0-9]+(\.[0-9]+)?(,|$)){2}/.test(v);
-
-    for (let i = 0; i < v.length; ) {
-        switch (state) {
-            case 'start':
-                switch (v[i]) {
-                    case 'M':
-                        state = 'after_M';
-                        break;
-                    case 'm':
-                        state = 'after_m';
-                        break;
-                    case 'L':
-                        state = 'after_L';
-                        break;
-                    case 'l':
-                        state = 'after_l';
-                        break;
-                    case 'z':
-                    case 'Z':
-                        state = 'end';
-                        break;
-                    default:
-                        throw new Error(`Unrecognized path ${path.id}. Not sure what to do with ${v[i]}.`);
-                }
-
-                i++;
-                break;
-
-            case 'end':
-                throw new Error(`Unrecognized path ${path.id}. Expected end of string but found ${v[i]}.`);
-
-            case 'after_M': {
-                if (!isPairOfCooridnates(v[i])) {
-                    state = 'start';
-                    break;
-                }
-
-                const coords = parseAbsoluteCoordinates(v[i]);
-                vertices.push(coords);
-                penPosition = coords;
-                i++;
-                break;
-            }
-
-            case 'after_m': {
-                if (!isPairOfCooridnates(v[i])) {
-                    state = 'start';
-                    break;
-                }
-
-                const coords = parseRelativeCoordinates(v[i]);
-                vertices.push(coords);
-                penPosition = coords;
-                i++;
-                break;
-            }
-
-            case 'after_L': {
-                if (!isPairOfCooridnates(v[i])) {
-                    state = 'start';
-                    break;
-                }
-
-                const coords = parseAbsoluteCoordinates(v[i]);
-                vertices.push(coords);
-                penPosition = coords;
-                i++;
-                break;
-            }
-
-            case 'after_l': {
-                if (!isPairOfCooridnates(v[i])) {
-                    state = 'start';
-                    break;
-                }
-
-                const coords = parseRelativeCoordinates(v[i]);
-                vertices.push(coords);
-                penPosition = coords;
-                i++;
-                break;
-            }
-        }
-    }
-
+const buildPathDefinition = (svgNode, vertices) => {
     return {
-        id: path.id,
-        meta: JSON.parse(path.desc?.['#text'] ?? '{}'),
+        id: isValidIdentifier(svgNode.id) ? svgNode.id : `random${Math.floor(Math.random() * 1000000)}`,
+        meta: JSON.parse(svgNode.desc?.['#text'] ?? '{}'),
         vertices,
-        color: parseFillColor(path.style),
-        transformOrigin: computeTransformOrigin(vertices, extractInkscapeTransformCenter(path)),
+        color: parseFillColor(svgNode.style),
+        transformOrigin: computeTransformOrigin(vertices, extractInkscapeTransformCenter(svgNode)),
     };
 };
+
+const isValidIdentifier = id => /^[a-z0-9_]+$/i.test(id);
 
 const extractInkscapeTransformCenter = path => {
     if (path['inkscape:transform-center-x'] === undefined || path['inkscape:transform-center-y'] === undefined) {

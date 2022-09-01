@@ -8,6 +8,6 @@ console.log(
             getOptions: () => ({}),
             resourcePath: '',
         },
-        fs.readFileSync(path.join(__dirname, 'art/death_left.svg'))
+        fs.readFileSync(path.join(__dirname, 'art/background.svg'))
     )
 );

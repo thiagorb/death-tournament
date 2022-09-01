@@ -1,7 +1,7 @@
 {
-  "arrowParens": "avoid",
-  "singleQuote": true,
-  "tabWidth": 4,
-  "semi": true,
-  "printWidth": 140
+    "arrowParens": "avoid",
+    "singleQuote": true,
+    "tabWidth": 4,
+    "semi": true,
+    "printWidth": 140
 }

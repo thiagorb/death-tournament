@@ -1,3 +1,7 @@
+import { Program } from './gl';
+import { matrixRotate, matrixSetIdentity } from './glm';
+import { Object, objectDraw, objectGetComponentTransform } from './model';
+
 const enum ElementProperties {
     CurrentValue,
     AnimatedInStep,
@@ -141,3 +145,52 @@ export const animationFrameCreate = (
     [FrameProperties.Items]: items,
     [FrameProperties.AfterTrigger]: afterTrigger,
 });
+
+const enum BoundElementProperties {
+    AnimationElement,
+    TransformPath,
+}
+
+type BoundElement = {
+    [BoundElementProperties.AnimationElement]: AnimationElement;
+    [BoundElementProperties.TransformPath]: Array<number>;
+};
+
+export const boundElementCreate = (element: AnimationElement, transformPath: Array<number>) => ({
+    [BoundElementProperties.AnimationElement]: element,
+    [BoundElementProperties.TransformPath]: transformPath,
+});
+
+export const enum AnimatableProperties {
+    Object,
+    AnimationElements,
+}
+export type Animatable = {
+    [AnimatableProperties.Object]: Object;
+    [AnimatableProperties.AnimationElements]: Array<BoundElement>;
+};
+
+export const animatableBeginStep = (animatable: Animatable) => {
+    for (const boundElement of animatable[AnimatableProperties.AnimationElements]) {
+        animationElementBeginStep(boundElement[BoundElementProperties.AnimationElement]);
+    }
+};
+export const animatableStep = (animatable: Animatable) => {
+    for (const boundElement of animatable[AnimatableProperties.AnimationElements]) {
+        const transform = objectGetComponentTransform(
+            animatable[AnimatableProperties.Object],
+            boundElement[BoundElementProperties.TransformPath]
+        );
+        matrixSetIdentity(transform);
+        matrixRotate(transform, animationElementGetValue(boundElement[BoundElementProperties.AnimationElement]));
+    }
+};
+
+export const animatableCreate = (object: Object, elements: Animatable[AnimatableProperties.AnimationElements]): Animatable => ({
+    [AnimatableProperties.Object]: object,
+    [AnimatableProperties.AnimationElements]: elements,
+});
+
+export const animatableDraw = (animatable: Animatable, program: Program) => {
+    objectDraw(animatable[AnimatableProperties.Object], program);
+};

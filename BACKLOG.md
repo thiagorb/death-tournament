@@ -1,1 +1,5 @@
-
+-   add more people
+-   add timer
+-   add object to increase timer
+-   add dog
+-   killing a dog should reduce timer
