@@ -1,5 +1,6 @@
--   try to replace stencil trick with triangulation (delaunator)
 -   add timer
 -   add object to increase timer
 -   add dog
 -   killing a dog should reduce timer
+-   make attack move
+-   implement loader for glsl, that minifies the identifiers

@@ -17,6 +17,7 @@ import {
 } from './glm';
 import fragmentShaderCode from './shaders/fragment.glsl';
 import vertexShaderCode from './shaders/vertex.glsl';
+import earcut from './earcut';
 
 const enum ProgramProperty {
     WebGL2Context,
@@ -56,12 +57,10 @@ export type Program = {
 };
 
 export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
-    const gl = canvas.getContext('webgl2', { stencil: true, antialias: false });
+    const gl = canvas.getContext('webgl2', { antialias: false });
     if (gl === null) {
         throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.');
     }
-
-    gl.enable(gl.STENCIL_TEST);
 
     const program = gl.createProgram();
     gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, vertexShaderCode));
@@ -172,7 +171,12 @@ export const glMeshCreate = (program: Program, vertices: Array<number>, color: C
 
     setArray(program, AttributesProperty.VertexNormal, normals.flat(), 2);
 
-    return [vertexArrayObject, vLength, gl.TRIANGLE_FAN];
+    const indexBuffer = gl.createBuffer();
+    const index = earcut(vertices);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(index), gl.STATIC_DRAW);
+
+    return [vertexArrayObject, index.length, gl.TRIANGLES];
 };
 
 const glDrawLineStrip = (program: Program, vertices: Array<[number, number]>, colors: Array<ColorRGB>) => {
@@ -294,21 +298,10 @@ const setArray = (program: Program, attribute: AttributesProperty, values: numbe
 };
 
 export const glMeshDraw = (program: Program, mesh: Mesh) => {
+    updateCurrentMatrix(program);
+
     const gl = program[ProgramProperty.WebGL2Context];
     gl.bindVertexArray(mesh[MeshProperty.VertexArrayObject]);
-
-    gl.clear(gl.STENCIL_BUFFER_BIT);
-    gl.colorMask(false, false, false, false);
-    gl.stencilFunc(gl.ALWAYS, 1, 1);
-    gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
-    gl.stencilMask(1);
-
-    updateCurrentMatrix(program);
-    gl.drawArrays(mesh[MeshProperty.DrawMode], 0, mesh[MeshProperty.VerticesLength]);
-    gl.colorMask(true, true, true, true);
-    gl.stencilFunc(gl.EQUAL, 1, 1);
-    gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-    gl.drawArrays(mesh[MeshProperty.DrawMode], 0, mesh[MeshProperty.VerticesLength]);
-
+    gl.drawElements(mesh[MeshProperty.DrawMode], mesh[MeshProperty.VerticesLength], gl.UNSIGNED_SHORT, 0);
     gl.bindVertexArray(null);
 };
