@@ -36,8 +36,8 @@ const enum UniformsProperty {
 
 const enum AttributesProperty {
     VertexPosition,
+    VertexNormal,
     Color,
-    Normal,
 }
 
 export type Program = {
@@ -102,8 +102,8 @@ export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
         },
         [ProgramProperty.Attributes]: {
             [AttributesProperty.VertexPosition]: gl.getAttribLocation(program, 'vertexPosition'),
+            [AttributesProperty.VertexNormal]: gl.getAttribLocation(program, 'vertexNormal'),
             [AttributesProperty.Color]: gl.getAttribLocation(program, 'color'),
-            [AttributesProperty.Normal]: gl.getAttribLocation(program, 'normal'),
         },
         [ProgramProperty.ModelMatrixStack]: [...new Array(10)].map(() => matrixCreate()),
         [ProgramProperty.MatrixUpdated]: false,
@@ -169,7 +169,7 @@ const glMeshCreate = (program: Program, vertices: Vertex[]): Mesh => {
         normals.push(n);
     }
 
-    setArray(program, AttributesProperty.Normal, normals.flat(), 2);
+    setArray(program, AttributesProperty.VertexNormal, normals.flat(), 2);
 
     return [vertexArrayObject, vertices.length, gl.TRIANGLE_FAN];
 };

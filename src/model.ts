@@ -67,12 +67,12 @@ export type ObjectComponent = {
 
 const enum ModelProperty {
     Meshes,
-    ReversedDrawInstructions,
+    DrawFunction,
 }
 
 export type Model = {
     [ModelProperty.Meshes]: Array<ModelMesh>;
-    [ModelProperty.ReversedDrawInstructions]: Array<DrawInstruction>;
+    [ModelProperty.DrawFunction]: (o: Object, p: Program) => void;
 };
 
 const enum ObjectProperty {
@@ -101,34 +101,52 @@ type DrawInstruction =
     | { [DrawInstructionProperties.Type]: DrawInstructionType.Draw; [DrawInstructionProperties.ComponentIndex]: number }
     | { [DrawInstructionProperties.Type]: DrawInstructionType.End };
 
+const drawFunctionCreate = (polygonHierarchyLevel: Array<PolygonHierarchy>) => {
+    const object = 'o';
+    const program = 'p';
+    const glModelPush = 'b';
+    const glModelTranslateVector = 't';
+    const glModelMultiply = 'm';
+    const glMeshDraw = 'd';
+    const glModelPop = 'e';
+
+    const visitInOrder = (polygonHierarchyLevel: Array<PolygonHierarchy>, drawStatements: Array<string> = []) => {
+        for (const polygonHierarhcy of polygonHierarchyLevel) {
+            const index = polygonHierarhcy[PolygonHierarchyProperties.Index];
+            const component = `${object}[${ObjectProperty.Components}][${index}]`;
+            drawStatements.push(
+                `${glModelPush}(${program})`,
+                `${glModelTranslateVector}(${program},${component}[${ObjectComponentProperty.Mesh}][${ModelMeshProperty.TransformOrigin}])`,
+                `${glModelMultiply}(${program},${component}[${ObjectComponentProperty.Matrix}])`
+            );
+
+            visitInOrder(polygonHierarhcy[PolygonHierarchyProperties.SubpolygonsBack], drawStatements);
+
+            drawStatements.push(`${glMeshDraw}(${program},${component}[${ObjectComponentProperty.Mesh}][${ModelMeshProperty.Mesh}])`);
+
+            visitInOrder(polygonHierarhcy[PolygonHierarchyProperties.SubpolygonsFront], drawStatements);
+
+            drawStatements.push(`${glModelPop}(${program})`);
+        }
+        return drawStatements;
+    };
+
+    const body = `(${object},${program})=>{${visitInOrder(polygonHierarchyLevel).join(';')}}`;
+    return eval(`(${glModelPush},${glModelTranslateVector},${glModelMultiply},${glMeshDraw},${glModelPop})=>${body}`);
+};
+
 export const modelCreate = (program: Program, data: ModelData): Model => {
     const meshes = data[ModelDataProperty.Polygons].map(polygon => modelMeshFromPolygon(program, polygon));
-    const drawInstructions: Array<DrawInstruction> = [];
-
-    const visitInOrder = (polygonHierarchyLevel: Array<PolygonHierarchy>) => {
-        for (const polygonHierarhcy of polygonHierarchyLevel) {
-            drawInstructions.push({
-                [DrawInstructionProperties.Type]: DrawInstructionType.Begin,
-                [DrawInstructionProperties.ComponentIndex]: polygonHierarhcy[PolygonHierarchyProperties.Index],
-            });
-
-            visitInOrder(polygonHierarhcy[PolygonHierarchyProperties.SubpolygonsBack]);
-
-            drawInstructions.push({
-                [DrawInstructionProperties.Type]: DrawInstructionType.Draw,
-                [DrawInstructionProperties.ComponentIndex]: polygonHierarhcy[PolygonHierarchyProperties.Index],
-            });
-
-            visitInOrder(polygonHierarhcy[PolygonHierarchyProperties.SubpolygonsFront]);
-
-            drawInstructions.push({ [DrawInstructionProperties.Type]: DrawInstructionType.End });
-        }
-    };
-    visitInOrder(data[ModelDataProperty.PolygonHierarchy]);
 
     return {
         [ModelProperty.Meshes]: meshes,
-        [ModelProperty.ReversedDrawInstructions]: drawInstructions.reverse(),
+        [ModelProperty.DrawFunction]: drawFunctionCreate(data[ModelDataProperty.PolygonHierarchy])(
+            glModelPush,
+            glModelTranslateVector,
+            glModelMultiply,
+            glMeshDraw,
+            glModelPop
+        ),
     };
 };
 
@@ -148,31 +166,7 @@ const objectComponentFromMesh = (mesh: ModelMesh): ObjectComponent => {
     };
 };
 
-export const objectDraw = (object: Object, program: Program) => {
-    const instructions = object[ObjectProperty.Model][ModelProperty.ReversedDrawInstructions];
-    let i = instructions.length;
-    while (i--) {
-        const instruction = instructions[i];
-        switch (instruction[DrawInstructionProperties.Type]) {
-            case DrawInstructionType.Begin: {
-                const component = object[ObjectProperty.Components][instruction[DrawInstructionProperties.ComponentIndex]];
-                glModelPush(program);
-                const origin = component[ObjectComponentProperty.Mesh][ModelMeshProperty.TransformOrigin];
-                glModelTranslateVector(program, origin);
-                glModelMultiply(program, component[ObjectComponentProperty.Matrix]);
-                break;
-            }
-            case DrawInstructionType.Draw: {
-                const component = object[ObjectProperty.Components][instruction[DrawInstructionProperties.ComponentIndex]];
-                glMeshDraw(program, component[ObjectComponentProperty.Mesh][ModelMeshProperty.Mesh]);
-                break;
-            }
-            case DrawInstructionType.End:
-                glModelPop(program);
-                break;
-        }
-    }
-};
+export const objectDraw = (object: Object, program: Program) => object[ObjectProperty.Model][ModelProperty.DrawFunction](object, program);
 
 const modelMeshFromPolygon = (program: Program, polygon: Polygon): ModelMesh => {
     return {
