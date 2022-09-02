@@ -1,15 +1,6 @@
-import {
-    ColorRGB,
-    glMeshDraw,
-    glMeshPolygonCreate,
-    glModelMultiply,
-    glModelPop,
-    glModelPush,
-    glModelTranslateVector,
-    Mesh,
-    Program,
-} from './gl';
+import { ColorRGB, glMeshDraw, glMeshCreate, glModelMultiply, glModelPop, glModelPush, glModelTranslateVector, Mesh, Program } from './gl';
 import { Matrix3, matrixCreate, Vec2 } from './glm';
+import functionCreate from './function';
 
 const enum PolygonProperty {
     Vertices,
@@ -18,7 +9,7 @@ const enum PolygonProperty {
 }
 
 type Polygon = {
-    [PolygonProperty.Vertices]: Array<Vec2>;
+    [PolygonProperty.Vertices]: Array<number>;
     [PolygonProperty.Color]: ColorRGB;
     [PolygonProperty.TransformOrigin]: [number, number];
 };
@@ -85,22 +76,6 @@ export type Object = {
     [ObjectProperty.Model]: Model;
 };
 
-const enum DrawInstructionType {
-    Begin,
-    Draw,
-    End,
-}
-
-const enum DrawInstructionProperties {
-    Type,
-    ComponentIndex,
-}
-
-type DrawInstruction =
-    | { [DrawInstructionProperties.Type]: DrawInstructionType.Begin; [DrawInstructionProperties.ComponentIndex]: number }
-    | { [DrawInstructionProperties.Type]: DrawInstructionType.Draw; [DrawInstructionProperties.ComponentIndex]: number }
-    | { [DrawInstructionProperties.Type]: DrawInstructionType.End };
-
 const drawFunctionCreate = (polygonHierarchyLevel: Array<PolygonHierarchy>) => {
     const object = 'o';
     const program = 'p';
@@ -111,7 +86,7 @@ const drawFunctionCreate = (polygonHierarchyLevel: Array<PolygonHierarchy>) => {
     const glModelPop = 'e';
 
     const visitInOrder = (polygonHierarchyLevel: Array<PolygonHierarchy>, drawStatements: Array<string> = []) => {
-        for (const polygonHierarhcy of polygonHierarchyLevel) {
+        for (const polygonHierarhcy of polygonHierarchyLevel ?? []) {
             const index = polygonHierarhcy[PolygonHierarchyProperties.Index];
             const component = `${object}[${ObjectProperty.Components}][${index}]`;
             drawStatements.push(
@@ -131,8 +106,8 @@ const drawFunctionCreate = (polygonHierarchyLevel: Array<PolygonHierarchy>) => {
         return drawStatements;
     };
 
-    const body = `(${object},${program})=>{${visitInOrder(polygonHierarchyLevel).join(';')}}`;
-    return eval(`(${glModelPush},${glModelTranslateVector},${glModelMultiply},${glMeshDraw},${glModelPop})=>${body}`);
+    const body = `return (${object},${program})=>{${visitInOrder(polygonHierarchyLevel).join(';')}}`;
+    return functionCreate([glModelPush, glModelTranslateVector, glModelMultiply, glMeshDraw, glModelPop], body);
 };
 
 export const modelCreate = (program: Program, data: ModelData): Model => {
@@ -170,10 +145,7 @@ export const objectDraw = (object: Object, program: Program) => object[ObjectPro
 
 const modelMeshFromPolygon = (program: Program, polygon: Polygon): ModelMesh => {
     return {
-        [ModelMeshProperty.Mesh]: glMeshPolygonCreate(
-            program,
-            polygon[PolygonProperty.Vertices].map((v, i) => [v, polygon[PolygonProperty.Color]])
-        ),
+        [ModelMeshProperty.Mesh]: glMeshCreate(program, polygon[PolygonProperty.Vertices], polygon[PolygonProperty.Color]),
         [ModelMeshProperty.TransformOrigin]: polygon[PolygonProperty.TransformOrigin] ?? [0, 0],
     };
 };

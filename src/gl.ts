@@ -9,6 +9,7 @@ import {
     Vec2,
     vectorAdd,
     vectorCopy,
+    vectorCreate,
     vectorMultiply,
     vectorNormalize,
     vectorPerpendicular,
@@ -139,29 +140,29 @@ export type Mesh = {
     [MeshProperty.DrawMode]: number;
 };
 
-const glMeshCreate = (program: Program, vertices: Vertex[]): Mesh => {
+export const glMeshCreate = (program: Program, vertices: Array<number>, color: ColorRGB): Mesh => {
     const gl = program[ProgramProperty.WebGL2Context];
     const vertexArrayObject = gl.createVertexArray();
     gl.bindVertexArray(vertexArrayObject);
 
-    const positions = vertices.map(v => v[VertexProperty.Position]);
-    setArray(program, AttributesProperty.VertexPosition, positions.flat(), 2);
+    setArray(program, AttributesProperty.VertexPosition, vertices, 2);
     setArray(
         program,
         AttributesProperty.Color,
-        vertices.flatMap(v => v[VertexProperty.Color]),
+        vertices.flatMap(v => color),
         3
     );
 
     const edgeNormals = [];
-    const vLength = vertices.length;
-    for (let i = 0; i < vLength; i++) {
-        const p1 = positions[i];
-        const p2 = positions[(i + 1) % vLength];
-        edgeNormals.push(vectorPerpendicular(vectorNormalize(vectorSubtract(vectorCopy(p2), p1))));
+    for (let i = 0; i < vertices.length; i += 2) {
+        const p1 = vectorCreate(vertices[i], vertices[i + 1]);
+        const next = (i + 2) % vertices.length;
+        const p2 = vectorCreate(vertices[next], vertices[next + 1]);
+        edgeNormals.push(vectorPerpendicular(vectorNormalize(vectorSubtract(p2, p1))));
     }
 
     const normals: Vec2[] = [];
+    const vLength = vertices.length / 2;
     for (let i = 0; i < vLength; i++) {
         const n1 = edgeNormals[(i - 1 + vLength) % vLength];
         const n2 = edgeNormals[i];
@@ -171,7 +172,7 @@ const glMeshCreate = (program: Program, vertices: Vertex[]): Mesh => {
 
     setArray(program, AttributesProperty.VertexNormal, normals.flat(), 2);
 
-    return [vertexArrayObject, vertices.length, gl.TRIANGLE_FAN];
+    return [vertexArrayObject, vLength, gl.TRIANGLE_FAN];
 };
 
 const glDrawLineStrip = (program: Program, vertices: Array<[number, number]>, colors: Array<ColorRGB>) => {
@@ -217,43 +218,6 @@ export const glDrawBoundingBox = (program: Program, position: Vec2, size: Vec2) 
 };
 
 export type ColorRGB = [number, number, number];
-
-export const enum VertexProperty {
-    Position,
-    Color,
-}
-
-type Vertex = {
-    [VertexProperty.Position]: Vec2;
-    [VertexProperty.Color]: ColorRGB;
-};
-
-type MeshTriangle = [Vertex, Vertex, Vertex];
-
-export const glMeshTrianglesCreate = (program: Program, triangles: MeshTriangle[]) => {
-    const vertices = triangles.flat();
-    return glMeshCreate(program, vertices);
-};
-
-export const glMeshPolygonCreate = (program: Program, vertices: Vertex[]) => {
-    /*
-    // center is added twice to the end to
-    // (1) close the polygon and
-    // (2) because of trick with stencil test to render concave polygons
-    const positions = vertices.map(v => v[VertexProperty.Position]);
-    const minX = Math.min(...positions.map(v => v[0]));
-    const maxX = Math.max(...positions.map(v => v[0]));
-    const minY = Math.min(...positions.map(v => v[1]));
-    const maxY = Math.max(...positions.map(v => v[1]));
-    const center: Vertex = {
-        [VertexProperty.Position]: vectorMultiply(vectorAdd(vectorCreate(maxX, maxY), vectorCreate(minX, minY)), 0.5),
-        [VertexProperty.Color]: vertices[0][VertexProperty.Color],
-    };
-    const plus1: Vertex[] = [...vertices, center, center];
-    */
-
-    return glMeshCreate(program, vertices);
-};
 
 export const glModelPush = (program: Program) => {
     const current = program[ProgramProperty.CurrentModelMatrix];

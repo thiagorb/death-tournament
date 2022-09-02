@@ -146,7 +146,7 @@ module.exports.default = function (source) {
 
     const addPolygon = (path, origin) => {
         const relativeOrigin = translateVerticeToOrigin(path.transformOrigin, origin);
-        const polygon = [translateVerticesToOrigin(path.vertices, path.transformOrigin), path.color];
+        const polygon = [translateVerticesToOrigin(path.vertices, path.transformOrigin).flat(), path.color];
         if (path.meta.connectTo) {
             polygon.push(relativeOrigin);
         } else {
@@ -171,7 +171,14 @@ module.exports.default = function (source) {
                 return addPolygon(p, path.transformOrigin);
             });
 
-        return [index, back, front];
+        const transformedHierarchy = [index];
+        if (back.length > 0 || front.length > 0) {
+            transformedHierarchy.push(back);
+        }
+        if (front.length > 0) {
+            transformedHierarchy.push(front);
+        }
+        return transformedHierarchy;
     };
 
     for (const polygon of hierarchy.get('@root') ?? []) {
