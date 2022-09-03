@@ -1,12 +1,14 @@
 next steps:
 
--   add game over
+-   add +/- indication after killing dog / picking hourglass
+-   add background scene for menu
+-   add transitions for ui
+-   make the ui more game-like
 
 feature ideas:
 
 -   increase earned score for killing many people with one hit
 -   add more people types (different clothes, women, etc)
--   add +/- indication after killing dog / picking hourglass
 -   add opacitiy transition for elements appearing / disappearing
 -   make dog stop and change direction
 

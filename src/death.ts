@@ -18,7 +18,7 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
-import { Clock, clockGetPosition } from './clock';
+import { Hourglass, hourglassGetPosition } from './hourglass';
 import { glDrawRect, glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
 import { Vec2, vectorCreate } from './glm';
 import { Model, modelCreate, objectCreate } from './model';
@@ -223,14 +223,14 @@ export const deathIsHitting = (death: Death, boundingLeft: number, boundingRight
 
 const DEATH_WIDTH = 50;
 const DEATH_HEIGHT = 100;
-export const deathCollidesWithClock = (death: Death, clock: Clock) => {
-    const [clockX, clockY] = clockGetPosition(clock);
+export const deathCollidesWithHourglass = (death: Death, hourglass: Hourglass) => {
+    const [hourglassX, hourglassY] = hourglassGetPosition(hourglass);
     const [deathX, deathY] = death[DeathProperties.Position];
 
     return (
-        clockX >= deathX - DEATH_WIDTH / 2 &&
-        clockX <= deathX + DEATH_WIDTH / 2 &&
-        clockY >= deathY &&
-        clockY <= deathY + DEATH_HEIGHT
+        hourglassX >= deathX - DEATH_WIDTH / 2 &&
+        hourglassX <= deathX + DEATH_WIDTH / 2 &&
+        hourglassY >= deathY &&
+        hourglassY <= deathY + DEATH_HEIGHT
     );
 };
