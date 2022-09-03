@@ -1,3 +1,5 @@
+-   add windows to the buildings
+-   generate buildings randomly
 -   add timer
 -   add object to increase timer
 -   add dog

@@ -10,7 +10,21 @@ module.exports.default = function (source) {
     const jObj = parser.parse(source);
 
     const viewBox = jObj.svg.viewBox.split(' ').map(x => parseFloat(x));
-    const parseCoordinates = v => v.split(',').map(x => parseFloat(x));
+
+    const isNumber = n => /^-?[0-9]+(\.[0-9]+)?/.test(n);
+
+    /**
+     * @param {string} v
+     * @returns {[number, number] | null}
+     */
+    const parseCoordinates = v => {
+        const numbers = v.split(',');
+        if (numbers.length !== 2 || numbers.some(n => !isNumber(n))) {
+            return null;
+        }
+        return numbers.map(x => parseFloat(x));
+    };
+
     const toAbsolute = ([x, y]) => [x, viewBox[3] - y];
 
     const convertPathD = path => {
@@ -18,15 +32,24 @@ module.exports.default = function (source) {
         const vertices = [];
         let state = 'start';
         let penPosition = [0, viewBox[3]];
-        const parseAbsoluteCoordinates = v => toAbsolute(parseCoordinates(v));
-        const parseRelativeCoordinates = v => {
-            const [x, y] = parseCoordinates(v);
-            return [penPosition[0] + x, penPosition[1] - y];
-        };
-
-        const isPairOfCooridnates = v => /^(-?[0-9]+(\.[0-9]+)?(,|$)){2}/.test(v);
+        const toRelative = ([x, y]) => [penPosition[0] + x, penPosition[1] - y];
 
         for (let i = 0; i < v.length; ) {
+            const consumePair = () => {
+                let pair = parseCoordinates(v[i]);
+                if (pair !== null) {
+                    i++;
+                    return pair;
+                }
+
+                if (isNumber(v[i]) && isNumber(v[i + 1])) {
+                    pair = [v[i], v[i + 1]].map(n => parseFloat(n));
+                    i += 2;
+                }
+
+                return pair;
+            };
+
             switch (state) {
                 case 'start':
                     switch (v[i]) {
@@ -57,54 +80,54 @@ module.exports.default = function (source) {
                     throw new Error(`Unrecognized path ${path.id}. Expected end of string but found ${v[i]}.`);
 
                 case 'after_M': {
-                    if (!isPairOfCooridnates(v[i])) {
+                    const pair = consumePair();
+                    if (pair === null) {
                         state = 'start';
                         break;
                     }
 
-                    const coords = parseAbsoluteCoordinates(v[i]);
+                    const coords = toAbsolute(pair);
                     vertices.push(coords);
                     penPosition = coords;
-                    i++;
                     break;
                 }
 
                 case 'after_m': {
-                    if (!isPairOfCooridnates(v[i])) {
+                    const pair = consumePair();
+                    if (pair === null) {
                         state = 'start';
                         break;
                     }
 
-                    const coords = parseRelativeCoordinates(v[i]);
+                    const coords = toRelative(pair);
                     vertices.push(coords);
                     penPosition = coords;
-                    i++;
                     break;
                 }
 
                 case 'after_L': {
-                    if (!isPairOfCooridnates(v[i])) {
+                    const pair = consumePair();
+                    if (pair === null) {
                         state = 'start';
                         break;
                     }
 
-                    const coords = parseAbsoluteCoordinates(v[i]);
+                    const coords = toAbsolute(pair);
                     vertices.push(coords);
                     penPosition = coords;
-                    i++;
                     break;
                 }
 
                 case 'after_l': {
-                    if (!isPairOfCooridnates(v[i])) {
+                    const pair = consumePair();
+                    if (pair === null) {
                         state = 'start';
                         break;
                     }
 
-                    const coords = parseRelativeCoordinates(v[i]);
+                    const coords = toRelative(pair);
                     vertices.push(coords);
                     penPosition = coords;
-                    i++;
                     break;
                 }
             }
@@ -145,7 +168,7 @@ module.exports.default = function (source) {
     const transformedHierarchy = [];
 
     const addPolygon = (path, origin) => {
-        const relativeOrigin = translateVerticeToOrigin(path.transformOrigin, origin);
+        const relativeOrigin = translateVertexToOrigin(path.transformOrigin, origin);
         const polygon = [translateVerticesToOrigin(path.vertices, path.transformOrigin).flat(), path.color];
         if (path.meta.connectTo) {
             polygon.push(relativeOrigin);
@@ -212,12 +235,12 @@ const getNodes = nodes => {
     return Array.isArray(nodes) ? nodes : [nodes];
 };
 
-const translateVerticeToOrigin = (vertice, origin) => {
-    return vertice.map((c, i) => c - origin[i]);
+const translateVertexToOrigin = (vertex, origin) => {
+    return vertex.map((c, i) => c - origin[i]);
 };
 
 const translateVerticesToOrigin = (vertices, origin) => {
-    return vertices.map(v => translateVerticeToOrigin(v, origin));
+    return vertices.map(v => translateVertexToOrigin(v, origin));
 };
 
 const buildPathDefinition = (svgNode, vertices) => {

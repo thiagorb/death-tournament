@@ -40,8 +40,6 @@ const main = async () => {
     let previousTime = 0;
 
     const step = (deltaTime: number) => {
-        const speed = deltaTime * 0.3;
-
         if (keyboard.ArrowLeft) {
             deathWalk(death, deltaTime, true);
         } else if (keyboard.ArrowRight) {

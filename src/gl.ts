@@ -58,7 +58,7 @@ export type Program = {
 
 export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
     const gl = canvas.getContext('webgl2', { antialias: false });
-    if (gl === null) {
+    if (process.env.NODE_ENV !== 'production' && gl === null) {
         throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.');
     }
 
@@ -225,7 +225,7 @@ export type ColorRGB = [number, number, number];
 
 export const glModelPush = (program: Program) => {
     const current = program[ProgramProperty.CurrentModelMatrix];
-    if (current === program[ProgramProperty.ModelMatrixStack].length - 1) {
+    if (process.env.NODE_ENV !== 'production' && current === program[ProgramProperty.ModelMatrixStack].length - 1) {
         throw new Error('Model matrix stack overflow');
     }
 
@@ -236,7 +236,7 @@ export const glModelPush = (program: Program) => {
 
 export const glModelPop = (program: Program) => {
     const current = program[ProgramProperty.CurrentModelMatrix];
-    if (current === 0) {
+    if (process.env.NODE_ENV !== 'production' && current === 0) {
         throw new Error('Model matrix stack underflow');
     }
 
