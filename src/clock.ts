@@ -33,7 +33,6 @@ export const clockDraw = (clock: Clock, program: Program) => {
 };
 
 export const clockStep = (clock: Clock, deltaTime: number) => {
-    console.log(clock[ClockProperties.Position]);
     clock[ClockProperties.Position][1] -= deltaTime * 0.2;
 };
 

@@ -1,6 +1,7 @@
 -   add dog
 -   killing a dog should reduce timer
 -   make attack move
+-   add game over
 -   implement loader for glsl, that minifies the identifiers
 -   make color an uniform instead of array
 -   generate draw function during svg parsing
