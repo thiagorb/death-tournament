@@ -1,7 +1,16 @@
 import { backgroundDraw, backgroundInit } from './background';
 import { Clock, clockCreate, clockDraw, clockGetPosition, clockInit, clockStep } from './clock';
-import { deathAttack, deathCollidesWithClock, deathCreate, deathDraw, deathInit, deathIsHitting, deathStep, deathWalk } from './death';
-import { dogCreate, dogDraw, dogInit, dogStep } from './dog';
+import {
+    deathAttack,
+    deathCollidesWithClock,
+    deathCreate,
+    deathDraw,
+    deathInit,
+    deathIsHitting,
+    deathStep,
+    deathWalk,
+} from './death';
+import { dogCreate, dogDie, dogDraw, dogGetLeft, dogGetRight, dogInit, dogIsDead, dogStep } from './dog';
 import { glClear, glModelTranslate, glProgramCreate } from './gl';
 import { Vec2, vectorCreate } from './glm';
 import { keyboardInitialize } from './keyboard';
@@ -10,6 +19,8 @@ import {
     personCreate,
     personDie,
     personDraw,
+    personGetLeft,
+    personGetRight,
     personGetDeadTime,
     personGetPosition,
     personInit,
@@ -59,7 +70,7 @@ const main = async () => {
 
     const peopleStep = (deltaTime: number) => {
         for (const person of people) {
-            if (!personIsDead(person) && deathIsHitting(death, person)) {
+            if (!personIsDead(person) && deathIsHitting(death, personGetLeft(person), personGetRight(person))) {
                 personDie(person);
                 updaterSet(scoreUpdater, (score += 1));
             }
@@ -119,6 +130,11 @@ const main = async () => {
         peopleStep(deltaTime);
         clocksStep(deltaTime);
         dogStep(dog, deltaTime);
+
+        if (!dogIsDead(dog) && deathIsHitting(death, dogGetLeft(dog), dogGetRight(dog))) {
+            dogDie(dog);
+            console.log('killed dog');
+        }
     };
 
     const render = () => {

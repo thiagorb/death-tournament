@@ -22,7 +22,7 @@ import { Clock, clockGetPosition } from './clock';
 import { glDrawRect, glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
 import { Vec2, vectorCreate } from './glm';
 import { Model, modelCreate, objectCreate } from './model';
-import { Person, personGetBoundingLeft, personGetBoundingRight } from './person';
+import { Person, personGetLeft, personGetRight } from './person';
 
 let modelRight: Model;
 let modelLeft: Model;
@@ -119,7 +119,10 @@ export const deathCreate = (): Death => {
     const attackSpeed = attackPrepareSpeed * 2;
     death[DeathProperties.AttackAnimation] = animationCreate([
         animationFrameCreate(
-            [animationFrameItemCreate(leftArm1, -3, attackPrepareSpeed), animationFrameItemCreate(leftArm2, -2, attackPrepareSpeed)],
+            [
+                animationFrameItemCreate(leftArm1, -3, attackPrepareSpeed),
+                animationFrameItemCreate(leftArm2, -2, attackPrepareSpeed),
+            ],
             () => (death[DeathProperties.Attacking] = true)
         ),
         animationFrameCreate(
@@ -174,6 +177,7 @@ export const deathIsAttacking = (death: Death) => {
 
 export const deathStep = (death: Death, deltaTime: number) => {
     animatableBeginStep(death[DeathProperties.AnimatableRight]);
+    animatableBeginStep(death[DeathProperties.AnimatableLeft]);
 
     death[DeathProperties.AttackCooldown] = Math.max(0, death[DeathProperties.AttackCooldown] - deltaTime);
     if (animationStep(death[DeathProperties.AttackAnimation], deltaTime)) {
@@ -188,20 +192,22 @@ export const deathStep = (death: Death, deltaTime: number) => {
 
     animationPause(death[DeathProperties.WalkAnimation]);
 
-    animatableStep(death[death[DeathProperties.FacingLeft] ? DeathProperties.AnimatableLeft : DeathProperties.AnimatableRight]);
+    animatableStep(
+        death[death[DeathProperties.FacingLeft] ? DeathProperties.AnimatableLeft : DeathProperties.AnimatableRight]
+    );
 };
 
 const ATTACK_GAP = 20;
 const ATTACK_WIDTH = 70;
 const ATTACK_LEFT = [-ATTACK_GAP - ATTACK_WIDTH, ATTACK_GAP];
-export const deathIsHitting = (death: Death, person: Person) => {
+export const deathIsHitting = (death: Death, boundingLeft: number, boundingRight: number) => {
     if (!death[DeathProperties.Attacking]) {
         return false;
     }
 
     const attackLeft = death[DeathProperties.Position][0] + ATTACK_LEFT[death[DeathProperties.FacingLeft] ? 0 : 1];
     const attackRight = attackLeft + ATTACK_WIDTH;
-    return attackLeft < personGetBoundingRight(person) && attackRight >= personGetBoundingLeft(person);
+    return attackLeft < boundingRight && attackRight >= boundingLeft;
 };
 
 const DEATH_WIDTH = 50;
@@ -210,5 +216,10 @@ export const deathCollidesWithClock = (death: Death, clock: Clock) => {
     const [clockX, clockY] = clockGetPosition(clock);
     const [deathX, deathY] = death[DeathProperties.Position];
 
-    return clockX >= deathX - DEATH_WIDTH / 2 && clockX <= deathX + DEATH_WIDTH / 2 && clockY >= deathY && clockY <= deathY + DEATH_HEIGHT;
+    return (
+        clockX >= deathX - DEATH_WIDTH / 2 &&
+        clockX <= deathX + DEATH_WIDTH / 2 &&
+        clockY >= deathY &&
+        clockY <= deathY + DEATH_HEIGHT
+    );
 };

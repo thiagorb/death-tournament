@@ -24,9 +24,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="3.422426"
-     inkscape:cx="215.34432"
-     inkscape:cy="283.27859"
+     inkscape:zoom="3.5126358"
+     inkscape:cx="118.1449"
+     inkscape:cy="192.87511"
      inkscape:window-width="1846"
      inkscape:window-height="1016"
      inkscape:window-x="74"
@@ -37,7 +37,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"><path
-       style="fill:#803300;fill-opacity:1;stroke-width:0.659236"
+       style="fill:#784421;fill-opacity:1;stroke-width:0.659236"
        d="m 28.484984,64.562197 -5.3562,8.9335 4.1462,11.3689 -3.3407,7.3551 1.5313,7.6229 4.1875,0.195503 0.4639,-2.838303 -2.9636,-0.5082 -0.3191,-3.5775 8.6818,-5.8347 2.2757,-10.5721"
        id="backLeftLeg"
        sodipodi:nodetypes="ccccscccccc"
@@ -46,7 +46,7 @@
          id="desc27616">{
     &quot;connectTo&quot;: &quot;body&quot;
 }</desc></path><path
-       style="fill:#803300;fill-opacity:1;stroke-width:0.659236"
+       style="fill:#784421;fill-opacity:1;stroke-width:0.659236"
        d="m 60.686084,80.380697 -0.0439,9.2267 4.336,9.7652 3.5753,0.3939 0.5574,-3.3846 -2.8307,-0.24 -0.806,-6.0195 2.0431,-14.6138"
        id="frontLeftLeg"
        sodipodi:nodetypes="cccccccc"
@@ -56,22 +56,13 @@
     &quot;connectTo&quot;: &quot;body&quot;
 }</desc></path><path
        d="m 72.227039,49.418193 -2.3381,-4.6334 -2.402899,8.0224"
-       style="fill:#803300;fill-opacity:1;stroke-width:0.659236"
+       style="fill:#784421;fill-opacity:1;stroke-width:0.659236"
        id="leftEar"><desc
          id="desc28008">{
-    &quot;connectTo&quot;: &quot;body&quot;
-}</desc></path><path
-       d="m 27.279301,71.995037 -7.80978,1.670585 4.118763,11.339875 -3.3407,7.3551 1.5313,7.6229 4.1875,0.195503 0.4639,-2.838303 -2.9636,-0.5082 -0.3191,-3.5775 8.6818,-5.8347 1.6184,-8.6759"
-       style="fill:#c87137;fill-opacity:1;stroke-width:0.659236"
-       id="backRightLeg"
-       sodipodi:nodetypes="ccccccccccc"
-       inkscape:transform-center-x="0.59218499"
-       inkscape:transform-center-y="10.867765"><desc
-         id="desc28002">{
-    &quot;connectTo&quot;: &quot;body&quot;
+    &quot;connectTo&quot;: &quot;head&quot;
 }</desc></path><path
        d="m 57.093914,77.546955 -0.613037,12.322203 4.3359,9.765197 3.5753,0.393905 0.5574,-3.384602 -2.8306,-0.2399 -0.806,-6.0196 2.867993,-12.602488"
-       style="fill:#c87137;fill-opacity:1;stroke-width:0.659236"
+       style="fill:#a05a2c;fill-opacity:1;stroke-width:0.659236"
        id="frontRightLeg"
        sodipodi:nodetypes="cccccccc"
        inkscape:transform-center-x="0.14010316"
@@ -79,12 +70,30 @@
          id="desc28000">{
     &quot;connectTo&quot;: &quot;body&quot;
 }</desc></path><path
-       style="fill:#c87137;fill-opacity:1;stroke-width:0.659236"
-       d="m 20.615484,43.930797 -4.1901,10.4463 7.336,10.3143 -4.309416,8.967319 5.028416,6.261781 8.8261,-1.1687 7.0891,-1.3788 7.6406,4.9837 15.545014,-1.318872 4.674886,-5.746528 1.2439,-11.324643 2.601268,-2.699194 8.397432,0.486537 0.0729,-1.6036 -3.7001,-1.4005 3.9956,0.4662 1.3347,-2.3119 -7.5962,-3.3158 -0.1691,-2.8846 -2.170944,-1.355514 -4.093156,-0.01099 -2.3381,-4.6334 -2.4029,8.0224 -5.5389,9.4117 -29.4213,-0.2207 -8.787,-7.8462 0.9314,-10.1403"
+       style="fill:#a05a2c;fill-opacity:1;stroke-width:0.659236"
+       d="m 19.451968,73.658716 5.028416,6.261781 8.8261,-1.1687 7.0891,-1.3788 7.6406,4.9837 15.545014,-1.318872 4.674886,-5.746528 1.2439,-11.324643 -11.6075,-1.828661 -33.024489,-0.384228"
        id="body"
-       sodipodi:nodetypes="ccccccccccccccccccccccccccc"
-       inkscape:transform-center-x="-2.0680975"
-       inkscape:transform-center-y="-36.845317" /><rect
+       sodipodi:nodetypes="cccccccccc"
+       inkscape:transform-center-x="0.627151"
+       inkscape:transform-center-y="-27.525177" /><path
+       d="m 27.279301,71.995037 -7.80978,1.670585 4.118763,11.339875 -3.3407,7.3551 1.5313,7.6229 4.1875,0.195503 0.4639,-2.838303 -2.9636,-0.5082 -0.3191,-3.5775 8.6818,-5.8347 1.6184,-8.6759"
+       style="fill:#a05a2c;fill-opacity:1;stroke-width:0.659236"
+       id="backRightLeg"
+       sodipodi:nodetypes="ccccccccccc"
+       inkscape:transform-center-x="0.59218499"
+       inkscape:transform-center-y="10.867765"><desc
+         id="desc28002">{
+    &quot;connectTo&quot;: &quot;body&quot;
+}</desc></path><path
+       d="m 58.85835,67.013367 5.082837,2.322547 5.553351,-5.377434 2.608809,-2.689909 8.397437,0.486537 -0.08436,-2.096053 1.787448,-2.753747 -7.596195,-3.3158 -0.1691,-2.8846 -2.170944,-1.355514 -4.093156,-0.01099 -2.3381,-4.6334 -2.402899,8.0224 -5.5389,9.4117"
+       style="fill:#a05a2c;fill-opacity:1;stroke-width:0.659236"
+       id="head"
+       sodipodi:nodetypes="cccccccccccccc"
+       inkscape:transform-center-x="-9.294724"
+       inkscape:transform-center-y="-7.3888506"><desc
+         id="desc28459">{
+    &quot;connectTo&quot;: &quot;body&quot;
+}</desc></path><rect
        style="fill:#1a1a1a;fill-opacity:1;stroke-width:0.264583"
        id="rightEye"
        width="1.354082"
@@ -92,7 +101,7 @@
        x="70.527161"
        y="54.055019"><desc
          id="desc28004">{
-    &quot;connectTo&quot;: &quot;body&quot;
+    &quot;connectTo&quot;: &quot;head&quot;
 }</desc></rect><rect
        style="fill:#1a1a1a;fill-opacity:1;stroke-width:0.264583"
        id="leftEye"
@@ -101,5 +110,34 @@
        x="73.388222"
        y="52.731319"><desc
          id="desc28006">{
+    &quot;connectTo&quot;: &quot;head&quot;
+}</desc></rect><path
+       style="fill:#000000;stroke-width:0.264583"
+       d="m 81.274036,58.652128 -1.145291,-2.622013 1.968409,-0.07992 0.551443,1.249793 z"
+       id="nose"
+       sodipodi:nodetypes="ccccc"><desc
+         id="desc28558">{
+    &quot;connectTo&quot;: &quot;head&quot;
+}</desc></path><path
+       style="fill:#000000;stroke-width:0.264583"
+       d="m 80.952093,58.80437 -6.355737,-0.275949 5.878005,2.022903 z"
+       id="path29021"
+       sodipodi:nodetypes="cccc"><desc
+         id="desc29049">{
+    &quot;connectTo&quot;: &quot;head&quot;
+}</desc></path><path
+       style="fill:#ff8080;stroke-width:0.264583"
+       d="m 75.788198,58.900497 3.182567,0.505429 -0.925654,3.750292 -1.642672,-0.520967 0.890605,-2.451789 z"
+       id="tongue"
+       sodipodi:nodetypes="cccccc"><desc
+         id="desc28639">{
+    &quot;connectTo&quot;: &quot;head&quot;
+}</desc></path><path
+       d="m 20.612973,43.942947 -4.1901,10.4463 7.336,10.3143 4.7098,-2.774104 -8.787,-7.8462 0.9314,-10.1403"
+       style="fill:#a05a2c;fill-opacity:1;stroke-width:0.659236"
+       id="tail"
+       inkscape:transform-center-x="4.6092446"
+       inkscape:transform-center-y="-10.104738"><desc
+         id="desc29447">{
     &quot;connectTo&quot;: &quot;body&quot;
-}</desc></rect></g></svg>
+}</desc></path></g></svg>

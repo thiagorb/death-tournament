@@ -210,8 +210,8 @@ export const personStep = (person: Person, deltaTime: number) => {
 
 const PERSON_WIDTH = 50;
 const PERSON_HEIGHT = 100;
-export const personGetBoundingLeft = (person: Person) => person[PersonProperties.Position][0] - PERSON_WIDTH / 2;
-export const personGetBoundingRight = (person: Person) => person[PersonProperties.Position][0] + PERSON_WIDTH / 2;
+export const personGetLeft = (person: Person) => person[PersonProperties.Position][0] - PERSON_WIDTH / 2;
+export const personGetRight = (person: Person) => person[PersonProperties.Position][0] + PERSON_WIDTH / 2;
 export const personGetPosition = (person: Person) => person[PersonProperties.Position];
-export const personGetBoundingTop = (y: number) => y + PERSON_HEIGHT / 2;
-export const personGetBoundingBottom = (y: number) => y;
+export const personGetTop = (y: number) => y + PERSON_HEIGHT / 2;
+export const personGetBottom = (y: number) => y;

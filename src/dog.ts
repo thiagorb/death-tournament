@@ -5,6 +5,7 @@ import {
     animatableCreate,
     animatableDraw,
     animatableStep,
+    AnimatedProperty,
     Animation,
     animationCreate,
     animationElementCreate,
@@ -28,12 +29,18 @@ const enum DogProperties {
     Position,
     Animatable,
     WalkAnimation,
+    DeadAnimation,
+    Dead,
+    FacingLeft,
 }
 
 export type Dog = {
     [DogProperties.Position]: Vec2;
     [DogProperties.Animatable]: Animatable;
     [DogProperties.WalkAnimation]: Animation;
+    [DogProperties.DeadAnimation]: Animation;
+    [DogProperties.Dead]: boolean;
+    [DogProperties.FacingLeft]: boolean;
 };
 
 export const dogCreate = (position: Vec2): Dog => {
@@ -41,6 +48,9 @@ export const dogCreate = (position: Vec2): Dog => {
     const frontRightLeg = animationElementCreate();
     const backLeftLeg = animationElementCreate();
     const backRightLeg = animationElementCreate();
+    const tail = animationElementCreate();
+    const body = animationElementCreate();
+    const head = animationElementCreate();
 
     const dog: Dog = {
         [DogProperties.Position]: position,
@@ -49,8 +59,14 @@ export const dogCreate = (position: Vec2): Dog => {
             boundElementCreate(frontRightLeg, modelData.frontRightLegTransformPath),
             boundElementCreate(backLeftLeg, modelData.backLeftLegTransformPath),
             boundElementCreate(backRightLeg, modelData.backRightLegTransformPath),
+            boundElementCreate(tail, modelData.tailTransformPath),
+            boundElementCreate(body, modelData.bodyTransformPath, AnimatedProperty.TranslationY),
+            boundElementCreate(head, modelData.headTransformPath),
         ]),
         [DogProperties.WalkAnimation]: null,
+        [DogProperties.DeadAnimation]: null,
+        [DogProperties.Dead]: false,
+        [DogProperties.FacingLeft]: false,
     };
 
     dog[DogProperties.WalkAnimation] = animationCreate([
@@ -71,9 +87,33 @@ export const dogCreate = (position: Vec2): Dog => {
         ),
     ]);
 
+    dog[DogProperties.DeadAnimation] = animationCreate([
+        animationFrameCreate(
+            [
+                animationFrameItemCreate(frontLeftLeg, -1.5, 0.02),
+                animationFrameItemCreate(frontRightLeg, -1.5, 0.02),
+                animationFrameItemCreate(backLeftLeg, -1.5, 0.02),
+                animationFrameItemCreate(backRightLeg, -1.5, 0.02),
+                animationFrameItemCreate(tail, -1.5, 0.02),
+                animationFrameItemCreate(head, 0.8, 0.02),
+                animationFrameItemCreate(body, -18, 0.2),
+            ],
+            () => animationStart(dog[DogProperties.DeadAnimation])
+        ),
+    ]);
+
     animationStart(dog[DogProperties.WalkAnimation]);
 
     return dog;
+};
+
+export const dogIsDead = (dog: Dog) => {
+    return dog[DogProperties.Dead];
+};
+
+export const dogDie = (dog: Dog) => {
+    animationStart(dog[DogProperties.DeadAnimation]);
+    dog[DogProperties.Dead] = true;
 };
 
 export const dogDraw = (dog: Dog, program: Program) => {
@@ -87,9 +127,13 @@ export const dogStep = (dog: Dog, deltaTime: number) => {
     // dog[DogProperties.Position][1] -= deltaTime * 0.2;
     animatableBeginStep(dog[DogProperties.Animatable]);
 
+    animationStep(dog[DogProperties.DeadAnimation], deltaTime);
     animationStep(dog[DogProperties.WalkAnimation], deltaTime);
 
     animatableStep(dog[DogProperties.Animatable]);
 };
 
+const DOG_WIDTH = 40;
 export const dogGetPosition = (dog: Dog) => dog[DogProperties.Position];
+export const dogGetLeft = (dog: Dog) => dog[DogProperties.Position][0] - DOG_WIDTH / 2;
+export const dogGetRight = (dog: Dog) => dog[DogProperties.Position][0] + DOG_WIDTH / 2;

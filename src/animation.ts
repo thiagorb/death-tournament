@@ -1,5 +1,5 @@
 import { Program } from './gl';
-import { matrixRotate, matrixSetIdentity } from './glm';
+import { matrixRotate, matrixSetIdentity, matrixTranslate } from './glm';
 import { Object, objectDraw, objectGetComponentTransform } from './model';
 
 const enum ElementProperties {
@@ -30,7 +30,10 @@ const animationFrameItemStep = (frameItem: AnimationFrameItem, deltaTime: number
 };
 
 const animationFrameItemComplete = (frameItem: AnimationFrameItem) => {
-    return frameItem[FrameItemProperties.Element][ElementProperties.CurrentValue] === frameItem[FrameItemProperties.TargetValue];
+    return (
+        frameItem[FrameItemProperties.Element][ElementProperties.CurrentValue] ===
+        frameItem[FrameItemProperties.TargetValue]
+    );
 };
 
 export const animationElementBeginStep = (element: AnimationElement) => {
@@ -136,7 +139,11 @@ export const animationResume = (animation: Animation): void => {
     }
 };
 
-export const animationFrameItemCreate = (element: AnimationElement, targetValue: number, speed: number): AnimationFrameItem => ({
+export const animationFrameItemCreate = (
+    element: AnimationElement,
+    targetValue: number,
+    speed: number
+): AnimationFrameItem => ({
     [FrameItemProperties.Element]: element,
     [FrameItemProperties.TargetValue]: targetValue,
     [FrameItemProperties.Speed]: speed,
@@ -150,18 +157,30 @@ export const animationFrameCreate = (
     [FrameProperties.AfterTrigger]: afterTrigger,
 });
 
+export const enum AnimatedProperty {
+    Rotation,
+    TranslationY,
+}
+
 const enum BoundElementProperties {
     AnimationElement,
+    AnimatedProperty,
     TransformPath,
 }
 
 type BoundElement = {
     [BoundElementProperties.AnimationElement]: AnimationElement;
+    [BoundElementProperties.AnimatedProperty]: AnimatedProperty;
     [BoundElementProperties.TransformPath]: number;
 };
 
-export const boundElementCreate = (element: AnimationElement, transformPath: number) => ({
+export const boundElementCreate = (
+    element: AnimationElement,
+    transformPath: number,
+    property: AnimatedProperty = AnimatedProperty.Rotation
+): BoundElement => ({
     [BoundElementProperties.AnimationElement]: element,
+    [BoundElementProperties.AnimatedProperty]: property,
     [BoundElementProperties.TransformPath]: transformPath,
 });
 
@@ -180,6 +199,11 @@ export const animatableBeginStep = (animatable: Animatable) => {
     while (i--) {
         const boundElement = elements[i];
         animationElementBeginStep(boundElement[BoundElementProperties.AnimationElement]);
+        const transform = objectGetComponentTransform(
+            animatable[AnimatableProperties.Object],
+            boundElement[BoundElementProperties.TransformPath]
+        );
+        matrixSetIdentity(transform);
     }
 };
 export const animatableStep = (animatable: Animatable) => {
@@ -191,12 +215,22 @@ export const animatableStep = (animatable: Animatable) => {
             animatable[AnimatableProperties.Object],
             boundElement[BoundElementProperties.TransformPath]
         );
-        matrixSetIdentity(transform);
-        matrixRotate(transform, animationElementGetValue(boundElement[BoundElementProperties.AnimationElement]));
+        if (boundElement[BoundElementProperties.AnimatedProperty] === AnimatedProperty.Rotation) {
+            matrixRotate(transform, animationElementGetValue(boundElement[BoundElementProperties.AnimationElement]));
+        } else if (boundElement[BoundElementProperties.AnimatedProperty] === AnimatedProperty.TranslationY) {
+            matrixTranslate(
+                transform,
+                0,
+                animationElementGetValue(boundElement[BoundElementProperties.AnimationElement])
+            );
+        }
     }
 };
 
-export const animatableCreate = (object: Object, elements: Animatable[AnimatableProperties.AnimationElements]): Animatable => ({
+export const animatableCreate = (
+    object: Object,
+    elements: Animatable[AnimatableProperties.AnimationElements]
+): Animatable => ({
     [AnimatableProperties.Object]: object,
     [AnimatableProperties.AnimationElements]: elements,
 });
