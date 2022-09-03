@@ -1,7 +1,9 @@
+import { DEFAULT_STATS } from 'webpack-dev-server';
 import { backgroundDraw, backgroundInit } from './background';
-import { deathAttack, deathCreate, deathDraw, deathInit, deathIsHitting, deathStep, deathWalk } from './death';
+import { Clock, clockCreate, clockDraw, clockGetPosition, clockInit, clockStep } from './clock';
+import { deathAttack, deathCollidesWithClock, deathCreate, deathDraw, deathInit, deathIsHitting, deathStep, deathWalk } from './death';
 import { glClear, glModelPop, glModelPush, glModelTranslate, glProgramCreate } from './gl';
-import { Vec2 } from './glm';
+import { Vec2, vectorCreate } from './glm';
 import { keyboardInitialize } from './keyboard';
 import {
     Person,
@@ -10,14 +12,23 @@ import {
     personDraw,
     personGetBoundingLeft,
     personGetDeadTime,
+    personGetPosition,
     personInit,
+    personIsDead,
     personSetPositionX,
     personStep,
     personTurnLeft,
 } from './person';
+import { timerCreate, timerIncrease, timerStep, updaterCreate, updaterSet } from './ui';
+
+const outOfScreen = (position: Vec2) => {
+    return position[0] > 1000 || position[0] < -1000 || position[1] > 1000 || position[1] < -1000;
+};
 
 const main = async () => {
     const canvas: HTMLCanvasElement = document.querySelector('#game-canvas');
+    const timerDiv: HTMLDivElement = document.querySelector('#timer');
+    const scoreDiv: HTMLDivElement = document.querySelector('#score');
     const program = glProgramCreate(canvas);
 
     const keyboard = keyboardInitialize(['KeyA', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
@@ -31,15 +42,67 @@ const main = async () => {
 
     deathInit(program);
     personInit(program);
+    clockInit(program);
     backgroundInit(program);
     const death = deathCreate();
     const people = new Set<Person>();
-    const pepoleInterval = 300;
+    const clocks = new Set<Clock>();
+    const timer = timerCreate((n: number) => (timerDiv.innerText = n as any as string));
+    let score = 0;
+    const scoreUpdater = updaterCreate((n: number) => (scoreDiv.innerText = n as any as string));
     let nextPerson = 0;
+    let nextClock = 0;
 
     let previousTime = 0;
 
+    const peopleStep = (deltaTime: number) => {
+        for (const person of people) {
+            if (!personIsDead(person) && deathIsHitting(death, person)) {
+                personDie(person);
+                updaterSet(scoreUpdater, (score += 1));
+            }
+            personStep(person, deltaTime);
+            if (personGetDeadTime(person) > 2000 || outOfScreen(personGetPosition(person))) {
+                people.delete(person);
+            }
+        }
+
+        nextPerson -= deltaTime;
+        if (nextPerson < 0) {
+            const person = personCreate(vectorCreate((Math.random() - 0.5) * 1000, 0));
+            people.add(person);
+            if (Math.random() < 0.5) {
+                personTurnLeft(person);
+            }
+            nextPerson = Math.random() * 200 + 300;
+        }
+    };
+
+    const clocksStep = (deltaTime: number) => {
+        for (const clock of clocks) {
+            clockStep(clock, deltaTime);
+
+            if (deathCollidesWithClock(death, clock)) {
+                clocks.delete(clock);
+                timerIncrease(timer, 10000);
+            }
+
+            if (outOfScreen(clockGetPosition(clock))) {
+                clocks.delete(clock);
+            }
+        }
+
+        nextClock -= deltaTime;
+        if (nextClock < 0) {
+            const clock = clockCreate(vectorCreate((Math.random() - 0.5) * 1000, 500));
+            clocks.add(clock);
+            nextClock = Math.random() * 5000 + 10000;
+        }
+    };
+
     const step = (deltaTime: number) => {
+        timerStep(timer, deltaTime);
+
         if (keyboard.ArrowLeft) {
             deathWalk(death, deltaTime, true);
         } else if (keyboard.ArrowRight) {
@@ -51,26 +114,8 @@ const main = async () => {
         }
 
         deathStep(death, deltaTime);
-        for (const person of people) {
-            if (deathIsHitting(death, person)) {
-                personDie(person);
-            }
-            personStep(person, deltaTime);
-            if (personGetDeadTime(person) > 2000 || personGetBoundingLeft(person) > 1000 || personGetBoundingLeft(person) < -1000) {
-                people.delete(person);
-            }
-        }
-
-        nextPerson -= deltaTime;
-        if (nextPerson < 0) {
-            const person = personCreate();
-            people.add(person);
-            personSetPositionX(person, (Math.random() - 0.5) * 1000);
-            if (Math.random() < 0.5) {
-                personTurnLeft(person);
-            }
-            nextPerson = pepoleInterval;
-        }
+        peopleStep(deltaTime);
+        clocksStep(deltaTime);
     };
 
     const render = () => {
@@ -83,6 +128,9 @@ const main = async () => {
         deathDraw(death, program);
         for (const person of people) {
             personDraw(person, program);
+        }
+        for (const clock of clocks) {
+            clockDraw(clock, program);
         }
 
         glModelPop(program);
@@ -99,10 +147,6 @@ const main = async () => {
     };
 
     loop(previousTime);
-};
-
-const x = (p1: Vec2, s1: Vec2, p2: Vec2, s2: Vec2) => {
-    return p1[0] <= p2[0] + s2[0] && p1[1] < p2[1] + s2[1];
 };
 
 window.onload = main;

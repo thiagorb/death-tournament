@@ -48,7 +48,7 @@ export type Person = {
     [PersonProperties.DeadTime]: number;
 };
 
-export const personCreate = (): Person => {
+export const personCreate = (position: Vec2): Person => {
     const REST_ARM_LEFT_1 = 0;
     const REST_ARM_LEFT_2 = -0.3;
     const REST_ARM_RIGHT_1 = 0;
@@ -106,7 +106,7 @@ export const personCreate = (): Person => {
     ]);
 
     const person: Person = {
-        [PersonProperties.Position]: vectorCreate(),
+        [PersonProperties.Position]: position,
         [PersonProperties.Animatable]: animatableCreate(objectCreate(modelRight), [
             boundElementCreate(leftArm1, modelDataRight.leftArm1TransformPath),
             boundElementCreate(leftArm2, modelDataRight.leftArm3TransformPath),
@@ -155,6 +155,10 @@ export const personDraw = (person: Person, program: Program) => {
 
 export const personWalk = (person: Person) => {
     animationResume(person[PersonProperties.WalkAnimation]);
+};
+
+export const personIsDead = (person: Person) => {
+    return person[PersonProperties.Dead];
 };
 
 export const personDie = (person: Person) => {
@@ -209,5 +213,6 @@ const PERSON_WIDTH = 50;
 const PERSON_HEIGHT = 100;
 export const personGetBoundingLeft = (person: Person) => person[PersonProperties.Position][0] - PERSON_WIDTH / 2;
 export const personGetBoundingRight = (person: Person) => person[PersonProperties.Position][0] + PERSON_WIDTH / 2;
+export const personGetPosition = (person: Person) => person[PersonProperties.Position];
 export const personGetBoundingTop = (y: number) => y + PERSON_HEIGHT / 2;
 export const personGetBoundingBottom = (y: number) => y;

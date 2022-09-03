@@ -57,6 +57,24 @@
             image-rendering: pixelated;
             background: #000;
         }
+
+        #timer {
+            position: absolute;
+            right: 5vmin;
+            top: 5vmin;
+            font-size: 10vmin;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #score {
+            position: absolute;
+            right: 5vmin;
+            top: 15vmin;
+            font-size: 10vmin;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+        }
     </style>
     <script src="https://js13kgames.com/src/near-api-js.js"></script>
 </head>
@@ -64,6 +82,8 @@
 <body>
     <div id="game">
         <canvas id="game-canvas"></canvas>
+        <div id="timer">0</div>
+        <div id="score">0</div>
     </div>
 </body>
 

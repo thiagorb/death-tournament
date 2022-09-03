@@ -18,6 +18,7 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
+import { Clock, clockGetPosition } from './clock';
 import { glDrawRect, glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
 import { Vec2, vectorCreate } from './glm';
 import { Model, modelCreate, objectCreate } from './model';
@@ -201,4 +202,13 @@ export const deathIsHitting = (death: Death, person: Person) => {
     const attackLeft = death[DeathProperties.Position][0] + ATTACK_LEFT[death[DeathProperties.FacingLeft] ? 0 : 1];
     const attackRight = attackLeft + ATTACK_WIDTH;
     return attackLeft < personGetBoundingRight(person) && attackRight >= personGetBoundingLeft(person);
+};
+
+const DEATH_WIDTH = 50;
+const DEATH_HEIGHT = 100;
+export const deathCollidesWithClock = (death: Death, clock: Clock) => {
+    const [clockX, clockY] = clockGetPosition(clock);
+    const [deathX, deathY] = death[DeathProperties.Position];
+
+    return clockX >= deathX - DEATH_WIDTH / 2 && clockX <= deathX + DEATH_WIDTH / 2 && clockY >= deathY && clockY <= deathY + DEATH_HEIGHT;
 };
