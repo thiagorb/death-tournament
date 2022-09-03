@@ -2,14 +2,14 @@ import { ColorRGB, glMeshDraw, glMeshCreate, glModelMultiply, glModelPop, glMode
 import { Matrix3, matrixCreate, Vec2 } from './glm';
 import functionCreate from './function';
 
-const enum PolygonProperty {
+export const enum PolygonProperty {
     Vertices,
     Indices,
     Color,
     TransformOrigin,
 }
 
-type Polygon = {
+export type Polygon = {
     [PolygonProperty.Vertices]: Array<number>;
     [PolygonProperty.Indices]: Array<number>;
     [PolygonProperty.Color]: ColorRGB;
@@ -24,11 +24,11 @@ const enum PolygonHierarchyProperties {
 
 type PolygonHierarchy = {
     [PolygonHierarchyProperties.Index]: number;
-    [PolygonHierarchyProperties.SubpolygonsBack]: Array<PolygonHierarchy>;
-    [PolygonHierarchyProperties.SubpolygonsFront]: Array<PolygonHierarchy>;
+    [PolygonHierarchyProperties.SubpolygonsBack]?: Array<PolygonHierarchy>;
+    [PolygonHierarchyProperties.SubpolygonsFront]?: Array<PolygonHierarchy>;
 };
 
-const enum ModelDataProperty {
+export const enum ModelDataProperty {
     Polygons,
     PolygonHierarchy,
 }
