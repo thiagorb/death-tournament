@@ -82,29 +82,6 @@ export const personCreate = (position: Vec2): Person => {
         ]),
     ]);
 
-    const walkAnimation = animationCreate([
-        animationFrameCreate([
-            animationFrameItemCreate(leftArm1, -1, 0.01),
-            animationFrameItemCreate(leftArm2, -0.2, 0.008),
-            animationFrameItemCreate(rightArm1, 1, 0.01),
-            animationFrameItemCreate(rightArm2, -1.1, 0.005),
-            animationFrameItemCreate(leftLeg1, -1, 0.01),
-            animationFrameItemCreate(leftLeg2, 0.2, 0.008),
-            animationFrameItemCreate(rightLeg1, 1, 0.01),
-            animationFrameItemCreate(rightLeg2, 1.1, 0.005),
-        ]),
-        animationFrameCreate([
-            animationFrameItemCreate(leftArm1, 1, 0.01),
-            animationFrameItemCreate(leftArm2, -2, 0.008),
-            animationFrameItemCreate(rightArm1, -1, 0.01),
-            animationFrameItemCreate(rightArm2, -1.4, 0.005),
-            animationFrameItemCreate(leftLeg1, 1, 0.01),
-            animationFrameItemCreate(leftLeg2, 2, 0.008),
-            animationFrameItemCreate(rightLeg1, -1.2, 0.01),
-            animationFrameItemCreate(rightLeg2, 0.5, 0.005),
-        ]),
-    ]);
-
     const person: Person = {
         [PersonProperties.Position]: position,
         [PersonProperties.Animatable]: animatableCreate(objectCreate(modelRight), [
@@ -119,7 +96,7 @@ export const personCreate = (position: Vec2): Person => {
             boundElementCreate(body, modelDataRight.bodyTransformPath),
         ]),
         [PersonProperties.RestAnimation]: restAnimation,
-        [PersonProperties.WalkAnimation]: walkAnimation,
+        [PersonProperties.WalkAnimation]: null,
         [PersonProperties.DeadAnimation]: null,
         [PersonProperties.FacingLeft]: false,
         [PersonProperties.Dead]: false,
@@ -127,18 +104,49 @@ export const personCreate = (position: Vec2): Person => {
     };
 
     person[PersonProperties.DeadAnimation] = animationCreate([
-        animationFrameCreate([
-            animationFrameItemCreate(leftArm1, -3.1, 0.007),
-            animationFrameItemCreate(leftArm2, REST_ARM_LEFT_2, 0.005),
-            animationFrameItemCreate(rightArm1, REST_ARM_RIGHT_1, 0.005),
-            animationFrameItemCreate(rightArm2, -2.2, 0.003),
-            animationFrameItemCreate(leftLeg1, REST_LEG_LEFT_1, 0.005),
-            animationFrameItemCreate(leftLeg2, 0.1, 0.005),
-            animationFrameItemCreate(rightLeg1, REST_LEG_RIGHT_1, 0.005),
-            animationFrameItemCreate(rightLeg2, 0.4, 0.005),
-            animationFrameItemCreate(body, 1.5, 0.003),
-        ]),
+        animationFrameCreate(
+            [
+                animationFrameItemCreate(leftArm1, -3.1, 0.007),
+                animationFrameItemCreate(leftArm2, REST_ARM_LEFT_2, 0.005),
+                animationFrameItemCreate(rightArm1, REST_ARM_RIGHT_1, 0.005),
+                animationFrameItemCreate(rightArm2, -2.2, 0.003),
+                animationFrameItemCreate(leftLeg1, REST_LEG_LEFT_1, 0.005),
+                animationFrameItemCreate(leftLeg2, 0.1, 0.005),
+                animationFrameItemCreate(rightLeg1, REST_LEG_RIGHT_1, 0.005),
+                animationFrameItemCreate(rightLeg2, 0.4, 0.005),
+                animationFrameItemCreate(body, 1.5, 0.003),
+            ],
+            () => animationStart(person[PersonProperties.DeadAnimation])
+        ),
     ]);
+
+    person[PersonProperties.WalkAnimation] = animationCreate([
+        animationFrameCreate([
+            animationFrameItemCreate(leftArm1, -1, 0.01),
+            animationFrameItemCreate(leftArm2, -0.2, 0.008),
+            animationFrameItemCreate(rightArm1, 1, 0.01),
+            animationFrameItemCreate(rightArm2, -1.1, 0.005),
+            animationFrameItemCreate(leftLeg1, -1, 0.01),
+            animationFrameItemCreate(leftLeg2, 0.2, 0.008),
+            animationFrameItemCreate(rightLeg1, 1, 0.01),
+            animationFrameItemCreate(rightLeg2, 1.1, 0.005),
+        ]),
+        animationFrameCreate(
+            [
+                animationFrameItemCreate(leftArm1, 1, 0.01),
+                animationFrameItemCreate(leftArm2, -2, 0.008),
+                animationFrameItemCreate(rightArm1, -1, 0.01),
+                animationFrameItemCreate(rightArm2, -1.4, 0.005),
+                animationFrameItemCreate(leftLeg1, 1, 0.01),
+                animationFrameItemCreate(leftLeg2, 2, 0.008),
+                animationFrameItemCreate(rightLeg1, -1.2, 0.01),
+                animationFrameItemCreate(rightLeg2, 0.5, 0.005),
+            ],
+            () => animationStart(person[PersonProperties.WalkAnimation])
+        ),
+    ]);
+
+    animationStart(person[PersonProperties.WalkAnimation]);
 
     return person;
 };
@@ -191,20 +199,11 @@ export const personStep = (person: Person, deltaTime: number) => {
 
     animatableBeginStep(person[PersonProperties.Animatable]);
 
-    if (animationStep(person[PersonProperties.DeadAnimation], deltaTime)) {
-        animationStart(person[PersonProperties.DeadAnimation]);
+    if (person[PersonProperties.Dead]) {
+        animationStep(person[PersonProperties.DeadAnimation], deltaTime);
+    } else {
+        animationStep(person[PersonProperties.WalkAnimation], deltaTime);
     }
-
-    animationStep(person[PersonProperties.WalkAnimation], deltaTime);
-
-    if (!animationIsRunning(person[PersonProperties.WalkAnimation])) {
-        animationStart(person[PersonProperties.WalkAnimation]);
-    }
-
-    if (!animationIsRunning(person[PersonProperties.RestAnimation])) {
-        animationStart(person[PersonProperties.RestAnimation]);
-    }
-    animationStep(person[PersonProperties.RestAnimation], deltaTime);
 
     animatableStep(person[PersonProperties.Animatable]);
 };

@@ -59,13 +59,14 @@ export const animationStep = (animation: Animation, deltaTime: number): boolean 
     }
 
     if (endOfFrame) {
-        frame[FrameProperties.AfterTrigger]?.();
-
         animation[AnimationProperties.CurrentFrame]++;
-        if (animationIsEnd(animation)) {
+        const isEnd = animationIsEnd(animation);
+        if (isEnd) {
             animation[AnimationProperties.Running] = false;
-            return true;
         }
+
+        frame[FrameProperties.AfterTrigger]?.();
+        return isEnd;
     }
 
     return false;
@@ -111,7 +112,7 @@ export type Animation = {
     [AnimationProperties.CurrentFrame]: number;
 };
 
-export type AnimationTrigger = () => {};
+export type AnimationTrigger = () => void;
 
 export const animationCreate = (frames: Animation[AnimationProperties.Frames]): Animation => ({
     [AnimationProperties.Frames]: frames,

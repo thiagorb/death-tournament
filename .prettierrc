@@ -3,5 +3,5 @@
     "singleQuote": true,
     "tabWidth": 4,
     "semi": true,
-    "printWidth": 140
+    "printWidth": 120
 }

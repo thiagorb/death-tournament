@@ -21,14 +21,14 @@ const rectCreate = (x: number, y: number, width: number, height: number, color: 
 export const backgroundInit = (program: Program) => {
     const polygons: Array<Polygon> = [];
 
-    const layers = 6;
-    for (let l = 0; l < layers; l++) {
+    const layers = 3;
+    for (let layer = 0; layer < layers; layer++) {
         let currentX = -700 + Math.random() * 300;
         while (currentX < 700) {
-            const width = 200 + Math.random() * 100;
+            const width = 100 * (1 + layer) + Math.random() * 100;
             const left = currentX - width / 2;
-            const height = 100 + Math.random() * 200;
-            const shade = (l / (layers - 1)) * 0.1;
+            const height = 100 * (1 + layer) + Math.random() * 200;
+            const shade = (layer / (layers - 1)) * 0.1;
 
             polygons.push(rectCreate(left, 0, width, height, [shade, shade, shade]));
 
@@ -37,9 +37,12 @@ export const backgroundInit = (program: Program) => {
             const windowWidth = width / cols;
             const rows = (height / windowWidth) | 0;
             for (let j = 0; j < windows; j++) {
-                const xShift = 2 + ((Math.random() * cols) | 0) * windowWidth;
-                const yShift = 2 + ((2 + Math.random() * (rows - 2)) | 0) * windowWidth;
-                polygons.push(rectCreate(left + xShift, yShift, windowWidth - 4, windowWidth - 4, [1, 1, 0]));
+                const windowPadding = 4;
+                const xShift = windowPadding + ((Math.random() * cols) | 0) * windowWidth;
+                const yShift = windowPadding + ((2 + Math.random() * (rows - 2)) | 0) * windowWidth;
+                polygons.push(
+                    rectCreate(left + xShift, height - yShift, windowWidth - 2 * windowPadding, windowWidth - 2 * windowPadding, [1, 1, 0])
+                );
             }
             currentX += width + 50 + Math.random() * 50;
         }

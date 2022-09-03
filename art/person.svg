@@ -25,8 +25,8 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="4.1691932"
-     inkscape:cx="162.62139"
-     inkscape:cy="210.71223"
+     inkscape:cx="141.51419"
+     inkscape:cy="95.821897"
      inkscape:window-width="1846"
      inkscape:window-height="1016"
      inkscape:window-x="74"
@@ -239,6 +239,15 @@
        sodipodi:nodetypes="ccccc">
       <desc
          id="desc280-7">{
+    &quot;connectTo&quot;: &quot;face&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#d35f5f;stroke-width:0.264583"
+       d="m 41.9755,24.805831 -3.696618,1.18003 0.08568,0.882322 3.01756,-0.751568 z"
+       id="mouth">
+      <desc
+         id="desc28369">{
     &quot;connectTo&quot;: &quot;face&quot;
 }</desc>
     </path>

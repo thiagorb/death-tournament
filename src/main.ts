@@ -1,7 +1,7 @@
 import { backgroundDraw, backgroundInit } from './background';
 import { Clock, clockCreate, clockDraw, clockGetPosition, clockInit, clockStep } from './clock';
 import { deathAttack, deathCollidesWithClock, deathCreate, deathDraw, deathInit, deathIsHitting, deathStep, deathWalk } from './death';
-import { dogCreate, dogDraw, dogInit } from './dog';
+import { dogCreate, dogDraw, dogInit, dogStep } from './dog';
 import { glClear, glModelTranslate, glProgramCreate } from './gl';
 import { Vec2, vectorCreate } from './glm';
 import { keyboardInitialize } from './keyboard';
@@ -118,6 +118,7 @@ const main = async () => {
         deathStep(death, deltaTime);
         peopleStep(deltaTime);
         clocksStep(deltaTime);
+        dogStep(dog, deltaTime);
     };
 
     const render = () => {
