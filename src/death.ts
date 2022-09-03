@@ -19,10 +19,9 @@ import {
     boundElementCreate,
 } from './animation';
 import { Clock, clockGetPosition } from './clock';
-import { glDrawRect, glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
+import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
 import { Vec2, vectorCreate } from './glm';
 import { Model, modelCreate, objectCreate } from './model';
-import { Person, personGetLeft, personGetRight } from './person';
 
 let modelRight: Model;
 let modelLeft: Model;
@@ -162,7 +161,8 @@ export const deathAttack = (death: Death) => {
 
 const moveSpeed = 0.3;
 export const deathWalk = (death: Death, deltaTime: number, left: boolean) => {
-    death[DeathProperties.Position][0] += moveSpeed * deltaTime * (left ? -1 : 1);
+    const newX = death[DeathProperties.Position][0] + moveSpeed * deltaTime * (left ? -1 : 1);
+    death[DeathProperties.Position][0] = Math.max(-500, Math.min(500, newX));
     animationResume(death[DeathProperties.WalkAnimation]);
     death[DeathProperties.FacingLeft] = left;
 };

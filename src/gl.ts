@@ -75,15 +75,16 @@ export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
 
     const viewTransform = gl.getUniformLocation(program, 'viewTransform');
     const updateViewport = () => {
-        const pixelSize = 1;
+        const pixelSize = devicePixelRatio;
         canvas.width = document.body.clientWidth / pixelSize;
         canvas.height = document.body.clientHeight / pixelSize;
 
+        const ratio = canvas.width / canvas.height;
         gl.viewport(0, 0, canvas.width, canvas.height);
         const matrix = matrixCreate();
-        matrixScale(matrix, 1, canvas.width / canvas.height);
+        matrixScale(matrix, 1, ratio);
 
-        const zoom = (pixelSize * Math.min(canvas.width, canvas.height)) / 500000;
+        const zoom = (1 * pixelSize * Math.min(canvas.width, canvas.height)) / 500000;
         matrixScale(matrix, zoom, zoom);
         gl.uniformMatrix3fv(viewTransform, false, matrix);
     };
@@ -138,7 +139,12 @@ export type Mesh = {
     [MeshProperty.DrawMode]: number;
 };
 
-export const glMeshCreate = (program: Program, vertices: Array<number>, indices: Array<number>, color: ColorRGB): Mesh => {
+export const glMeshCreate = (
+    program: Program,
+    vertices: Array<number>,
+    indices: Array<number>,
+    color: ColorRGB
+): Mesh => {
     const gl = program[ProgramProperty.WebGL2Context];
     const vertexArrayObject = gl.createVertexArray();
     gl.bindVertexArray(vertexArrayObject);
