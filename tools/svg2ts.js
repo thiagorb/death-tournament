@@ -1,4 +1,5 @@
 const { XMLParser } = require('fast-xml-parser');
+const earcut = require('earcut');
 
 module.exports.default = function (source) {
     const options = this.getOptions();
@@ -169,12 +170,6 @@ module.exports.default = function (source) {
 
     const addPolygon = (path, origin) => {
         const relativeOrigin = translateVertexToOrigin(path.transformOrigin, origin);
-        const polygon = [translateVerticesToOrigin(path.vertices, path.transformOrigin).flat(), path.color];
-        if (path.meta.connectTo) {
-            polygon.push(relativeOrigin);
-        } else {
-            polygon.push([0, 0]);
-        }
 
         const back = (hierarchy.get(path.id) || [])
             .map((p, i) => ({ p, i }))
@@ -184,7 +179,12 @@ module.exports.default = function (source) {
             });
 
         const index = nextIndex;
-        polygons.push(polygon);
+        polygons.push([
+            translateVerticesToOrigin(path.vertices, path.transformOrigin).flat(),
+            earcut(path.vertices.flat()),
+            path.color,
+            path.meta.connectTo ? relativeOrigin : [0, 0],
+        ]);
         addTransformPath(path.id);
 
         const front = (hierarchy.get(path.id) || [])

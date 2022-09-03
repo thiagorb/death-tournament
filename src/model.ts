@@ -4,12 +4,14 @@ import functionCreate from './function';
 
 const enum PolygonProperty {
     Vertices,
+    Indices,
     Color,
     TransformOrigin,
 }
 
 type Polygon = {
     [PolygonProperty.Vertices]: Array<number>;
+    [PolygonProperty.Indices]: Array<number>;
     [PolygonProperty.Color]: ColorRGB;
     [PolygonProperty.TransformOrigin]: [number, number];
 };
@@ -145,7 +147,12 @@ export const objectDraw = (object: Object, program: Program) => object[ObjectPro
 
 const modelMeshFromPolygon = (program: Program, polygon: Polygon): ModelMesh => {
     return {
-        [ModelMeshProperty.Mesh]: glMeshCreate(program, polygon[PolygonProperty.Vertices], polygon[PolygonProperty.Color]),
+        [ModelMeshProperty.Mesh]: glMeshCreate(
+            program,
+            polygon[PolygonProperty.Vertices],
+            polygon[PolygonProperty.Indices],
+            polygon[PolygonProperty.Color]
+        ),
         [ModelMeshProperty.TransformOrigin]: polygon[PolygonProperty.TransformOrigin] ?? [0, 0],
     };
 };

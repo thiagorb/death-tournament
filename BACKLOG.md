@@ -6,3 +6,4 @@
 -   killing a dog should reduce timer
 -   make attack move
 -   implement loader for glsl, that minifies the identifiers
+-   make color an uniform instead of array

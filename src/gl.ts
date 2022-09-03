@@ -17,7 +17,6 @@ import {
 } from './glm';
 import fragmentShaderCode from './shaders/fragment.glsl';
 import vertexShaderCode from './shaders/vertex.glsl';
-import earcut from './earcut';
 
 const enum ProgramProperty {
     WebGL2Context,
@@ -139,7 +138,7 @@ export type Mesh = {
     [MeshProperty.DrawMode]: number;
 };
 
-export const glMeshCreate = (program: Program, vertices: Array<number>, color: ColorRGB): Mesh => {
+export const glMeshCreate = (program: Program, vertices: Array<number>, indices: Array<number>, color: ColorRGB): Mesh => {
     const gl = program[ProgramProperty.WebGL2Context];
     const vertexArrayObject = gl.createVertexArray();
     gl.bindVertexArray(vertexArrayObject);
@@ -172,11 +171,10 @@ export const glMeshCreate = (program: Program, vertices: Array<number>, color: C
     setArray(program, AttributesProperty.VertexNormal, normals.flat(), 2);
 
     const indexBuffer = gl.createBuffer();
-    const index = earcut(vertices);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(index), gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
-    return [vertexArrayObject, index.length, gl.TRIANGLES];
+    return [vertexArrayObject, indices.length, gl.TRIANGLES];
 };
 
 const glDrawLineStrip = (program: Program, vertices: Array<[number, number]>, colors: Array<ColorRGB>) => {
