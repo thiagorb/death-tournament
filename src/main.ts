@@ -1,8 +1,8 @@
-import { DEFAULT_STATS } from 'webpack-dev-server';
 import { backgroundDraw, backgroundInit } from './background';
 import { Clock, clockCreate, clockDraw, clockGetPosition, clockInit, clockStep } from './clock';
 import { deathAttack, deathCollidesWithClock, deathCreate, deathDraw, deathInit, deathIsHitting, deathStep, deathWalk } from './death';
-import { glClear, glModelPop, glModelPush, glModelTranslate, glProgramCreate } from './gl';
+import { dogCreate, dogDraw, dogInit } from './dog';
+import { glClear, glModelTranslate, glProgramCreate } from './gl';
 import { Vec2, vectorCreate } from './glm';
 import { keyboardInitialize } from './keyboard';
 import {
@@ -10,12 +10,10 @@ import {
     personCreate,
     personDie,
     personDraw,
-    personGetBoundingLeft,
     personGetDeadTime,
     personGetPosition,
     personInit,
     personIsDead,
-    personSetPositionX,
     personStep,
     personTurnLeft,
 } from './person';
@@ -40,11 +38,15 @@ const main = async () => {
         mouseSpeed[1] += event.movementY;
     });
 
+    glModelTranslate(program, 0, -150);
+
     deathInit(program);
     personInit(program);
     clockInit(program);
     backgroundInit(program);
+    dogInit(program);
     const death = deathCreate();
+    const dog = dogCreate(vectorCreate());
     const people = new Set<Person>();
     const clocks = new Set<Clock>();
     const timer = timerCreate((n: number) => (timerDiv.innerText = n as any as string));
@@ -121,9 +123,6 @@ const main = async () => {
     const render = () => {
         glClear(program, [0, 0, 0.3, 1]);
 
-        glModelPush(program);
-        glModelTranslate(program, 0, -50);
-
         backgroundDraw(program);
         deathDraw(death, program);
         for (const person of people) {
@@ -132,8 +131,7 @@ const main = async () => {
         for (const clock of clocks) {
             clockDraw(clock, program);
         }
-
-        glModelPop(program);
+        dogDraw(dog, program);
     };
 
     const loop = (time: number) => {
