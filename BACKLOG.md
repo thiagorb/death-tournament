@@ -1,5 +1,11 @@
 next steps:
 
+-   make dog disappear
+-   move dog
+-   make dog stop
+-   limit death movement sideways
+-   delete dog if it goes out of the screen
+-   create new dog if there is none
 -   killing a dog should reduce timer
 -   make attack move
 -   add game over
@@ -8,6 +14,7 @@ feature ideas:
 
 -   add more people types (different clothes, women, etc)
 -   add +/- indication after killing dog / picking hourglass
+-   add opacitiy transition for elements appearing / disappearing
 
 performance improvement ideas:
 

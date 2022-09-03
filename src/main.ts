@@ -10,7 +10,19 @@ import {
     deathStep,
     deathWalk,
 } from './death';
-import { dogCreate, dogDie, dogDraw, dogGetLeft, dogGetRight, dogInit, dogIsDead, dogStep } from './dog';
+import {
+    dogCreate,
+    dogDie,
+    dogDraw,
+    dogGetDeadTime,
+    dogGetLeft,
+    dogGetPosition,
+    dogGetRight,
+    dogInit,
+    dogIsDead,
+    dogStep,
+    dogTurnLeft,
+} from './dog';
 import { glClear, glModelTranslate, glProgramCreate } from './gl';
 import { Vec2, vectorCreate } from './glm';
 import { keyboardInitialize } from './keyboard';
@@ -57,7 +69,7 @@ const main = async () => {
     backgroundInit(program);
     dogInit(program);
     const death = deathCreate();
-    const dog = dogCreate(vectorCreate());
+    let dog = null;
     const people = new Set<Person>();
     const clocks = new Set<Clock>();
     const timer = timerCreate((n: number) => (timerDiv.innerText = n as any as string));
@@ -65,6 +77,7 @@ const main = async () => {
     const scoreUpdater = updaterCreate((n: number) => (scoreDiv.innerText = n as any as string));
     let nextPerson = 0;
     let nextClock = 0;
+    let nextDog = 3000;
 
     let previousTime = 0;
 
@@ -129,11 +142,26 @@ const main = async () => {
         deathStep(death, deltaTime);
         peopleStep(deltaTime);
         clocksStep(deltaTime);
-        dogStep(dog, deltaTime);
 
-        if (!dogIsDead(dog) && deathIsHitting(death, dogGetLeft(dog), dogGetRight(dog))) {
-            dogDie(dog);
-            console.log('killed dog');
+        if (dog !== null) {
+            dogStep(dog, deltaTime);
+            if (!dogIsDead(dog) && deathIsHitting(death, dogGetLeft(dog), dogGetRight(dog))) {
+                dogDie(dog);
+                timerIncrease(timer, -5000);
+            }
+
+            if (dogGetDeadTime(dog) > 2000 || outOfScreen(dogGetPosition(dog))) {
+                dog = null;
+                nextDog = 3000 + Math.random() * 1000;
+            }
+        } else {
+            nextDog -= deltaTime;
+            if (nextDog < 0) {
+                dog = dogCreate(vectorCreate((Math.random() - 0.5) * 1000, 0));
+                if (Math.random() < 0.5) {
+                    dogTurnLeft(dog);
+                }
+            }
         }
     };
 
@@ -148,7 +176,9 @@ const main = async () => {
         for (const clock of clocks) {
             clockDraw(clock, program);
         }
-        dogDraw(dog, program);
+        if (dog !== null) {
+            dogDraw(dog, program);
+        }
     };
 
     const loop = (time: number) => {
