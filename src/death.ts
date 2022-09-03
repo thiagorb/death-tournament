@@ -19,7 +19,7 @@ import {
     boundElementCreate,
 } from './animation';
 import { Clock, clockGetPosition } from './clock';
-import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
+import { glDrawRect, glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
 import { Vec2, vectorCreate } from './glm';
 import { Model, modelCreate, objectCreate } from './model';
 
@@ -41,6 +41,7 @@ const enum DeathProperties {
     WalkAnimation,
     FacingLeft,
     Attacking,
+    AttackingTime,
 }
 
 export type Death = {
@@ -53,6 +54,7 @@ export type Death = {
     [DeathProperties.WalkAnimation]: Animation;
     [DeathProperties.FacingLeft]: boolean;
     [DeathProperties.Attacking]: boolean;
+    [DeathProperties.AttackingTime]: number;
 };
 
 export const deathCreate = (): Death => {
@@ -112,6 +114,7 @@ export const deathCreate = (): Death => {
         [DeathProperties.WalkAnimation]: walkAnimation,
         [DeathProperties.FacingLeft]: false,
         [DeathProperties.Attacking]: false,
+        [DeathProperties.AttackingTime]: 0,
     };
 
     const attackPrepareSpeed = 0.02;
@@ -122,7 +125,7 @@ export const deathCreate = (): Death => {
                 animationFrameItemCreate(leftArm1, -3, attackPrepareSpeed),
                 animationFrameItemCreate(leftArm2, -2, attackPrepareSpeed),
             ],
-            () => (death[DeathProperties.Attacking] = true)
+            () => ((death[DeathProperties.Attacking] = true), (death[DeathProperties.AttackingTime] = 0))
         ),
         animationFrameCreate(
             [animationFrameItemCreate(leftArm1, -0.7, attackSpeed), animationFrameItemCreate(leftArm2, 0, attackSpeed)],
@@ -180,6 +183,10 @@ export const deathStep = (death: Death, deltaTime: number) => {
     animatableBeginStep(death[DeathProperties.AnimatableLeft]);
 
     death[DeathProperties.AttackCooldown] = Math.max(0, death[DeathProperties.AttackCooldown] - deltaTime);
+    if (death[DeathProperties.Attacking]) {
+        death[DeathProperties.AttackingTime] += deltaTime;
+    }
+
     if (animationStep(death[DeathProperties.AttackAnimation], deltaTime)) {
         death[DeathProperties.AttackCooldown] = ATTACK_COOLDOWN_TIME;
     }
@@ -198,14 +205,18 @@ export const deathStep = (death: Death, deltaTime: number) => {
 };
 
 const ATTACK_GAP = 20;
-const ATTACK_WIDTH = 70;
-const ATTACK_LEFT = [-ATTACK_GAP - ATTACK_WIDTH, ATTACK_GAP];
+const ATTACK_WIDTH = 1;
+const getAttackLeft = (death: Death) =>
+    death[DeathProperties.Position][0] +
+    (death[DeathProperties.FacingLeft] ? -1 : 1) * (ATTACK_GAP + death[DeathProperties.AttackingTime] * 1.3) -
+    ATTACK_WIDTH / 2;
+
 export const deathIsHitting = (death: Death, boundingLeft: number, boundingRight: number) => {
     if (!death[DeathProperties.Attacking]) {
         return false;
     }
 
-    const attackLeft = death[DeathProperties.Position][0] + ATTACK_LEFT[death[DeathProperties.FacingLeft] ? 0 : 1];
+    const attackLeft = getAttackLeft(death);
     const attackRight = attackLeft + ATTACK_WIDTH;
     return attackLeft < boundingRight && attackRight >= boundingLeft;
 };

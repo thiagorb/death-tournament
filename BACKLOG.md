@@ -1,9 +1,5 @@
 next steps:
 
--   delete dog if it goes out of the screen
--   create new dog if there is none
--   killing a dog should reduce timer
--   make attack move
 -   add game over
 
 feature ideas:
