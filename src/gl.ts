@@ -53,7 +53,7 @@ export type Program = {
     [ProgramProperty.CurrentModelMatrix]: number;
 };
 
-export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
+export const glProgramCreate = (canvas: HTMLCanvasElement, virtualWidth: number, virtualHeight: number): Program => {
     const gl = canvas.getContext('webgl2', { antialias: false });
     if (process.env.NODE_ENV !== 'production' && gl === null) {
         throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.');
@@ -71,18 +71,42 @@ export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
 
     const viewTransform = gl.getUniformLocation(program, vertexShader.viewTransformRenamed);
     const updateViewport = () => {
-        const pixelSize = devicePixelRatio;
+        const pixelSize = devicePixelRatio * 1;
         canvas.width = document.body.clientWidth / pixelSize;
         canvas.height = document.body.clientHeight / pixelSize;
 
-        const ratio = canvas.width / canvas.height;
+        const virtualMin = Math.min(virtualWidth, virtualHeight);
+        const canvasRatio = canvas.width / canvas.height;
+        const virtualRatio = virtualWidth / virtualHeight;
+
+        // ex: canvas 2100 x 1200
+        // virtual 1000x800
+        // canvas/virtual = 2.1/1.5
+        // vMinPx = 1.5
+        // canvas virtual = 1400x800
+        // virtual in px = 1500x1200
+        const vMinPx = Math.min(canvas.width / virtualWidth, canvas.height / virtualHeight);
+        const canvasVirtualWidth = canvas.width / vMinPx;
+        const canvasVirtualHeight = canvas.height / vMinPx;
+
         gl.viewport(0, 0, canvas.width, canvas.height);
         const matrix = matrixCreate();
-        matrixScale(matrix, 1, ratio);
 
-        const zoom = (1 * pixelSize * Math.min(canvas.width, canvas.height)) / 500000;
-        matrixScale(matrix, zoom, zoom);
+        console.log({ canvasVirtualWidth, canvasVirtualHeight });
+        console.log('scale', 2 / canvasVirtualWidth, 2 / canvasVirtualHeight);
+
+        // 1 should becmoe virtual
+        matrixScale(matrix, 2 / canvasVirtualWidth, 2 / canvasVirtualHeight);
+
+        const zoom = (5 * pixelSize) / virtualMin;
+        console.log(zoom);
+        // matrixScale(matrix, zoom, zoom);
         gl.uniformMatrix3fv(viewTransform, false, matrix);
+
+        const screen = document.querySelector('#screen') as HTMLElement;
+        screen.style.width = `${canvasVirtualWidth}px`;
+        screen.style.height = `${canvasVirtualHeight}px`;
+        screen.style.transform = `scale(${vMinPx})`;
     };
     addEventListener('resize', updateViewport);
     updateViewport();

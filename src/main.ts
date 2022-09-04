@@ -1,14 +1,14 @@
 import { backgroundInit } from './background';
 import { deathInit } from './death';
 import { dogInit } from './dog';
-import { gameCreate, gameRender, gameStart, gameStep } from './game';
-import { glModelTranslate, glProgramCreate } from './gl';
+import { gameCreate, gameStart, VIRTUAL_HEIGHT, VIRTUAL_WIDTH } from './game';
+import { glProgramCreate } from './gl';
 import { hourglassInit } from './hourglass';
 import { personInit } from './person';
 
 const main = async () => {
     const canvas: HTMLCanvasElement = document.querySelector('#game-canvas');
-    const program = glProgramCreate(canvas);
+    const program = glProgramCreate(canvas, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
     const mouseSpeed = [0, 0];
 
@@ -16,8 +16,6 @@ const main = async () => {
         mouseSpeed[0] += event.movementX;
         mouseSpeed[1] += event.movementY;
     });
-
-    glModelTranslate(program, 0, -150);
 
     deathInit(program);
     personInit(program);

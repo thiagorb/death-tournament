@@ -1,6 +1,5 @@
 ## Next Steps
 
--   add +/- indication after killing dog / picking hourglass
 -   add background scene for menu
 -   add transitions for ui
 -   make the ui more game-like
@@ -12,10 +11,12 @@
 -   add more people types (different clothes, women, etc)
 -   add opacitiy transition for elements appearing / disappearing
 -   make dog stop and change direction
+-   move view sideways
 
 ## Performance improvement ideas
 
 -   Use one mesh per background building layer / window layer instead of one per building / window
+    ... or even better: render the background as image using normal canvas API
 
 ## Size reduction ideas
 

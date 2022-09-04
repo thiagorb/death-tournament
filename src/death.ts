@@ -18,9 +18,9 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
+import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
+import { Vec2 } from './glm';
 import { Hourglass, hourglassGetPosition } from './hourglass';
-import { glDrawRect, glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
-import { Vec2, vectorCreate } from './glm';
 import { Model, modelCreate, objectCreate } from './model';
 
 let modelRight: Model;
@@ -57,7 +57,7 @@ export type Death = {
     [DeathProperties.AttackingTime]: number;
 };
 
-export const deathCreate = (): Death => {
+export const deathCreate = (position: Vec2): Death => {
     const REST_LEFT_1 = 0;
     const REST_LEFT_2 = -1.5;
     const REST_RIGHT_1 = 0;
@@ -95,7 +95,7 @@ export const deathCreate = (): Death => {
     ]);
 
     const death: Death = {
-        [DeathProperties.Position]: vectorCreate(),
+        [DeathProperties.Position]: position,
         [DeathProperties.AttackCooldown]: 0,
         [DeathProperties.AnimatableRight]: animatableCreate(objectCreate(modelRight), [
             boundElementCreate(leftArm1, modelDataRight.leftArm1TransformPath),
@@ -150,7 +150,18 @@ export const deathDraw = (death: Death, program: Program) => {
     glModelPop(program);
 
     // glDrawRect(program, vectorCreate(getAttackLeft(death), 0), vectorCreate(ATTACK_WIDTH, 100));
+    //updateHtmlBb(death);
 };
+
+/*
+const updateHtmlBb = (death: Death) => {
+    const bb = document.querySelector('#death-bb') as HTMLElement;
+    bb.style.width = `${DEATH_WIDTH}px`;
+    bb.style.height = `${DEATH_HEIGHT}px`;
+    bb.style.left = `calc(50% + ${death[DeathProperties.Position][0] - DEATH_WIDTH / 2}px)`;
+    bb.style.top = `calc(50% - ${death[DeathProperties.Position][1] + DEATH_HEIGHT}px)`;
+};
+*/
 
 const ATTACK_COOLDOWN_TIME = 100;
 

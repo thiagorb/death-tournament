@@ -21,8 +21,8 @@ import {
     dogStep,
     dogTurnLeft,
 } from './dog';
-import { glClear, Program } from './gl';
-import { Vec2, vectorCreate } from './glm';
+import { glClear, glDrawRect, Program } from './gl';
+import { Vec2, vectorCreate, vectorMultiply } from './glm';
 import { Hourglass, hourglassCreate, hourglassDraw, hourglassGetPosition, hourglassStep } from './hourglass';
 import { keyboardInitialize } from './keyboard';
 import {
@@ -45,9 +45,18 @@ const scoreDiv: HTMLDivElement = document.querySelector('#score');
 const timerUpdater = updaterCreate((n: number) => (timerDiv.innerText = Math.round(n / 1000) as any as string));
 const scoreUpdater = updaterCreate((n: number) => (scoreDiv.innerText = n as any as string));
 const keyboard = keyboardInitialize(['KeyA', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
+const FLOOR_LEVEL = -150;
+export const VIRTUAL_WIDTH = 1200;
+export const VIRTUAL_HEIGHT = 600;
+export const GAME_WIDTH = 1000;
 
-const outOfScreen = (position: Vec2) => {
-    return position[0] > 1000 || position[0] < -1000 || position[1] > 1000 || position[1] < -1000;
+const outOfGameArea = (position: Vec2) => {
+    return (
+        position[0] > VIRTUAL_WIDTH ||
+        position[0] < -VIRTUAL_WIDTH ||
+        position[1] > VIRTUAL_HEIGHT ||
+        position[1] < -VIRTUAL_HEIGHT
+    );
 };
 
 const enum GameProperties {
@@ -65,13 +74,13 @@ const enum GameProperties {
 type Game = ReturnType<typeof gameCreate>;
 
 export const gameCreate = () => ({
-    [GameProperties.Death]: deathCreate(),
+    [GameProperties.Death]: deathCreate(vectorCreate(0, FLOOR_LEVEL)),
     [GameProperties.People]: new Set<Person>(),
     [GameProperties.Hourglasses]: new Set<Hourglass>(),
     [GameProperties.Dogs]: new Set<Dog>(),
     [GameProperties.Score]: 0,
     [GameProperties.NextPerson]: 3000,
-    [GameProperties.NextHourglass]: 15000,
+    [GameProperties.NextHourglass]: 1000,
     [GameProperties.NextDog]: 8000,
     [GameProperties.TimeLeft]: 40000,
 });
@@ -86,14 +95,14 @@ const gamePeopleStep = (game: Game, deltaTime: number) => {
             updaterSet(scoreUpdater, (game[GameProperties.Score] += 1));
         }
         personStep(person, deltaTime);
-        if (personGetDeadTime(person) > 2000 || outOfScreen(personGetPosition(person))) {
+        if (personGetDeadTime(person) > 2000 || outOfGameArea(personGetPosition(person))) {
             game[GameProperties.People].delete(person);
         }
     }
 
     game[GameProperties.NextPerson] -= deltaTime;
     if (game[GameProperties.NextPerson] < 0) {
-        const person = personCreate(vectorCreate((Math.random() - 0.5) * 1000, 0));
+        const person = personCreate(vectorCreate((Math.random() - 0.5) * GAME_WIDTH, FLOOR_LEVEL));
         game[GameProperties.People].add(person);
         if (Math.random() < 0.5) {
             personTurnLeft(person);
@@ -102,25 +111,46 @@ const gamePeopleStep = (game: Game, deltaTime: number) => {
     }
 };
 
+const createIndicator = (text: string, color: string, x: number, y: number) => {
+    const indicator = document.createElement('div');
+    indicator.classList.add('indicator');
+    indicator.onanimationend = () => indicator.remove();
+    indicator.innerText = text;
+    Object.assign(indicator.style, {
+        left: `calc(50% + ${x}px`,
+        top: `calc(50% - ${y}px`,
+        color: color,
+    });
+    document.querySelector('#screen').appendChild(indicator);
+};
+
 const gameHourglasssStep = (game: Game, deltaTime: number) => {
     for (const hourglass of game[GameProperties.Hourglasses]) {
         hourglassStep(hourglass, deltaTime);
 
         if (deathCollidesWithHourglass(game[GameProperties.Death], hourglass)) {
             game[GameProperties.Hourglasses].delete(hourglass);
-            game[GameProperties.TimeLeft] += 10000;
+            const timeIncrease = 10;
+            game[GameProperties.TimeLeft] += timeIncrease * 1000;
+            createIndicator(
+                `+${timeIncrease}s`,
+                `#8f8`,
+                hourglassGetPosition(hourglass)[0],
+                hourglassGetPosition(hourglass)[1] + 10
+            );
         }
 
-        if (outOfScreen(hourglassGetPosition(hourglass))) {
+        if (outOfGameArea(hourglassGetPosition(hourglass))) {
             game[GameProperties.Hourglasses].delete(hourglass);
         }
     }
 
     game[GameProperties.NextHourglass] -= deltaTime;
     if (game[GameProperties.NextHourglass] < 0) {
-        const hourglass = hourglassCreate(vectorCreate((Math.random() - 0.5) * 1000, 500));
+        const hourglass = hourglassCreate(vectorCreate((Math.random() - 0.5) * GAME_WIDTH, 500));
         game[GameProperties.Hourglasses].add(hourglass);
-        game[GameProperties.NextHourglass] = Math.random() * 5000 + 8000;
+        // game[GameProperties.NextHourglass] = Math.random() * 5000 + 8000;
+        game[GameProperties.NextHourglass] = Math.random() * 1000 + 1000;
     }
 };
 
@@ -129,10 +159,12 @@ const gameDogStep = (game: Game, deltaTime: number) => {
         dogStep(dog, deltaTime);
         if (!dogIsDead(dog) && deathIsHitting(game[GameProperties.Death], dogGetLeft(dog), dogGetRight(dog))) {
             dogDie(dog);
-            game[GameProperties.TimeLeft] -= 5000;
+            const timeIncrease = -5;
+            game[GameProperties.TimeLeft] += timeIncrease * 1000;
+            createIndicator(`${timeIncrease}s`, `#f88`, dogGetPosition(dog)[0], dogGetPosition(dog)[1] + 30);
         }
 
-        if (dogGetDeadTime(dog) > 2000 || outOfScreen(dogGetPosition(dog))) {
+        if (dogGetDeadTime(dog) > 2000 || outOfGameArea(dogGetPosition(dog))) {
             game[GameProperties.Dogs].delete(dog);
             game[GameProperties.NextDog] = 3000 + Math.random() * 1000;
         }
@@ -141,7 +173,7 @@ const gameDogStep = (game: Game, deltaTime: number) => {
     if (game[GameProperties.Dogs].size === 0) {
         game[GameProperties.NextDog] -= deltaTime;
         if (game[GameProperties.NextDog] < 0) {
-            const dog = dogCreate(vectorCreate((Math.random() - 0.5) * 1000, 0));
+            const dog = dogCreate(vectorCreate((Math.random() - 0.5) * GAME_WIDTH, FLOOR_LEVEL));
             if (Math.random() < 0.5) {
                 dogTurnLeft(dog);
             }
@@ -179,6 +211,17 @@ export const gameRender = (game: Game, program: Program) => {
     for (const dog of game[GameProperties.Dogs]) {
         dogDraw(dog, program);
     }
+
+    // renderDebuggingRects(program);
+};
+
+const virtualOrigin = vectorMultiply(vectorCreate(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), -0.5);
+const virtualSize = vectorCreate(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+const gameOrigin = vectorMultiply(vectorCreate(GAME_WIDTH, VIRTUAL_HEIGHT), -0.5);
+const gameSize = vectorCreate(GAME_WIDTH, VIRTUAL_HEIGHT);
+const renderDebuggingRects = (program: Program) => {
+    glDrawRect(program, virtualOrigin, virtualSize);
+    glDrawRect(program, gameOrigin, gameSize);
 };
 
 export const gameStart = (game: Game, program: Program) => {

@@ -23,9 +23,9 @@
         html {
             height: -webkit-fill-available;
             color: white;
-            font-size: 5vmin;
             font-family: Arial, Helvetica, sans-serif;
             font-weight: 900;
+            font-size: 20px;
         }
 
         body {
@@ -45,11 +45,7 @@
             top: 0;
             left: 0;
             bottom: 0;
-            width: 100vw;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            background-color: #000;
+            right: 0;
         }
 
         #game-canvas {
@@ -63,14 +59,14 @@
 
         #timer {
             position: absolute;
-            right: 5vmin;
-            top: 5vmin;
+            right: 10px;
+            top: 10px;
         }
 
         #score {
             position: absolute;
-            right: 5vmin;
-            top: 15vmin;
+            right: 10px;
+            top: 30px;
         }
 
         #ui {
@@ -90,11 +86,24 @@
         }
 
         .button {
-            font-size: 0.5rem;
+            font-size: 30px;
             padding: 1em;
             background-color: purple;
             border-radius: 1em;
             cursor: pointer;
+        }
+
+        @keyframes indicator {
+            0%   {opacity:0; transform: translate(-50%, 0rem);}
+            50%   {opacity:1; transform: translate(-50%, -2rem);}
+            100%   {opacity:0; transform: translate(-50%, -2rem);}
+        }
+        .indicator {
+            font-size: 16px;
+            position: absolute;
+            animation-name: indicator;
+            animation-duration: 4s;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
     </style>
     <script src="https://js13kgames.com/src/near-api-js.js"></script>
@@ -103,11 +112,16 @@
 <body>
     <div id="game">
         <canvas id="game-canvas"></canvas>
-        <div id="timer">0</div>
-        <div id="score">0</div>
-        <div id="ui">
-            <p id="game-over" class="hidden">GAME OVER</p>
-            <div id="start-game" class="button">START GAME</button>
+        <div id="screen" style="position: absolute; left: 0; top: 0; transform-origin: 0 0;">
+            <div id="timer">0</div>
+            <div id="score">0</div>
+            <div id="ui">
+                <p id="game-over" class="hidden">GAME OVER</p>
+                <div id="start-game" class="button">START GAME</div>
+            </div>
+            <!--
+            <div id="death-bb" style="position: absolute; border: 2px solid white;"></div>
+            -->
         </div>
     </div>
 </body>
