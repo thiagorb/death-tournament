@@ -1,6 +1,5 @@
 ## Next Steps
 
--   add background scene for menu
 -   add transitions for ui
 -   make the ui more game-like
 -   make color an uniform instead of array

@@ -44,13 +44,13 @@ const timerDiv: HTMLDivElement = document.querySelector('#timer');
 const scoreDiv: HTMLDivElement = document.querySelector('#score');
 const timerUpdater = updaterCreate((n: number) => (timerDiv.innerText = Math.round(n / 1000) as any as string));
 const scoreUpdater = updaterCreate((n: number) => (scoreDiv.innerText = n as any as string));
-const keyboard = keyboardInitialize(['KeyA', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
-const FLOOR_LEVEL = -200;
+const keyboard = keyboardInitialize(['Space', 'ArrowLeft', 'ArrowRight']);
+export const FLOOR_LEVEL = -200;
 export const VIRTUAL_WIDTH = 1200;
 export const VIRTUAL_HEIGHT = 600;
 export const GAME_WIDTH = 1000;
 
-const outOfGameArea = (position: Vec2) => {
+export const gameIsOutOfArea = (position: Vec2) => {
     return (
         position[0] > VIRTUAL_WIDTH ||
         position[0] < -VIRTUAL_WIDTH ||
@@ -95,7 +95,7 @@ const gamePeopleStep = (game: Game, deltaTime: number) => {
             updaterSet(scoreUpdater, (game[GameProperties.Score] += 1));
         }
         personStep(person, deltaTime);
-        if (personGetDeadTime(person) > 2000 || outOfGameArea(personGetPosition(person))) {
+        if (personGetDeadTime(person) > 2000 || gameIsOutOfArea(personGetPosition(person))) {
             game[GameProperties.People].delete(person);
         }
     }
@@ -140,7 +140,7 @@ const gameHourglasssStep = (game: Game, deltaTime: number) => {
             );
         }
 
-        if (outOfGameArea(hourglassGetPosition(hourglass))) {
+        if (gameIsOutOfArea(hourglassGetPosition(hourglass))) {
             game[GameProperties.Hourglasses].delete(hourglass);
         }
     }
@@ -164,7 +164,7 @@ const gameDogStep = (game: Game, deltaTime: number) => {
             createIndicator(`${timeIncrease}s`, `#f88`, dogGetPosition(dog)[0], dogGetPosition(dog)[1] + 30);
         }
 
-        if (dogGetDeadTime(dog) > 2000 || outOfGameArea(dogGetPosition(dog))) {
+        if (dogGetDeadTime(dog) > 2000 || gameIsOutOfArea(dogGetPosition(dog))) {
             game[GameProperties.Dogs].delete(dog);
             game[GameProperties.NextDog] = 3000 + Math.random() * 1000;
         }
@@ -187,7 +187,7 @@ export const gameStep = (game: Game, deltaTime: number) => {
         deathWalk(game[GameProperties.Death], deltaTime, keyboard.ArrowLeft);
     }
 
-    if (keyboard.KeyA) {
+    if (keyboard.Space) {
         deathAttack(game[GameProperties.Death]);
     }
 
