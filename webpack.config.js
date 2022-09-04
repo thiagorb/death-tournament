@@ -34,12 +34,12 @@ module.exports = {
                 exclude: /node_modules/,
             },
             {
-                test: /\.glsl$/,
-                type: 'asset/source',
+                test: /\.svg$/,
+                use: [{ loader: path.resolve('tools/svg-loader.js') }],
             },
             {
-                test: /\.svg$/,
-                use: [{ loader: path.resolve('tools/svg2ts.js') }],
+                test: /\.(vert|frag)$/,
+                use: [{ loader: path.resolve('tools/glsl-loader.js') }],
             },
         ],
     },

@@ -7,10 +7,6 @@ in highp vec2 vertexNormal;
 in highp vec3 color;
 out highp vec3 vColor;
 out highp vec2 vNormal;
-uniform float currentTime;
-
-out highp vec3 viewPoint;
-out highp vec3 positionRelativeToCamera;
 
 void main(void) {
     vec3 p = modelTransform * vec3(vertexPosition, 1.);

@@ -15,8 +15,8 @@ import {
     vectorPerpendicular,
     vectorSubtract,
 } from './glm';
-import fragmentShaderCode from './shaders/fragment.glsl';
-import vertexShaderCode from './shaders/vertex.glsl';
+import * as fragmentShader from './shaders/fragment.frag';
+import * as vertexShader from './shaders/vertex.vert';
 
 const enum ProgramProperty {
     WebGL2Context,
@@ -31,8 +31,6 @@ const enum ProgramProperty {
 const enum UniformsProperty {
     ViewTransform,
     ModelTransform,
-    CurrentTime,
-    PerlinSampler,
 }
 
 const enum AttributesProperty {
@@ -62,18 +60,16 @@ export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
     }
 
     const program = gl.createProgram();
-    gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, vertexShaderCode));
-    gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentShaderCode));
+    gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, vertexShader.source));
+    gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentShader.source));
     gl.linkProgram(program);
 
     gl.useProgram(program);
-    const perlinSampler = gl.getUniformLocation(program, 'perlinSampler');
-    gl.uniform1i(perlinSampler, 0);
 
-    const modelTransform = gl.getUniformLocation(program, 'modelTransform');
+    const modelTransform = gl.getUniformLocation(program, vertexShader.modelTransformRenamed);
     gl.uniformMatrix3fv(modelTransform, false, matrixCreate());
 
-    const viewTransform = gl.getUniformLocation(program, 'viewTransform');
+    const viewTransform = gl.getUniformLocation(program, vertexShader.viewTransformRenamed);
     const updateViewport = () => {
         const pixelSize = devicePixelRatio;
         canvas.width = document.body.clientWidth / pixelSize;
@@ -97,13 +93,11 @@ export const glProgramCreate = (canvas: HTMLCanvasElement): Program => {
         [ProgramProperty.Uniforms]: {
             [UniformsProperty.ViewTransform]: viewTransform,
             [UniformsProperty.ModelTransform]: modelTransform,
-            [UniformsProperty.CurrentTime]: gl.getUniformLocation(program, 'currentTime'),
-            [UniformsProperty.PerlinSampler]: perlinSampler,
         },
         [ProgramProperty.Attributes]: {
-            [AttributesProperty.VertexPosition]: gl.getAttribLocation(program, 'vertexPosition'),
-            [AttributesProperty.VertexNormal]: gl.getAttribLocation(program, 'vertexNormal'),
-            [AttributesProperty.Color]: gl.getAttribLocation(program, 'color'),
+            [AttributesProperty.VertexPosition]: gl.getAttribLocation(program, vertexShader.vertexPositionRenamed),
+            [AttributesProperty.VertexNormal]: gl.getAttribLocation(program, vertexShader.vertexNormalRenamed),
+            [AttributesProperty.Color]: gl.getAttribLocation(program, vertexShader.colorRenamed),
         },
         [ProgramProperty.ModelMatrixStack]: [...new Array(10)].map(() => matrixCreate()),
         [ProgramProperty.MatrixUpdated]: false,

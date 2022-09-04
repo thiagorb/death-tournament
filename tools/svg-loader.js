@@ -142,12 +142,20 @@ module.exports.default = function (source) {
         let y = parseFloat(rect.y);
         let width = parseFloat(rect.width);
         let height = parseFloat(rect.height);
-        const vertices = [toAbsolute([x, y]), toAbsolute([x + width, y]), toAbsolute([x + width, y + height]), toAbsolute([x, y + height])];
+        const vertices = [
+            toAbsolute([x, y]),
+            toAbsolute([x + width, y]),
+            toAbsolute([x + width, y + height]),
+            toAbsolute([x, y + height]),
+        ];
 
         return buildPathDefinition(rect, vertices);
     };
 
-    const paths = [...getNodes(jObj.svg.g?.path).map(p => convertPathD(p)), ...getNodes(jObj.svg.g?.rect).map(p => convertRect(p))];
+    const paths = [
+        ...getNodes(jObj.svg.g?.path).map(p => convertPathD(p)),
+        ...getNodes(jObj.svg.g?.rect).map(p => convertRect(p)),
+    ];
     const zIndex = new Map(paths.map((p, i) => [p.id, i]));
     const hierarchy = new Map();
     for (const path of paths) {
