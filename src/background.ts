@@ -30,8 +30,11 @@ const rectCreate = (x: number, y: number, width: number, height: number, color: 
     [PolygonProperty.TransformOrigin]: [0, 0],
 });
 
+const horizonLine = -100;
+
 export const backgroundInit = (program: Program) => {
     const polygons: Array<Polygon> = [];
+    polygons.push(rectCreate(-1000, horizonLine - 1000, 2000, 1000, [0.4, 0.4, 0.4]));
 
     const layers = 4;
     for (let layer = 0; layer < layers; layer++) {
@@ -43,21 +46,22 @@ export const backgroundInit = (program: Program) => {
             const height = 400 - depth * 200 + Math.random() * 50;
             const color = blendColor([0.2, 0.2, 0.2], BACKGROUND_COLOR, 0.3 + 0.5 * depth);
 
-            polygons.push(rectCreate(left, 0, width, height, color));
+            const y = horizonLine - 50 * depth ** 3;
+            polygons.push(rectCreate(left, y, width, height, color));
 
             const cols = (10 + 5 * depth) | 0; // (10 + Math.random() * 5) | 0;
             const windowWidth = width / cols;
             const windows = ((0.0005 * width * height * (2 + Math.random() * 10)) / windowWidth) | 0;
             const rows = (height / windowWidth) | 0;
             for (let j = 0; j < windows; j++) {
-                const windowPadding = 4;
+                const windowPadding = 4 * depth;
                 const xShift = windowPadding + ((Math.random() * cols) | 0) * windowWidth;
                 const yShift = windowPadding + ((2 + Math.random() * (rows - 2)) | 0) * windowWidth;
                 const windowColor = blendColor([1, 1, 0.5], BACKGROUND_COLOR, depth);
                 polygons.push(
                     rectCreate(
                         left + xShift,
-                        height - yShift,
+                        y + height - yShift,
                         windowWidth - 2 * windowPadding,
                         windowWidth - 2 * windowPadding,
                         windowColor
@@ -68,7 +72,6 @@ export const backgroundInit = (program: Program) => {
         }
     }
 
-    polygons.push(rectCreate(-1000, -1000, 2000, 1000, [0.4, 0.4, 0.4]));
     const data: ModelData = {
         [ModelDataProperty.Polygons]: polygons,
         [ModelDataProperty.PolygonHierarchy]: [...polygons.keys()].map(k => [k]),

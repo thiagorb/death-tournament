@@ -45,7 +45,7 @@ const scoreDiv: HTMLDivElement = document.querySelector('#score');
 const timerUpdater = updaterCreate((n: number) => (timerDiv.innerText = Math.round(n / 1000) as any as string));
 const scoreUpdater = updaterCreate((n: number) => (scoreDiv.innerText = n as any as string));
 const keyboard = keyboardInitialize(['KeyA', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
-const FLOOR_LEVEL = -150;
+const FLOOR_LEVEL = -200;
 export const VIRTUAL_WIDTH = 1200;
 export const VIRTUAL_HEIGHT = 600;
 export const GAME_WIDTH = 1000;
