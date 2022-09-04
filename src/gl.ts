@@ -220,6 +220,7 @@ export const glDrawBoundingBox = (program: Program, position: Vec2, size: Vec2) 
 };
 
 export type ColorRGB = [number, number, number];
+export type ColorRGBA = [number, number, number, number];
 
 export const glModelPush = (program: Program) => {
     const current = program[ProgramProperty.CurrentModelMatrix];

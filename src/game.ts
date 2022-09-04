@@ -1,4 +1,4 @@
-import { backgroundDraw } from './background';
+import { backgroundDraw, BACKGROUND_COLOR } from './background';
 import {
     deathAttack,
     deathCollidesWithHourglass,
@@ -166,7 +166,7 @@ export const gameStep = (game: Game, deltaTime: number) => {
 };
 
 export const gameRender = (game: Game, program: Program) => {
-    glClear(program, [0, 0, 0.3, 1]);
+    glClear(program, BACKGROUND_COLOR);
 
     backgroundDraw(program);
     deathDraw(game[GameProperties.Death], program);

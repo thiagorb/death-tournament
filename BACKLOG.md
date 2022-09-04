@@ -1,10 +1,10 @@
 ## Next Steps
 
--   create matrix for object mesh only when requested, to avoid unnecessary push/pops
 -   add +/- indication after killing dog / picking hourglass
 -   add background scene for menu
 -   add transitions for ui
 -   make the ui more game-like
+-   make color an uniform instead of array
 
 ## Feature ideas
 
@@ -15,8 +15,9 @@
 
 ## Performance improvement ideas
 
+-   Use one mesh per background building layer / window layer instead of one per building / window
+
 ## Size reduction ideas
 
--   generate draw function during svg parsing
--   make color an uniform instead of array
 -   add option to make animations loop, and remove trigger to restart animation
+-   generate draw function during svg parsing
