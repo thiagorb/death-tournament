@@ -38,12 +38,12 @@ const enum UniformsProperty {
     ViewTransform,
     ModelTransform,
     GlobalOpacity,
+    Color,
 }
 
 const enum AttributesProperty {
     VertexPosition,
     VertexNormal,
-    Color,
 }
 
 export type Program = {
@@ -109,11 +109,11 @@ export const glProgramCreate = (canvas: HTMLCanvasElement, virtualWidth: number,
             [UniformsProperty.ViewTransform]: viewTransform,
             [UniformsProperty.ModelTransform]: modelTransform,
             [UniformsProperty.GlobalOpacity]: gl.getUniformLocation(glProgram, fragmentShader.globalOpacityRenamed),
+            [UniformsProperty.Color]: gl.getUniformLocation(glProgram, fragmentShader.colorRenamed),
         },
         [ProgramProperty.Attributes]: {
             [AttributesProperty.VertexPosition]: gl.getAttribLocation(glProgram, vertexShader.vertexPositionRenamed),
             [AttributesProperty.VertexNormal]: gl.getAttribLocation(glProgram, vertexShader.vertexNormalRenamed),
-            [AttributesProperty.Color]: gl.getAttribLocation(glProgram, vertexShader.colorRenamed),
         },
         [ProgramProperty.ModelMatrixStack]: [...new Array(10)].map(() => matrixCreate()),
         [ProgramProperty.MatrixUpdated]: false,
@@ -152,31 +152,17 @@ const enum MeshProperty {
     VertexArrayObject,
     VerticesLength,
     DrawMode,
+    Color,
 }
 
-export type Mesh = {
-    [MeshProperty.VertexArrayObject]: WebGLVertexArrayObject;
-    [MeshProperty.VerticesLength]: number;
-    [MeshProperty.DrawMode]: number;
-};
+export type Mesh = ReturnType<typeof glMeshCreate>;
 
-export const glMeshCreate = (
-    program: Program,
-    vertices: Array<number>,
-    indices: Array<number>,
-    color: ColorRGB
-): Mesh => {
+export const glMeshCreate = (program: Program, vertices: Array<number>, indices: Array<number>, color: ColorRGB) => {
     const gl = program[ProgramProperty.WebGL2Context];
     const vertexArrayObject = gl.createVertexArray();
     gl.bindVertexArray(vertexArrayObject);
 
     setArray(program, AttributesProperty.VertexPosition, vertices, 2);
-    setArray(
-        program,
-        AttributesProperty.Color,
-        vertices.flatMap(v => color),
-        3
-    );
 
     const edgeNormals = [];
     for (let i = 0; i < vertices.length; i += 2) {
@@ -201,25 +187,20 @@ export const glMeshCreate = (
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
-    return [vertexArrayObject, indices.length, gl.TRIANGLES];
+    return {
+        [MeshProperty.VertexArrayObject]: vertexArrayObject,
+        [MeshProperty.VerticesLength]: indices.length,
+        [MeshProperty.DrawMode]: gl.TRIANGLES,
+        [MeshProperty.Color]: new Float32Array(color),
+    };
 };
 
-const glDrawLineStrip = (program: Program, vertices: Array<[number, number]>, colors: Array<ColorRGB>) => {
+const glDrawLineStrip = (program: Program, vertices: Array<[number, number]>) => {
     const gl = program[ProgramProperty.WebGL2Context];
     setArray(program, AttributesProperty.VertexPosition, vertices.flat(), 2);
-    setArray(program, AttributesProperty.Color, colors.flat(), 3);
 
     updateCurrentMatrix(program);
     gl.drawArrays(gl.LINE_STRIP, 0, vertices.length);
-};
-
-const glDrawLines = (program: Program, vertices: Array<[number, number]>) => {
-    const gl = program[ProgramProperty.WebGL2Context];
-    setArray(program, AttributesProperty.VertexPosition, vertices.flat(), 2);
-    setArray(program, AttributesProperty.Color, vertices.map(v => [1, 0, 0]).flat(), 3);
-
-    updateCurrentMatrix(program);
-    gl.drawArrays(gl.LINES, 0, vertices.length);
 };
 
 const corners = [
@@ -239,7 +220,7 @@ export const glDrawRect = (program: Program, position: [number, number], size: V
         colors.push([1, 1, 1]);
     }
 
-    glDrawLineStrip(program, vertices, colors);
+    glDrawLineStrip(program, vertices);
 };
 
 export const glDrawBoundingBox = (program: Program, position: Vec2, size: Vec2) => {
@@ -328,6 +309,7 @@ export const glMeshDraw = (program: Program, mesh: Mesh) => {
 
     const gl = program[ProgramProperty.WebGL2Context];
     gl.bindVertexArray(mesh[MeshProperty.VertexArrayObject]);
+    gl.uniform3fv(program[ProgramProperty.Uniforms][UniformsProperty.Color], mesh[MeshProperty.Color]);
     gl.drawElements(mesh[MeshProperty.DrawMode], mesh[MeshProperty.VerticesLength], gl.UNSIGNED_SHORT, 0);
     gl.bindVertexArray(null);
 };

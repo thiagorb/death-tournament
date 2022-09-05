@@ -83,8 +83,6 @@ module.exports.default = async function (source) {
 
     statements.push(`export const source = ${JSON.stringify(result.output)};`);
 
-    console.log(result);
-
     return statements.join('\n');
 };
 

@@ -1,12 +1,11 @@
 ## Next Steps
 
--   make color an uniform instead of array
+-   add death's death animation
 
 ## Feature ideas
 
 -   increase earned score for killing many people with one hit
 -   add more people types (different clothes, women, etc)
--   add opacitiy transition for elements appearing / disappearing
 -   make dog stop and change direction
 -   move view sideways
 
@@ -19,3 +18,4 @@
 
 -   add option to make animations loop, and remove trigger to restart animation
 -   generate draw function during svg parsing
+-   remove unused animations (person/dog, walk/rest)

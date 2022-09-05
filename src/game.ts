@@ -87,7 +87,7 @@ export const gameCreate = () => ({
     [GameProperties.Dogs]: new Set<Dog>(),
     [GameProperties.Score]: 0,
     [GameProperties.NextPerson]: 3000,
-    [GameProperties.NextHourglass]: 1000,
+    [GameProperties.NextHourglass]: 3000,
     [GameProperties.NextDog]: 8000,
     [GameProperties.TimeLeft]: INITIAL_TIME * 1000,
     [GameProperties.PersonInterval]: 500,
@@ -155,7 +155,7 @@ export const gameHourglasssStep = (game: Game, deltaTime: number) => {
 
     game[GameProperties.NextHourglass] -= deltaTime;
     if (game[GameProperties.NextHourglass] < 0) {
-        const hourglass = hourglassCreate(vectorCreate((Math.random() - 0.5) * GAME_WIDTH, 500));
+        const hourglass = hourglassCreate(vectorCreate((Math.random() - 0.5) * GAME_WIDTH, VIRTUAL_HEIGHT / 2));
         game[GameProperties.Hourglasses].add(hourglass);
         // game[GameProperties.NextHourglass] = Math.random() * 5000 + 8000;
         game[GameProperties.NextHourglass] = Math.random() * 1000 + 1000;
