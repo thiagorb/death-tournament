@@ -12,9 +12,10 @@ const usages = new Map([['vColor', { sources: new Set(['nope']), renamed: 'a' }]
 const usedIdentifiers = new Map([['a', 'vColor']]);
 
 const removeUsages = (sourcePath, firstPass) => {
-    for (const key of [...Object.keys(firstPass.globals), ...Object.keys(firstPass.uniforms)]) {
-        if (usages.has(key)) {
-            const keyUsages = usages.get(key);
+    const newKeys = new Set([...Object.keys(firstPass.globals), ...Object.keys(firstPass.uniforms)]);
+    for (const key of usages.keys()) {
+        const keyUsages = usages.get(key);
+        if (!newKeys.has(key) && keyUsages.sources.has(sourcePath)) {
             keyUsages.sources.delete(sourcePath);
             if (keyUsages.sources.size === 0) {
                 usages.delete(key);

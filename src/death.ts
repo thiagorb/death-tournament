@@ -18,7 +18,7 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
-import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
+import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, glSetGlobalOpacity, Program } from './gl';
 import { Vec2 } from './glm';
 import { Hourglass, hourglassGetPosition } from './hourglass';
 import { Model, modelCreate, objectCreate } from './model';
@@ -42,6 +42,8 @@ const enum DeathProperties {
     FacingLeft,
     Attacking,
     AttackingTime,
+    Fading,
+    Opacity,
 }
 
 export type Death = {
@@ -55,6 +57,8 @@ export type Death = {
     [DeathProperties.FacingLeft]: boolean;
     [DeathProperties.Attacking]: boolean;
     [DeathProperties.AttackingTime]: number;
+    [DeathProperties.Fading]: boolean;
+    [DeathProperties.Opacity]: number;
 };
 
 export const deathCreate = (position: Vec2): Death => {
@@ -115,6 +119,8 @@ export const deathCreate = (position: Vec2): Death => {
         [DeathProperties.FacingLeft]: false,
         [DeathProperties.Attacking]: false,
         [DeathProperties.AttackingTime]: 0,
+        [DeathProperties.Fading]: false,
+        [DeathProperties.Opacity]: 0,
     };
 
     const attackPrepareSpeed = 0.02;
@@ -138,6 +144,7 @@ export const deathCreate = (position: Vec2): Death => {
 };
 
 export const deathDraw = (death: Death, program: Program) => {
+    glSetGlobalOpacity(program, death[DeathProperties.Opacity]);
     glModelPush(program);
     glModelTranslateVector(program, death[DeathProperties.Position]);
     if (death[DeathProperties.FacingLeft]) {
@@ -148,6 +155,7 @@ export const deathDraw = (death: Death, program: Program) => {
     }
 
     glModelPop(program);
+    glSetGlobalOpacity(program, 1);
 
     // glDrawRect(program, vectorCreate(getAttackLeft(death), 0), vectorCreate(ATTACK_WIDTH, 100));
     //updateHtmlBb(death);
@@ -189,7 +197,16 @@ export const deathIsAttacking = (death: Death) => {
     return death[DeathProperties.Attacking];
 };
 
+export const deathStartFade = (death: Death) => {
+    death[DeathProperties.Fading] = true;
+};
+
 export const deathStep = (death: Death, deltaTime: number) => {
+    const opacityDirection = death[DeathProperties.Fading] ? -0.3 : 1;
+    death[DeathProperties.Opacity] = Math.max(
+        0,
+        Math.min(1, death[DeathProperties.Opacity] + 0.002 * deltaTime * opacityDirection)
+    );
     animatableBeginStep(death[DeathProperties.AnimatableRight]);
     animatableBeginStep(death[DeathProperties.AnimatableLeft]);
 

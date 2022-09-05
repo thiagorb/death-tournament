@@ -5,6 +5,7 @@ import {
     deathCreate,
     deathDraw,
     deathIsHitting,
+    deathStartFade,
     deathStep,
     deathWalk,
 } from './death';
@@ -21,10 +22,11 @@ import {
     dogStep,
     dogTurnLeft,
 } from './dog';
-import { glClear, glDrawRect, Program } from './gl';
+import { getVirtualScreenHeight, getVirtualScreenWidth, glClear, glDrawRect, Program } from './gl';
 import { Vec2, vectorCreate, vectorMultiply } from './glm';
 import { Hourglass, hourglassCreate, hourglassDraw, hourglassGetPosition, hourglassStep } from './hourglass';
 import { keyboardInitialize } from './keyboard';
+import { menuStart } from './menu';
 import {
     Person,
     personCreate,
@@ -52,14 +54,14 @@ export const GAME_WIDTH = 1000;
 
 export const gameIsOutOfArea = (position: Vec2) => {
     return (
-        position[0] > VIRTUAL_WIDTH ||
-        position[0] < -VIRTUAL_WIDTH ||
-        position[1] > VIRTUAL_HEIGHT ||
-        position[1] < -VIRTUAL_HEIGHT
+        position[0] > (getVirtualScreenWidth() * 1.1) / 2 ||
+        position[0] < (-getVirtualScreenWidth() * 1.1) / 2 ||
+        position[1] > (getVirtualScreenHeight() * 1.1) / 2 ||
+        position[1] < (-getVirtualScreenHeight() * 1.1) / 2
     );
 };
 
-const enum GameProperties {
+export const enum GameProperties {
     Death,
     People,
     Hourglasses,
@@ -69,9 +71,10 @@ const enum GameProperties {
     NextHourglass,
     NextDog,
     TimeLeft,
+    PersonInterval,
 }
 
-type Game = ReturnType<typeof gameCreate>;
+export type Game = ReturnType<typeof gameCreate>;
 
 export const gameCreate = () => ({
     [GameProperties.Death]: deathCreate(vectorCreate(0, FLOOR_LEVEL)),
@@ -82,10 +85,11 @@ export const gameCreate = () => ({
     [GameProperties.NextPerson]: 3000,
     [GameProperties.NextHourglass]: 1000,
     [GameProperties.NextDog]: 8000,
-    [GameProperties.TimeLeft]: 40000,
+    [GameProperties.TimeLeft]: 5000,
+    [GameProperties.PersonInterval]: 500,
 });
 
-const gamePeopleStep = (game: Game, deltaTime: number) => {
+export const gamePeopleStep = (game: Game, deltaTime: number) => {
     for (const person of game[GameProperties.People]) {
         if (
             !personIsDead(person) &&
@@ -107,7 +111,7 @@ const gamePeopleStep = (game: Game, deltaTime: number) => {
         if (Math.random() < 0.5) {
             personTurnLeft(person);
         }
-        game[GameProperties.NextPerson] = Math.random() * 200 + 300;
+        game[GameProperties.NextPerson] = game[GameProperties.PersonInterval] + Math.random() * 200;
     }
 };
 
@@ -124,7 +128,7 @@ const createIndicator = (text: string, color: string, x: number, y: number) => {
     document.querySelector('#screen').appendChild(indicator);
 };
 
-const gameHourglasssStep = (game: Game, deltaTime: number) => {
+export const gameHourglasssStep = (game: Game, deltaTime: number) => {
     for (const hourglass of game[GameProperties.Hourglasses]) {
         hourglassStep(hourglass, deltaTime);
 
@@ -154,7 +158,7 @@ const gameHourglasssStep = (game: Game, deltaTime: number) => {
     }
 };
 
-const gameDogStep = (game: Game, deltaTime: number) => {
+export const gameDogStep = (game: Game, deltaTime: number) => {
     for (const dog of game[GameProperties.Dogs]) {
         dogStep(dog, deltaTime);
         if (!dogIsDead(dog) && deathIsHitting(game[GameProperties.Death], dogGetLeft(dog), dogGetRight(dog))) {
@@ -215,6 +219,18 @@ export const gameRender = (game: Game, program: Program) => {
     // renderDebuggingRects(program);
 };
 
+export const menuRender = (game: Game, program: Program) => {
+    glClear(program, BACKGROUND_COLOR);
+
+    backgroundDraw(program);
+    for (const person of game[GameProperties.People]) {
+        personDraw(person, program);
+    }
+    for (const dog of game[GameProperties.Dogs]) {
+        dogDraw(dog, program);
+    }
+};
+
 const virtualOrigin = vectorMultiply(vectorCreate(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), -0.5);
 const virtualSize = vectorCreate(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 const gameOrigin = vectorMultiply(vectorCreate(GAME_WIDTH, VIRTUAL_HEIGHT), -0.5);
@@ -241,10 +257,13 @@ export const gameStart = (game: Game, program: Program) => {
         if (game[GameProperties.TimeLeft] > 0) {
             requestAnimationFrame(loop);
         } else {
-            (document.querySelector('#ui') as HTMLElement).classList.remove('hidden');
+            deathStartFade(game[GameProperties.Death]);
             (document.querySelector('#game-over') as HTMLElement).classList.remove('hidden');
+            menuStart(program, game);
         }
     };
 
     requestAnimationFrame((time: number) => loop((previousTime = time)));
 };
+
+export const gameIsOver = (game: Game) => game[GameProperties.TimeLeft] <= 0;

@@ -10,14 +10,13 @@ import {
     animationElementCreate,
     animationFrameCreate,
     animationFrameItemCreate,
-    animationIsRunning,
     animationResume,
     animationStart,
     animationStep,
     boundElementCreate,
 } from './animation';
-import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, Program } from './gl';
-import { Vec2, vectorCreate } from './glm';
+import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, glSetGlobalOpacity, Program } from './gl';
+import { Vec2 } from './glm';
 import { Model, modelCreate, objectCreate } from './model';
 
 let modelRight: Model;
@@ -35,6 +34,7 @@ const enum PersonProperties {
     Animatable,
     Dead,
     DeadTime,
+    Opacity,
 }
 
 export type Person = {
@@ -46,6 +46,7 @@ export type Person = {
     [PersonProperties.Animatable]: Animatable;
     [PersonProperties.Dead]: boolean;
     [PersonProperties.DeadTime]: number;
+    [PersonProperties.Opacity]: number;
 };
 
 export const personCreate = (position: Vec2): Person => {
@@ -101,6 +102,7 @@ export const personCreate = (position: Vec2): Person => {
         [PersonProperties.FacingLeft]: false,
         [PersonProperties.Dead]: false,
         [PersonProperties.DeadTime]: 0,
+        [PersonProperties.Opacity]: 0,
     };
 
     person[PersonProperties.DeadAnimation] = animationCreate([
@@ -120,27 +122,28 @@ export const personCreate = (position: Vec2): Person => {
         ),
     ]);
 
+    const walkSpeed = 0.65;
     person[PersonProperties.WalkAnimation] = animationCreate([
         animationFrameCreate([
-            animationFrameItemCreate(leftArm1, -1, 0.01),
-            animationFrameItemCreate(leftArm2, -0.2, 0.008),
-            animationFrameItemCreate(rightArm1, 1, 0.01),
-            animationFrameItemCreate(rightArm2, -1.1, 0.005),
-            animationFrameItemCreate(leftLeg1, -1, 0.01),
-            animationFrameItemCreate(leftLeg2, 0.2, 0.008),
-            animationFrameItemCreate(rightLeg1, 1, 0.01),
-            animationFrameItemCreate(rightLeg2, 1.1, 0.005),
+            animationFrameItemCreate(leftArm1, -1, 0.01 * walkSpeed),
+            animationFrameItemCreate(leftArm2, -0.2, 0.008 * walkSpeed),
+            animationFrameItemCreate(rightArm1, 1, 0.01 * walkSpeed),
+            animationFrameItemCreate(rightArm2, -1.1, 0.005 * walkSpeed),
+            animationFrameItemCreate(leftLeg1, -1, 0.01 * walkSpeed),
+            animationFrameItemCreate(leftLeg2, 0.2, 0.008 * walkSpeed),
+            animationFrameItemCreate(rightLeg1, 1, 0.01 * walkSpeed),
+            animationFrameItemCreate(rightLeg2, 1.1, 0.005 * walkSpeed),
         ]),
         animationFrameCreate(
             [
-                animationFrameItemCreate(leftArm1, 1, 0.01),
-                animationFrameItemCreate(leftArm2, -2, 0.008),
-                animationFrameItemCreate(rightArm1, -1, 0.01),
-                animationFrameItemCreate(rightArm2, -1.4, 0.005),
-                animationFrameItemCreate(leftLeg1, 1, 0.01),
-                animationFrameItemCreate(leftLeg2, 2, 0.008),
-                animationFrameItemCreate(rightLeg1, -1.2, 0.01),
-                animationFrameItemCreate(rightLeg2, 0.5, 0.005),
+                animationFrameItemCreate(leftArm1, 1, 0.01 * walkSpeed),
+                animationFrameItemCreate(leftArm2, -2, 0.008 * walkSpeed),
+                animationFrameItemCreate(rightArm1, -1, 0.01 * walkSpeed),
+                animationFrameItemCreate(rightArm2, -1.4, 0.005 * walkSpeed),
+                animationFrameItemCreate(leftLeg1, 1, 0.01 * walkSpeed),
+                animationFrameItemCreate(leftLeg2, 2, 0.008 * walkSpeed),
+                animationFrameItemCreate(rightLeg1, -1.2, 0.01 * walkSpeed),
+                animationFrameItemCreate(rightLeg2, 0.5, 0.005 * walkSpeed),
             ],
             () => animationStart(person[PersonProperties.WalkAnimation])
         ),
@@ -152,6 +155,8 @@ export const personCreate = (position: Vec2): Person => {
 };
 
 export const personDraw = (person: Person, program: Program) => {
+    glSetGlobalOpacity(program, person[PersonProperties.Opacity]);
+
     glModelPush(program);
     glModelTranslateVector(program, person[PersonProperties.Position]);
     if (person[PersonProperties.FacingLeft]) {
@@ -159,6 +164,7 @@ export const personDraw = (person: Person, program: Program) => {
     }
     animatableDraw(person[PersonProperties.Animatable], program);
     glModelPop(program);
+    glSetGlobalOpacity(program, 1);
 };
 
 export const personWalk = (person: Person) => {
@@ -196,6 +202,12 @@ export const personStep = (person: Person, deltaTime: number) => {
     } else {
         person[PersonProperties.Position][0] += (person[PersonProperties.FacingLeft] ? -1 : 1) * deltaTime * 0.2;
     }
+
+    const opacityDirection = person[PersonProperties.DeadTime] > 1000 ? -1 : 1;
+    person[PersonProperties.Opacity] = Math.max(
+        0,
+        Math.min(1, person[PersonProperties.Opacity] + 0.002 * deltaTime * opacityDirection)
+    );
 
     animatableBeginStep(person[PersonProperties.Animatable]);
 

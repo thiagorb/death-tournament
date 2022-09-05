@@ -18,6 +18,12 @@ import {
 import * as fragmentShader from './shaders/fragment.frag';
 import * as vertexShader from './shaders/vertex.vert';
 
+let virtualScreenWidth = 0;
+let virtualScreenHeight = 0;
+
+export const getVirtualScreenWidth = () => virtualScreenWidth;
+export const getVirtualScreenHeight = () => virtualScreenHeight;
+
 const enum ProgramProperty {
     WebGL2Context,
     Program,
@@ -31,6 +37,7 @@ const enum ProgramProperty {
 const enum UniformsProperty {
     ViewTransform,
     ModelTransform,
+    GlobalOpacity,
 }
 
 const enum AttributesProperty {
@@ -55,78 +62,74 @@ export type Program = {
 
 export const glProgramCreate = (canvas: HTMLCanvasElement, virtualWidth: number, virtualHeight: number): Program => {
     const gl = canvas.getContext('webgl2', { antialias: false });
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
     if (process.env.NODE_ENV !== 'production' && gl === null) {
         throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.');
     }
 
-    const program = gl.createProgram();
-    gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, vertexShader.source));
-    gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentShader.source));
-    gl.linkProgram(program);
+    const glProgram = gl.createProgram();
+    gl.attachShader(glProgram, compileShader(gl, gl.VERTEX_SHADER, vertexShader.source));
+    gl.attachShader(glProgram, compileShader(gl, gl.FRAGMENT_SHADER, fragmentShader.source));
+    gl.linkProgram(glProgram);
 
-    gl.useProgram(program);
+    gl.useProgram(glProgram);
 
-    const modelTransform = gl.getUniformLocation(program, vertexShader.modelTransformRenamed);
+    const modelTransform = gl.getUniformLocation(glProgram, vertexShader.modelTransformRenamed);
     gl.uniformMatrix3fv(modelTransform, false, matrixCreate());
 
-    const viewTransform = gl.getUniformLocation(program, vertexShader.viewTransformRenamed);
+    const viewTransform = gl.getUniformLocation(glProgram, vertexShader.viewTransformRenamed);
     const updateViewport = () => {
         const pixelSize = devicePixelRatio * 1;
         canvas.width = document.body.clientWidth / pixelSize;
         canvas.height = document.body.clientHeight / pixelSize;
 
-        const virtualMin = Math.min(virtualWidth, virtualHeight);
-        const canvasRatio = canvas.width / canvas.height;
-        const virtualRatio = virtualWidth / virtualHeight;
-
-        // ex: canvas 2100 x 1200
-        // virtual 1000x800
-        // canvas/virtual = 2.1/1.5
-        // vMinPx = 1.5
-        // canvas virtual = 1400x800
-        // virtual in px = 1500x1200
         const vMinPx = Math.min(canvas.width / virtualWidth, canvas.height / virtualHeight);
-        const canvasVirtualWidth = canvas.width / vMinPx;
-        const canvasVirtualHeight = canvas.height / vMinPx;
+        virtualScreenWidth = canvas.width / vMinPx;
+        virtualScreenHeight = canvas.height / vMinPx;
 
         gl.viewport(0, 0, canvas.width, canvas.height);
         const matrix = matrixCreate();
-
-        console.log({ canvasVirtualWidth, canvasVirtualHeight });
-        console.log('scale', 2 / canvasVirtualWidth, 2 / canvasVirtualHeight);
-
-        // 1 should becmoe virtual
-        matrixScale(matrix, 2 / canvasVirtualWidth, 2 / canvasVirtualHeight);
-
-        const zoom = (5 * pixelSize) / virtualMin;
-        console.log(zoom);
-        // matrixScale(matrix, zoom, zoom);
+        matrixScale(matrix, 2 / virtualScreenWidth, 2 / virtualScreenHeight);
         gl.uniformMatrix3fv(viewTransform, false, matrix);
 
         const screen = document.querySelector('#screen') as HTMLElement;
-        screen.style.width = `${canvasVirtualWidth}px`;
-        screen.style.height = `${canvasVirtualHeight}px`;
+        screen.style.width = `${virtualScreenWidth}px`;
+        screen.style.height = `${virtualScreenHeight}px`;
         screen.style.transform = `scale(${vMinPx})`;
     };
     addEventListener('resize', updateViewport);
     updateViewport();
 
-    return {
+    const program = {
         [ProgramProperty.WebGL2Context]: gl,
-        [ProgramProperty.Program]: program,
+        [ProgramProperty.Program]: glProgram,
         [ProgramProperty.Uniforms]: {
             [UniformsProperty.ViewTransform]: viewTransform,
             [UniformsProperty.ModelTransform]: modelTransform,
+            [UniformsProperty.GlobalOpacity]: gl.getUniformLocation(glProgram, fragmentShader.globalOpacityRenamed),
         },
         [ProgramProperty.Attributes]: {
-            [AttributesProperty.VertexPosition]: gl.getAttribLocation(program, vertexShader.vertexPositionRenamed),
-            [AttributesProperty.VertexNormal]: gl.getAttribLocation(program, vertexShader.vertexNormalRenamed),
-            [AttributesProperty.Color]: gl.getAttribLocation(program, vertexShader.colorRenamed),
+            [AttributesProperty.VertexPosition]: gl.getAttribLocation(glProgram, vertexShader.vertexPositionRenamed),
+            [AttributesProperty.VertexNormal]: gl.getAttribLocation(glProgram, vertexShader.vertexNormalRenamed),
+            [AttributesProperty.Color]: gl.getAttribLocation(glProgram, vertexShader.colorRenamed),
         },
         [ProgramProperty.ModelMatrixStack]: [...new Array(10)].map(() => matrixCreate()),
         [ProgramProperty.MatrixUpdated]: false,
         [ProgramProperty.CurrentModelMatrix]: 0,
     };
+
+    glSetGlobalOpacity(program, 1);
+
+    return program;
+};
+
+export const glSetGlobalOpacity = (program: Program, opacity: number) => {
+    program[ProgramProperty.WebGL2Context].uniform1f(
+        program[ProgramProperty.Uniforms][UniformsProperty.GlobalOpacity],
+        opacity
+    );
 };
 
 const compileShader = (

@@ -69,7 +69,7 @@
             top: 30px;
         }
 
-        #ui {
+        .ui {
             position: absolute;
             left: 0;
             top: 0;
@@ -113,9 +113,11 @@
     <div id="game">
         <canvas id="game-canvas"></canvas>
         <div id="screen" style="position: absolute; left: 0; top: 0; transform-origin: 0 0;">
-            <div id="timer">0</div>
-            <div id="score">0</div>
-            <div id="ui">
+            <div id="game-ui" class="ui hidden">
+                <div id="timer">0</div>
+                <div id="score">0</div>
+            </div>
+            <div id="menu-ui" class="ui">
                 <p id="game-over" class="hidden">GAME OVER</p>
                 <div id="start-game" class="button">START GAME</div>
             </div>
