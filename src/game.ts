@@ -42,15 +42,19 @@ import {
 } from './person';
 import { updaterCreate, updaterSet } from './ui';
 
-const timerDiv: HTMLDivElement = document.querySelector('#timer');
-const scoreDiv: HTMLDivElement = document.querySelector('#score');
-const timerUpdater = updaterCreate((n: number) => (timerDiv.innerText = Math.round(n / 1000) as any as string));
-const scoreUpdater = updaterCreate((n: number) => (scoreDiv.innerText = n as any as string));
-const keyboard = keyboardInitialize(['Space', 'ArrowLeft', 'ArrowRight']);
 export const FLOOR_LEVEL = -200;
 export const VIRTUAL_WIDTH = 1200;
 export const VIRTUAL_HEIGHT = 600;
 export const GAME_WIDTH = 1000;
+const INITIAL_TIME = 30;
+
+const timerDiv: HTMLDivElement = document.querySelector('#timer');
+const scoreDiv: HTMLDivElement = document.querySelector('#score');
+const timerUpdater = updaterCreate((n: number) =>
+    timerDiv.style.setProperty('--progress', (n / (INITIAL_TIME - 2)) as any as string)
+);
+const scoreUpdater = updaterCreate((n: number) => scoreDiv.style.setProperty('--score', `'${n}`));
+const keyboard = keyboardInitialize(['Space', 'ArrowLeft', 'ArrowRight']);
 
 export const gameIsOutOfArea = (position: Vec2) => {
     return (
@@ -85,7 +89,7 @@ export const gameCreate = () => ({
     [GameProperties.NextPerson]: 3000,
     [GameProperties.NextHourglass]: 1000,
     [GameProperties.NextDog]: 8000,
-    [GameProperties.TimeLeft]: 5000,
+    [GameProperties.TimeLeft]: INITIAL_TIME * 1000,
     [GameProperties.PersonInterval]: 500,
 });
 
@@ -251,7 +255,7 @@ export const gameStart = (game: Game, program: Program) => {
 
         updaterSet(
             timerUpdater,
-            (game[GameProperties.TimeLeft] = Math.max(0, game[GameProperties.TimeLeft] - deltaTime))
+            ((game[GameProperties.TimeLeft] = Math.max(0, game[GameProperties.TimeLeft] - deltaTime)) / 1000) | 0
         );
 
         if (game[GameProperties.TimeLeft] > 0) {

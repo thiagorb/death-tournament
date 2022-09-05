@@ -122,7 +122,7 @@ export const personCreate = (position: Vec2): Person => {
         ),
     ]);
 
-    const walkSpeed = 0.65;
+    const walkSpeed = 0.55;
     person[PersonProperties.WalkAnimation] = animationCreate([
         animationFrameCreate([
             animationFrameItemCreate(leftArm1, -1, 0.01 * walkSpeed),

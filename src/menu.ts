@@ -47,7 +47,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
                 return;
             }
 
-            speedMultiplier = Math.min(2, speedMultiplier + 0.005 * deltaTime);
+            speedMultiplier = Math.min(2, speedMultiplier + 0.001 * deltaTime);
         }
 
         deathStep(menuScene[GameProperties.Death], deltaTime);
@@ -60,12 +60,15 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
 
     requestAnimationFrame((time: number) => loop((previousTime = time)));
 
-    document.querySelector('#start-game').addEventListener('click', () => {
+    const startButton = document.querySelector('#start-game');
+    const startGame = () => {
         startingGame = true;
         menuScene[GameProperties.NextPerson] = Infinity;
         menuScene[GameProperties.NextDog] = Infinity;
         (document.querySelector('#menu-ui') as HTMLElement).classList.add('hidden');
-    });
+        startButton.removeEventListener('click', startGame);
+    };
+    startButton.addEventListener('click', startGame);
 };
 
 const canStart = (menuScene: Game) => {

@@ -57,16 +57,51 @@
             background: #000;
         }
 
+        #game-ui-canvas {
+            width: 100vw;
+            height: 100vh;
+            height: -webkit-fill-available;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+            background: #000;
+        }
+
         #timer {
+            --width: 300px;
+            --progress: 0;
             position: absolute;
-            right: 10px;
-            top: 10px;
+            width: var(--width);
+            height: 15px;
+            top: 20px;
+            left: calc(50% - var(--width) / 2);
+            background-color: rgba(0, 0, 0, 0.1);
+            outline: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+        }
+
+        #timer:before {
+            background: #0a0;
+            display: block;
+            content: '';
+            width: 100%;
+            height: 100%;
+            transform: scaleX(var(--progress));
+            transform-origin: 0 0;
+            transition: 1s transform linear;
         }
 
         #score {
+            --score: '0';
             position: absolute;
-            right: 10px;
+            right: 30px;
             top: 30px;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+        }
+
+        #score:after {
+            content: var(--score);
+            display: block;
+            text-align: right;
         }
 
         .ui {
@@ -79,18 +114,28 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            transition: 0.5s opacity, 0.5s filter, 0.5s transform;
+            opacity: 1;
         }
 
         .hidden {
-            display: none!important;
+            opacity: 0;
+            filter: blur(5px);
+            transform: translateY(10px) scale(0.9);
+        }
+
+        .hidden .button {
+            cursor: initial;
         }
 
         .button {
-            font-size: 30px;
-            padding: 1em;
-            background-color: purple;
-            border-radius: 1em;
+            font-size: 20px;
+            padding: 1em 1.5em;
+            border-radius: 200px;
             cursor: pointer;
+            outline: 5px solid rgba(128, 0, 255, 0.3);
+            background-color: slateblue;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
 
         @keyframes indicator {
@@ -114,12 +159,12 @@
         <canvas id="game-canvas"></canvas>
         <div id="screen" style="position: absolute; left: 0; top: 0; transform-origin: 0 0;">
             <div id="game-ui" class="ui hidden">
-                <div id="timer">0</div>
-                <div id="score">0</div>
+                <div id="timer">Tímer</div>
+                <div id="score">SCORE</div>
             </div>
             <div id="menu-ui" class="ui">
                 <p id="game-over" class="hidden">GAME OVER</p>
-                <div id="start-game" class="button">START GAME</div>
+                <div id="start-game" class="button">START</div>
             </div>
             <!--
             <div id="death-bb" style="position: absolute; border: 2px solid white;"></div>
