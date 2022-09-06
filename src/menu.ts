@@ -67,8 +67,10 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         menuScene[GameProperties.NextDog] = Infinity;
         (document.querySelector('#menu-ui') as HTMLElement).classList.add('hidden');
         startButton.removeEventListener('click', startGame);
+        document.body.removeEventListener('keypress', startGame);
     };
     startButton.addEventListener('click', startGame);
+    document.body.addEventListener('keypress', startGame);
 };
 
 const canStart = (menuScene: Game) => {
