@@ -136,7 +136,7 @@ export const gameHourglasssStep = (game: Game, deltaTime: number) => {
     for (const hourglass of game[GameProperties.Hourglasses]) {
         hourglassStep(hourglass, deltaTime);
 
-        if (deathCollidesWithHourglass(game[GameProperties.Death], hourglass)) {
+        if (deathCollidesWithHourglass(game[GameProperties.Death], hourglass) && !gameIsOver(game)) {
             game[GameProperties.Hourglasses].delete(hourglass);
             const timeIncrease = 10;
             game[GameProperties.TimeLeft] += timeIncrease * 1000;
@@ -191,12 +191,14 @@ export const gameDogStep = (game: Game, deltaTime: number) => {
 };
 
 export const gameStep = (game: Game, deltaTime: number) => {
-    if (keyboard.ArrowLeft || keyboard.ArrowRight) {
-        deathWalk(game[GameProperties.Death], deltaTime, keyboard.ArrowLeft);
-    }
+    if (!gameIsOver(game)) {
+        if (keyboard.ArrowLeft || keyboard.ArrowRight) {
+            deathWalk(game[GameProperties.Death], deltaTime, keyboard.ArrowLeft);
+        }
 
-    if (keyboard.Space) {
-        deathAttack(game[GameProperties.Death]);
+        if (keyboard.Space) {
+            deathAttack(game[GameProperties.Death]);
+        }
     }
 
     deathStep(game[GameProperties.Death], deltaTime);

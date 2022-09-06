@@ -1,8 +1,9 @@
 ## Next Steps
 
+-   increase earned score for killing many people with one hit
+
 ## Feature ideas
 
--   increase earned score for killing many people with one hit
 -   add more people types (different clothes, women, etc)
 -   make dog stop and change direction
 -   move view sideways
@@ -15,5 +16,5 @@
 ## Size reduction ideas
 
 -   add option to make animations loop, and remove trigger to restart animation
--   generate draw function during svg parsing
 -   remove unused animations (person/dog, walk/rest)
+-   generate draw function during svg parsing
