@@ -1,25 +1,12 @@
 import { deathCreate, deathStep } from './death';
 import { Dog } from './dog';
-import {
-    FLOOR_LEVEL,
-    Game,
-    gameCreate,
-    gameDogStep,
-    gameIsOutOfArea as gameIsOutOfScreen,
-    gamePeopleStep,
-    GameProperties,
-    gameRender,
-    gameStart,
-} from './game';
+import { Game, gameCreate, gameDogStep, gamePeopleStep, GameProperties, gameRender, gameStart } from './game';
 import { Program } from './gl';
 import { vectorCreate } from './glm';
 import { Hourglass } from './hourglass';
-import { Person, personGetPosition } from './person';
+import { Person } from './person';
 
 export const menuStart = (program: Program, lastGame: Game = null) => {
-    (document.querySelector('#game-ui') as HTMLElement).classList.add('hidden');
-    (document.querySelector('#menu-ui') as HTMLElement).classList.remove('hidden');
-
     const menuScene: Game = lastGame || {
         [GameProperties.Death]: deathCreate(vectorCreate(0, -10000)),
         [GameProperties.People]: new Set<Person>(),
@@ -69,8 +56,16 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         startButton.removeEventListener('click', startGame);
         document.body.removeEventListener('keypress', startGame);
     };
-    startButton.addEventListener('click', startGame);
-    document.body.addEventListener('keypress', startGame);
+
+    setTimeout(
+        () => {
+            startButton.addEventListener('click', startGame);
+            document.body.addEventListener('keypress', startGame);
+            (document.querySelector('#game-ui') as HTMLElement).classList.add('hidden');
+            (document.querySelector('#menu-ui') as HTMLElement).classList.remove('hidden');
+        },
+        lastGame ? 3000 : 0
+    );
 };
 
 const canStart = (menuScene: Game) => {

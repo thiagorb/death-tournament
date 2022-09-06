@@ -6,6 +6,7 @@ import {
     animatableCreate,
     animatableDraw,
     animatableStep,
+    AnimatedProperty,
     Animation,
     animationCreate,
     animationElementCreate,
@@ -39,6 +40,7 @@ const enum DeathProperties {
     AttackAnimation,
     RestAnimation,
     WalkAnimation,
+    DeadAnimation,
     FacingLeft,
     Attacking,
     AttackingTime,
@@ -54,6 +56,7 @@ export type Death = {
     [DeathProperties.AttackAnimation]: Animation;
     [DeathProperties.RestAnimation]: Animation;
     [DeathProperties.WalkAnimation]: Animation;
+    [DeathProperties.DeadAnimation]: Animation;
     [DeathProperties.FacingLeft]: boolean;
     [DeathProperties.Attacking]: boolean;
     [DeathProperties.AttackingTime]: number;
@@ -70,6 +73,8 @@ export const deathCreate = (position: Vec2): Death => {
     const leftArm2 = animationElementCreate(REST_LEFT_2);
     const rightArm1 = animationElementCreate(REST_RIGHT_1);
     const rightArm2 = animationElementCreate(REST_RIGHT_2);
+    const snath = animationElementCreate();
+    const bodyTranslate = animationElementCreate();
 
     const restPositionLeftArm = [
         animationFrameItemCreate(leftArm1, REST_LEFT_1, 0.005),
@@ -106,16 +111,21 @@ export const deathCreate = (position: Vec2): Death => {
             boundElementCreate(leftArm2, modelDataRight.leftArm2TransformPath),
             boundElementCreate(rightArm1, modelDataRight.rightArm1TransformPath),
             boundElementCreate(rightArm2, modelDataRight.rightArm2TransformPath),
+            boundElementCreate(snath, modelDataRight.snathTransformPath),
+            boundElementCreate(bodyTranslate, modelDataRight.bodyTransformPath, AnimatedProperty.TranslationY),
         ]),
         [DeathProperties.AnimatableLeft]: animatableCreate(objectCreate(modelLeft), [
             boundElementCreate(leftArm1, modelDataLeft.leftArm1TransformPath),
             boundElementCreate(leftArm2, modelDataLeft.leftArm2TransformPath),
             boundElementCreate(rightArm1, modelDataLeft.rightArm1TransformPath),
             boundElementCreate(rightArm2, modelDataLeft.rightArm2TransformPath),
+            boundElementCreate(snath, modelDataLeft.snathTransformPath),
+            boundElementCreate(bodyTranslate, modelDataLeft.bodyTransformPath, AnimatedProperty.TranslationY),
         ]),
         [DeathProperties.AttackAnimation]: null,
         [DeathProperties.RestAnimation]: restAnimation,
         [DeathProperties.WalkAnimation]: walkAnimation,
+        [DeathProperties.DeadAnimation]: null,
         [DeathProperties.FacingLeft]: false,
         [DeathProperties.Attacking]: false,
         [DeathProperties.AttackingTime]: 0,
@@ -138,6 +148,20 @@ export const deathCreate = (position: Vec2): Death => {
             () => (death[DeathProperties.Attacking] = false)
         ),
         animationFrameCreate(restPositionLeftArm),
+    ]);
+
+    death[DeathProperties.DeadAnimation] = animationCreate([
+        animationFrameCreate(
+            [
+                animationFrameItemCreate(leftArm1, 0, 0.01),
+                animationFrameItemCreate(leftArm2, 0, 0.01),
+                animationFrameItemCreate(rightArm1, 0, 0.01),
+                animationFrameItemCreate(rightArm2, 0, 0.01),
+                animationFrameItemCreate(snath, 0.6, 0.002),
+                animationFrameItemCreate(bodyTranslate, 60, 0.05),
+            ],
+            () => animationStart(death[DeathProperties.DeadAnimation])
+        ),
     ]);
 
     return death;
@@ -199,10 +223,11 @@ export const deathIsAttacking = (death: Death) => {
 
 export const deathStartFade = (death: Death) => {
     death[DeathProperties.Fading] = true;
+    animationStart(death[DeathProperties.DeadAnimation]);
 };
 
 export const deathStep = (death: Death, deltaTime: number) => {
-    const opacityDirection = death[DeathProperties.Fading] ? -0.3 : 1;
+    const opacityDirection = death[DeathProperties.Fading] ? -0.5 : 1;
     death[DeathProperties.Opacity] = Math.max(
         0,
         Math.min(1, death[DeathProperties.Opacity] + 0.002 * deltaTime * opacityDirection)
@@ -215,6 +240,7 @@ export const deathStep = (death: Death, deltaTime: number) => {
         death[DeathProperties.AttackingTime] += deltaTime;
     }
 
+    animationStep(death[DeathProperties.DeadAnimation], deltaTime);
     if (animationStep(death[DeathProperties.AttackAnimation], deltaTime)) {
         death[DeathProperties.AttackCooldown] = ATTACK_COOLDOWN_TIME;
     }

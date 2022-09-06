@@ -1,7 +1,5 @@
 ## Next Steps
 
--   add death's death animation
-
 ## Feature ideas
 
 -   increase earned score for killing many people with one hit
