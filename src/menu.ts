@@ -17,7 +17,6 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         [GameProperties.NextHourglass]: 5000,
         [GameProperties.NextDog]: 2000,
         [GameProperties.TimeLeft]: 0,
-        [GameProperties.PersonInterval]: 1000,
         [GameProperties.TimePassed]: 0,
     };
     let startingGame = false;

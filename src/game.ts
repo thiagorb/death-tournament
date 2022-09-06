@@ -75,7 +75,6 @@ export const enum GameProperties {
     NextHourglass,
     NextDog,
     TimeLeft,
-    PersonInterval,
     TimePassed,
 }
 
@@ -87,12 +86,11 @@ export const gameCreate = () => ({
     [GameProperties.Hourglasses]: new Set<Hourglass>(),
     [GameProperties.Dogs]: new Set<Dog>(),
     [GameProperties.Score]: 0,
-    [GameProperties.NextPerson]: 3000,
+    [GameProperties.NextPerson]: 1000,
     [GameProperties.NextHourglass]: 3000,
-    [GameProperties.NextDog]: 8000,
+    [GameProperties.NextDog]: 5000,
     [GameProperties.TimeLeft]: INITIAL_TIME * 1000,
-    [GameProperties.PersonInterval]: 500,
-    [GameProperties.TimePassed]: 0,
+    [GameProperties.TimePassed]: 3600000,
 });
 
 export const gamePeopleStep = (game: Game, deltaTime: number) => {
@@ -103,7 +101,7 @@ export const gamePeopleStep = (game: Game, deltaTime: number) => {
         ) {
             personDie(person);
             game[GameProperties.Score] += 1;
-            game[GameProperties.TimeLeft] += 600;
+            game[GameProperties.TimeLeft] += 400;
         }
         personStep(person, deltaTime);
         if (personGetDeadTime(person) > 2000 || gameIsOutOfArea(personGetPosition(person))) {
@@ -118,7 +116,8 @@ export const gamePeopleStep = (game: Game, deltaTime: number) => {
         if (Math.random() < 0.5) {
             personTurnLeft(person);
         }
-        game[GameProperties.NextPerson] = game[GameProperties.PersonInterval] + Math.random() * 200;
+        game[GameProperties.NextPerson] =
+            1000 + Math.random() * 300 - Math.min(900, game[GameProperties.TimePassed] * 0.006);
     }
 };
 
@@ -160,7 +159,8 @@ export const gameHourglasssStep = (game: Game, deltaTime: number) => {
     if (game[GameProperties.NextHourglass] < 0) {
         const hourglass = hourglassCreate(vectorCreate((Math.random() - 0.5) * GAME_WIDTH, VIRTUAL_HEIGHT / 2));
         game[GameProperties.Hourglasses].add(hourglass);
-        game[GameProperties.NextHourglass] = Math.random() * 5000 + 5000;
+        game[GameProperties.NextHourglass] =
+            Math.random() * 3000 + 5000 + Math.min(8000, game[GameProperties.TimePassed] * 0.1);
     }
 };
 
@@ -176,19 +176,18 @@ export const gameDogStep = (game: Game, deltaTime: number) => {
 
         if (dogGetDeadTime(dog) > 2000 || gameIsOutOfArea(dogGetPosition(dog))) {
             game[GameProperties.Dogs].delete(dog);
-            game[GameProperties.NextDog] = 3000 + Math.random() * 1000;
         }
     }
 
-    if (game[GameProperties.Dogs].size === 0) {
-        game[GameProperties.NextDog] -= deltaTime;
-        if (game[GameProperties.NextDog] < 0) {
-            const dog = dogCreate(vectorCreate((Math.random() - 0.5) * GAME_WIDTH, FLOOR_LEVEL));
-            if (Math.random() < 0.5) {
-                dogTurnLeft(dog);
-            }
-            game[GameProperties.Dogs].add(dog);
+    game[GameProperties.NextDog] -= deltaTime;
+    if (game[GameProperties.NextDog] < 0) {
+        const dog = dogCreate(vectorCreate((Math.random() - 0.5) * GAME_WIDTH, FLOOR_LEVEL));
+        if (Math.random() < 0.5) {
+            dogTurnLeft(dog);
         }
+        game[GameProperties.Dogs].add(dog);
+        game[GameProperties.NextDog] =
+            3000 + Math.random() * 1000 - Math.min(3000, game[GameProperties.TimePassed] * 0.006);
     }
 };
 

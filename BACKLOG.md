@@ -1,9 +1,6 @@
 ## Next Steps
 
--   increase earned score for killing many people with one hit
--   increase game speed as the time pass
--   make interval between people increase as time passes
--   increase time slightly after killing each person
+-   add combo indicator
 -   balance
 
 ## Feature ideas
