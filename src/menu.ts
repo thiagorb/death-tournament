@@ -1,24 +1,11 @@
-import { deathCreate, deathStep } from './death';
-import { Dog } from './dog';
-import { Game, gameCreate, gameDogStep, gamePeopleStep, GameProperties, gameRender, gameStart, gameStep } from './game';
+import { deathCreate } from './death';
+import { Game, gameCreate, GameProperties, gameRender, gameStart, gameStep } from './game';
 import { Program } from './gl';
 import { vectorCreate } from './glm';
-import { Hourglass } from './hourglass';
-import { Person } from './person';
 
 export const menuStart = (program: Program, lastGame: Game = null) => {
-    const menuScene: Game = lastGame || {
-        [GameProperties.Death]: deathCreate(vectorCreate(0, -10000)),
-        [GameProperties.People]: new Set<Person>(),
-        [GameProperties.Hourglasses]: new Set<Hourglass>(),
-        [GameProperties.Dogs]: new Set<Dog>(),
-        [GameProperties.Score]: 0,
-        [GameProperties.NextPerson]: 500,
-        [GameProperties.NextHourglass]: 5000,
-        [GameProperties.NextDog]: 2000,
-        [GameProperties.TimeLeft]: 0,
-        [GameProperties.TimePassed]: 0,
-    };
+    const menuScene: Game =
+        lastGame || Object.assign(gameCreate(), { [GameProperties.Death]: deathCreate(vectorCreate(0, -10000)) });
     let startingGame = false;
     let previousTime = 0;
     let speedMultiplier = 0.5;

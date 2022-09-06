@@ -288,3 +288,5 @@ export const deathCollidesWithHourglass = (death: Death, hourglass: Hourglass) =
         hourglassY <= deathY + DEATH_HEIGHT
     );
 };
+
+export const deathGetPosition = (death: Death) => death[DeathProperties.Position];

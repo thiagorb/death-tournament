@@ -4,6 +4,7 @@ import {
     deathCollidesWithHourglass,
     deathCreate,
     deathDraw,
+    deathGetPosition,
     deathIsHitting,
     deathStartFade,
     deathStep,
@@ -76,6 +77,7 @@ export const enum GameProperties {
     NextDog,
     TimeLeft,
     TimePassed,
+    Combo,
 }
 
 export type Game = ReturnType<typeof gameCreate>;
@@ -91,6 +93,7 @@ export const gameCreate = () => ({
     [GameProperties.NextDog]: 5000,
     [GameProperties.TimeLeft]: INITIAL_TIME * 1000,
     [GameProperties.TimePassed]: 3600000,
+    [GameProperties.Combo]: 0,
 });
 
 export const gamePeopleStep = (game: Game, deltaTime: number) => {
@@ -100,7 +103,8 @@ export const gamePeopleStep = (game: Game, deltaTime: number) => {
             deathIsHitting(game[GameProperties.Death], personGetLeft(person), personGetRight(person))
         ) {
             personDie(person);
-            game[GameProperties.Score] += 1;
+            game[GameProperties.Score] += 2 ** game[GameProperties.Combo];
+            game[GameProperties.Combo]++;
             game[GameProperties.TimeLeft] += 400;
         }
         personStep(person, deltaTime);
@@ -248,6 +252,22 @@ const renderDebuggingRects = (program: Program) => {
 };
 
 export const gameStart = (game: Game, program: Program) => {
+    let comboTime = 0;
+    const comboUpdater = updaterCreate((value: number) => {
+        if (value === 0) {
+            return;
+        }
+
+        comboTime = 1000;
+        if (value === 1) {
+            return;
+        }
+
+        const deathPosition = deathGetPosition(game[GameProperties.Death]);
+        const text = `${value}x`;
+        createIndicator(text, `#ff8`, deathPosition[0], deathPosition[1] + 100);
+    });
+
     let previousTime = 0;
     const loop = (time: number) => {
         const deltaTime = time - previousTime;
@@ -261,6 +281,13 @@ export const gameStart = (game: Game, program: Program) => {
         game[GameProperties.TimePassed] += deltaTime;
         updaterSet(timerUpdater, (game[GameProperties.TimeLeft] / 1000) | 0);
         updaterSet(scoreUpdater, game[GameProperties.Score]);
+
+        updaterSet(comboUpdater, game[GameProperties.Combo]);
+        comboTime -= deltaTime;
+        if (comboTime <= 0) {
+            game[GameProperties.Combo] = 0;
+            comboTime = 0;
+        }
 
         if (game[GameProperties.TimeLeft] > 0) {
             requestAnimationFrame(loop);

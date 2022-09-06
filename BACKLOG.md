@@ -1,6 +1,5 @@
 ## Next Steps
 
--   add combo indicator
 -   balance
 
 ## Feature ideas
