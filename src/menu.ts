@@ -14,10 +14,11 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         [GameProperties.Dogs]: new Set<Dog>(),
         [GameProperties.Score]: 0,
         [GameProperties.NextPerson]: 500,
-        [GameProperties.NextHourglass]: Infinity,
+        [GameProperties.NextHourglass]: 5000,
         [GameProperties.NextDog]: 2000,
         [GameProperties.TimeLeft]: 0,
         [GameProperties.PersonInterval]: 1000,
+        [GameProperties.TimePassed]: 0,
     };
     let startingGame = false;
     let previousTime = 0;

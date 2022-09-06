@@ -76,6 +76,7 @@ export const enum GameProperties {
     NextDog,
     TimeLeft,
     PersonInterval,
+    TimePassed,
 }
 
 export type Game = ReturnType<typeof gameCreate>;
@@ -91,6 +92,7 @@ export const gameCreate = () => ({
     [GameProperties.NextDog]: 8000,
     [GameProperties.TimeLeft]: INITIAL_TIME * 1000,
     [GameProperties.PersonInterval]: 500,
+    [GameProperties.TimePassed]: 0,
 });
 
 export const gamePeopleStep = (game: Game, deltaTime: number) => {
@@ -100,7 +102,8 @@ export const gamePeopleStep = (game: Game, deltaTime: number) => {
             deathIsHitting(game[GameProperties.Death], personGetLeft(person), personGetRight(person))
         ) {
             personDie(person);
-            updaterSet(scoreUpdater, (game[GameProperties.Score] += 1));
+            game[GameProperties.Score] += 1;
+            game[GameProperties.TimeLeft] += 600;
         }
         personStep(person, deltaTime);
         if (personGetDeadTime(person) > 2000 || gameIsOutOfArea(personGetPosition(person))) {
@@ -157,8 +160,7 @@ export const gameHourglasssStep = (game: Game, deltaTime: number) => {
     if (game[GameProperties.NextHourglass] < 0) {
         const hourglass = hourglassCreate(vectorCreate((Math.random() - 0.5) * GAME_WIDTH, VIRTUAL_HEIGHT / 2));
         game[GameProperties.Hourglasses].add(hourglass);
-        // game[GameProperties.NextHourglass] = Math.random() * 5000 + 8000;
-        game[GameProperties.NextHourglass] = Math.random() * 1000 + 1000;
+        game[GameProperties.NextHourglass] = Math.random() * 5000 + 5000;
     }
 };
 
@@ -211,7 +213,6 @@ export const gameRender = (game: Game, program: Program) => {
     glClear(program, BACKGROUND_COLOR);
 
     backgroundDraw(program);
-    deathDraw(game[GameProperties.Death], program);
     for (const person of game[GameProperties.People]) {
         personDraw(person, program);
     }
@@ -222,6 +223,7 @@ export const gameRender = (game: Game, program: Program) => {
         dogDraw(dog, program);
     }
 
+    deathDraw(game[GameProperties.Death], program);
     // renderDebuggingRects(program);
 };
 
@@ -252,13 +254,14 @@ export const gameStart = (game: Game, program: Program) => {
         const deltaTime = time - previousTime;
         previousTime = time;
 
-        gameStep(game, deltaTime * 0.75);
+        const relativeSpeed = 0.6 + Math.min(0.4, ((game[GameProperties.TimePassed] * 0.00005) | 0) / 10);
+        gameStep(game, deltaTime * relativeSpeed);
         gameRender(game, program);
 
-        updaterSet(
-            timerUpdater,
-            ((game[GameProperties.TimeLeft] = Math.max(0, game[GameProperties.TimeLeft] - deltaTime)) / 1000) | 0
-        );
+        game[GameProperties.TimeLeft] = Math.max(0, game[GameProperties.TimeLeft] - deltaTime);
+        game[GameProperties.TimePassed] += deltaTime;
+        updaterSet(timerUpdater, (game[GameProperties.TimeLeft] / 1000) | 0);
+        updaterSet(scoreUpdater, game[GameProperties.Score]);
 
         if (game[GameProperties.TimeLeft] > 0) {
             requestAnimationFrame(loop);

@@ -93,7 +93,7 @@ export const deathCreate = (position: Vec2): Death => {
             animationFrameItemCreate(leftArm1, -1, 0.01),
             animationFrameItemCreate(leftArm2, -0.2, 0.008),
             animationFrameItemCreate(rightArm1, 1, 0.01),
-            animationFrameItemCreate(rightArm2, -0.1, 0.005),
+            animationFrameItemCreate(rightArm2, -0.5, 0.005),
         ]),
         animationFrameCreate([
             animationFrameItemCreate(leftArm1, 1, 0.01),
