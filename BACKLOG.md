@@ -1,5 +1,6 @@
 ## Next Steps
 
+-   speed up dog spawn rate
 -   balance
 
 ## Feature ideas

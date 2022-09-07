@@ -277,13 +277,14 @@ export const deathIsHitting = (death: Death, boundingLeft: number, boundingRight
 
 const DEATH_WIDTH = 50;
 const DEATH_HEIGHT = 100;
+const HOURGLASS_WIDTH = 30;
 export const deathCollidesWithHourglass = (death: Death, hourglass: Hourglass) => {
     const [hourglassX, hourglassY] = hourglassGetPosition(hourglass);
     const [deathX, deathY] = death[DeathProperties.Position];
 
     return (
-        hourglassX >= deathX - DEATH_WIDTH / 2 &&
-        hourglassX <= deathX + DEATH_WIDTH / 2 &&
+        hourglassX + HOURGLASS_WIDTH / 2 >= deathX - DEATH_WIDTH / 2 &&
+        hourglassX - HOURGLASS_WIDTH / 2 <= deathX + DEATH_WIDTH / 2 &&
         hourglassY >= deathY &&
         hourglassY <= deathY + DEATH_HEIGHT
     );

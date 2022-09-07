@@ -92,7 +92,8 @@ export const gameCreate = () => ({
     [GameProperties.NextHourglass]: 3000,
     [GameProperties.NextDog]: 5000,
     [GameProperties.TimeLeft]: INITIAL_TIME * 1000,
-    [GameProperties.TimePassed]: 3600000,
+    // [GameProperties.TimePassed]: 3600000,
+    [GameProperties.TimePassed]: 0,
     [GameProperties.Combo]: 0,
 });
 

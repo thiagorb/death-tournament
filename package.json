@@ -8,7 +8,8 @@
         "build": "NODE_ENV=production webpack --mode production",
         "zip": "npm run clean && npm run build && (cd dist; zip -9 -X ../build.zip *) && npm run build-size",
         "build-size": "node -e \"console.log('Current build size:', parseFloat(($(wc -c < build.zip) / 1024).toFixed(2)), 'KiB')\"",
-        "gh-pages": "node -e 'require(`gh-pages`).publish(`dist`);'"
+        "gh-pages": "node -e 'require(`gh-pages`).publish(`dist`);'",
+        "deploy": "npx surge /app/dist death-game.surge.sh"
     },
     "author": "Thiago Romão Barcala",
     "license": "ISC",

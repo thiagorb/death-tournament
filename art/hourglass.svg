@@ -24,15 +24,16 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="2.8927415"
-     inkscape:cx="178.55034"
-     inkscape:cy="189.26682"
+     inkscape:zoom="6.7611489"
+     inkscape:cx="189.02113"
+     inkscape:cy="199.44835"
      inkscape:window-width="1846"
      inkscape:window-height="1016"
      inkscape:window-x="74"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
+     inkscape:current-layer="layer1"
+     showguides="true" />
   <defs
      id="defs10606" />
   <g
@@ -40,42 +41,51 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
-       style="fill:#b5ffff;fill-opacity:1;stroke-width:0.111147"
-       d="M 40.4305,36.695729 58.02429,36.58752 50.270688,46.903754 57.591831,54.835271 40.170224,54.869661 47.389051,46.73784 40.4305,36.695725"
-       id="path661"
-       sodipodi:nodetypes="ccccccc"
-       inkscape:transform-center-x="-0.03769131"
-       inkscape:transform-center-y="-1.4432798" />
+       style="fill:#4972b6;fill-opacity:1;stroke-width:0.112938"
+       d="M 58.7092 42.4128 L 57.2025 45.747 L 54.8153 48.6293 L 51.2972 51.3826 L 54.8153 54.136 L 57.2025 57.0183 L 58.7092 60.3525 L 41.2908 60.3525 L 42.3559 57.0183 L 44.7431 54.136 L 48.7028 51.3826 L 44.7431 48.6293 L 42.3559 45.747 L 41.2908 42.4128"
+       id="glass"
+       sodipodi:nodetypes="cccccccccccccc"
+       inkscape:transform-center-x="-0.053892341"
+       inkscape:transform-center-y="-0.080871364" />
     <path
-       style="fill:#e9ddaf;fill-opacity:1;stroke-width:0.14308"
-       d="m 52.736089,54.671308 -3.95735,-4.802205 -3.144346,4.867801 7.101696,-0.0656"
-       id="path1394"
-       inkscape:transform-center-x="-0.12567531"
-       inkscape:transform-center-y="5.1311332" />
-    <path
-       style="fill:#e9ddaf;fill-opacity:1;stroke-width:0.14308"
-       d="m 45.08783,41.706458 3.666628,4.885052 4.2889,-4.876832 -7.955528,-0.0082"
-       id="path1450"
-       sodipodi:nodetypes="cccc"
-       inkscape:transform-center-x="-0.00602831"
-       inkscape:transform-center-y="-3.0228863" />
+       style="fill:#e9ddaf;fill-opacity:1;stroke-width:0.147104"
+       d="M 43.5735 46.3594 L 45.3525 48.1834 L 49.4906 51.2049 L 49.5591 54.7775 L 45.1297 60.2321 L 54.8703 60.2321 L 50.3515 54.7844 L 50.4115 51.2483 L 54.4663 48.2357 L 56.226 46.1928"
+       id="sand"
+       sodipodi:nodetypes="cccccccccc"
+       inkscape:transform-center-x="-0.38240933"
+       inkscape:transform-center-y="1.6429466">
+      <desc
+         id="desc873">{
+	&quot;connectTo&quot;: &quot;glass&quot;
+}</desc>
+    </path>
     <rect
-       style="fill:#cccccc;fill-opacity:1;stroke-width:0.14308"
-       id="rect1504"
-       width="18.264177"
-       height="2.8426158"
-       x="39.666645"
-       y="54.457008"
-       inkscape:transform-center-x="0.26083315"
-       inkscape:transform-center-y="8.7064436" />
+       style="fill:#d38d5f;fill-opacity:1;stroke-width:0.147104"
+       id="top"
+       width="19"
+       height="2.8884127"
+       x="40.5"
+       y="39.644756"
+       inkscape:transform-center-x="-0.053894148"
+       inkscape:transform-center-y="-10.374544">
+      <desc
+         id="desc871">{
+	&quot;connectTo&quot;: &quot;glass&quot;
+}</desc>
+    </rect>
     <rect
-       style="fill:#cccccc;fill-opacity:1;stroke-width:0.14308"
-       id="rect1504-3"
-       width="18.264177"
-       height="2.8426158"
-       x="40.101215"
-       y="34.196075"
-       inkscape:transform-center-x="-0.17373717"
-       inkscape:transform-center-y="-11.554489" />
+       style="fill:#d38d5f;fill-opacity:1;stroke-width:0.147104"
+       id="bottom"
+       width="19"
+       height="2.8884127"
+       x="40.5"
+       y="60.232105"
+       inkscape:transform-center-x="-0.053894148"
+       inkscape:transform-center-y="10.212805">
+      <desc
+         id="desc875">{
+	&quot;connectTo&quot;: &quot;glass&quot;
+}</desc>
+    </rect>
   </g>
 </svg>

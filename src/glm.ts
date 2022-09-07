@@ -41,7 +41,8 @@ export const matrixMultiply = (result: Matrix3, a: Matrix3, b: Matrix3): Matrix3
         const row = (i / 3) | 0;
         const col = i % 3;
 
-        resultBuffer[i] = a[row * 3 + 0] * b[0 * 3 + col] + a[row * 3 + 1] * b[1 * 3 + col] + a[row * 3 + 2] * b[2 * 3 + col];
+        resultBuffer[i] =
+            a[row * 3 + 0] * b[0 * 3 + col] + a[row * 3 + 1] * b[1 * 3 + col] + a[row * 3 + 2] * b[2 * 3 + col];
     }
     matrixCopy(result, resultBuffer);
 
