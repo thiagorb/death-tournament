@@ -81,7 +81,7 @@ export const glProgramCreate = (canvas: HTMLCanvasElement, virtualWidth: number,
 
     const viewTransform = gl.getUniformLocation(glProgram, vertexShader.viewTransformRenamed);
     const updateViewport = () => {
-        const pixelSize = devicePixelRatio * 1;
+        const pixelSize = devicePixelRatio * 2;
         canvas.width = document.body.clientWidth / pixelSize;
         canvas.height = document.body.clientHeight / pixelSize;
 
@@ -97,7 +97,7 @@ export const glProgramCreate = (canvas: HTMLCanvasElement, virtualWidth: number,
         const screen = document.querySelector('#screen') as HTMLElement;
         screen.style.width = `${virtualScreenWidth}px`;
         screen.style.height = `${virtualScreenHeight}px`;
-        screen.style.transform = `scale(${vMinPx})`;
+        screen.style.transform = `scale(${vMinPx * pixelSize})`;
     };
     addEventListener('resize', updateViewport);
     updateViewport();

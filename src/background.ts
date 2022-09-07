@@ -1,3 +1,4 @@
+import { FLOOR_LEVEL } from './game';
 import { ColorRGB, ColorRGBA, Program } from './gl';
 import {
     Model,
@@ -30,11 +31,11 @@ const rectCreate = (x: number, y: number, width: number, height: number, color: 
     [PolygonProperty.TransformOrigin]: [0, 0],
 });
 
-const horizonLine = -100;
+const horizonLine = FLOOR_LEVEL + 80;
 
 export const backgroundInit = (program: Program) => {
     const polygons: Array<Polygon> = [];
-    polygons.push(rectCreate(-1000, horizonLine - 1000, 2000, 1000, [0.4, 0.4, 0.4]));
+    polygons.push(rectCreate(-1000, horizonLine - 1000, 2000, 1000, [0.1, 0.0, 0.1]));
 
     const layers = 4;
     for (let layer = 0; layer < layers; layer++) {

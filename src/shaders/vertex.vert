@@ -7,6 +7,6 @@ in highp vec2 vertexNormal;
 out highp vec2 vNormal;
 
 void main(void) {
-    vNormal = (modelTransform * vec3(vertexNormal, 0.)).xy;
+    vNormal = normalize((modelTransform * vec3(vertexNormal, 0.)).xy);
     gl_Position = vec4(viewTransform * modelTransform * vec3(vertexPosition, 1.), 1.);
 }

@@ -43,10 +43,10 @@ import {
 } from './person';
 import { updaterCreate, updaterSet } from './ui';
 
-export const FLOOR_LEVEL = -200;
-export const VIRTUAL_WIDTH = 1200;
-export const VIRTUAL_HEIGHT = 600;
-export const GAME_WIDTH = 1000;
+export const FLOOR_LEVEL = -140;
+export const VIRTUAL_WIDTH = 800;
+export const VIRTUAL_HEIGHT = 400;
+export const GAME_WIDTH = 670;
 const INITIAL_TIME = 30;
 
 const timerDiv: HTMLDivElement = document.querySelector('#timer');

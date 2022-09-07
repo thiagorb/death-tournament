@@ -19,6 +19,7 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
+import { GAME_WIDTH } from './game';
 import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, glSetGlobalOpacity, Program } from './gl';
 import { Vec2 } from './glm';
 import { Hourglass, hourglassGetPosition } from './hourglass';
@@ -208,7 +209,7 @@ export const deathAttack = (death: Death) => {
 const moveSpeed = 0.3;
 export const deathWalk = (death: Death, deltaTime: number, left: boolean) => {
     const newX = death[DeathProperties.Position][0] + moveSpeed * deltaTime * (left ? -1 : 1);
-    death[DeathProperties.Position][0] = Math.max(-500, Math.min(500, newX));
+    death[DeathProperties.Position][0] = Math.max(-GAME_WIDTH / 2, Math.min(GAME_WIDTH / 2, newX));
     animationResume(death[DeathProperties.WalkAnimation]);
     death[DeathProperties.FacingLeft] = left;
 };

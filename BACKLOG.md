@@ -2,6 +2,9 @@
 
 -   speed up dog spawn rate
 -   balance
+-   add score to game over
+-   add hi-score
+-   right align score
 
 ## Feature ideas
 
