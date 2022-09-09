@@ -23,7 +23,7 @@
         html {
             height: -webkit-fill-available;
             color: white;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: sans-serif;
             font-weight: 900;
             font-size: 20px;
         }
@@ -35,35 +35,8 @@
             width: 100%;
             height: 100%;
             height: -webkit-fill-available;
-            font-family: sans-serif;
             color: #fff;
             background-color: #000;
-        }
-
-        #game {
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-        }
-
-        #game-canvas {
-            width: 100vw;
-            height: 100vh;
-            height: -webkit-fill-available;
-            image-rendering: crisp-edges;
-            image-rendering: pixelated;
-            background: #000;
-        }
-
-        #game-ui-canvas {
-            width: 100vw;
-            height: 100vh;
-            height: -webkit-fill-available;
-            image-rendering: crisp-edges;
-            image-rendering: pixelated;
-            background: #000;
         }
 
         #timer {
@@ -96,16 +69,14 @@
             position: absolute;
             right: 30px;
             top: 30px;
-            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
 
         #score:after {
             content: var(--score);
             display: block;
-            text-align: right;
         }
 
-        .ui {
+        #game-ui, #menu-ui {
             position: absolute;
             left: 0;
             top: 0;
@@ -116,7 +87,6 @@
             align-items: center;
             flex-direction: column;
             transition: 0.5s opacity, 0.5s filter, 0.5s transform;
-            opacity: 1;
         }
 
         .hidden {
@@ -129,6 +99,10 @@
             cursor: initial;
         }
 
+        #last-score, #high-score, #score, #score:after {
+            text-align: right;
+        }
+
         .button {
             font-size: 20px;
             padding: 1em 1.5em;
@@ -136,7 +110,6 @@
             cursor: pointer;
             outline: 5px solid rgba(128, 0, 255, 0.3);
             background-color: slateblue;
-            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
 
         @keyframes indicator {
@@ -149,6 +122,9 @@
             position: absolute;
             animation-name: indicator;
             animation-duration: 4s;
+        }
+
+        .indicator, #game-ui, #menu-ui {
             text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
     </style>
@@ -156,15 +132,21 @@
 </head>
 
 <body>
-    <div id="game">
-        <canvas id="game-canvas"></canvas>
+    <div style="position: absolute; top: 0; left: 0; bottom: 0; right: 0">
+        <canvas style="width: 100vw; height: 100vh; height: -webkit-fill-available; image-rendering: crisp-edges; image-rendering: pixelated; background: #000;"></canvas>
         <div id="screen" style="position: absolute; left: 0; top: 0; transform-origin: 0 0;">
-            <div id="game-ui" class="ui hidden">
-                <div id="timer">Tímer</div>
+            <div id="game-ui" class="hidden">
+                <div id="timer"></div>
                 <div id="score">SCORE</div>
             </div>
-            <div id="menu-ui" class="ui">
-                <p id="game-over" class="hidden">GAME OVER</p>
+            <div id="menu-ui">
+                <div id="game-over" class="nothidden">
+                    <h2>GAME OVER</h2>
+                    <div style="display: grid; grid-template-columns: auto auto; gap: 15px 30px; padding: 0 0 30px">
+                        <div>SCORE</div><div id="last-score">0</div>
+                        <div>HIGH-SCORE</div><div id="high-score">0</div>
+                    </div>
+                </div>
                 <div id="start-game" class="button">START</div>
             </div>
             <!--

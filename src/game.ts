@@ -41,6 +41,7 @@ import {
     personStep,
     personTurnLeft,
 } from './person';
+import { storageGetHighscore, storageSetHighscore } from './storage';
 import { updaterCreate, updaterSet } from './ui';
 
 export const FLOOR_LEVEL = -140;
@@ -295,6 +296,10 @@ export const gameStart = (game: Game, program: Program) => {
         } else {
             deathStartFade(game[GameProperties.Death]);
             (document.querySelector('#game-over') as HTMLElement).classList.remove('hidden');
+
+            const score = game[GameProperties.Score];
+            storageSetHighscore(Math.max(storageGetHighscore(), score));
+            (document.querySelector('#last-score') as HTMLElement).innerText = score as any as string;
             menuStart(program, game);
         }
     };

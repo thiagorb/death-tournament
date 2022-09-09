@@ -1,11 +1,5 @@
 ## Next Steps
 
--   speed up dog spawn rate
--   balance
--   add score to game over
--   add hi-score
--   right align score
-
 ## Feature ideas
 
 -   add more people types (different clothes, women, etc)

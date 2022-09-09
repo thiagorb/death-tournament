@@ -2,8 +2,11 @@ import { deathCreate } from './death';
 import { Game, gameCreate, GameProperties, gameRender, gameStart, gameStep } from './game';
 import { Program } from './gl';
 import { vectorCreate } from './glm';
+import { storageGetHighscore } from './storage';
 
 export const menuStart = (program: Program, lastGame: Game = null) => {
+    (document.querySelector('#high-score') as HTMLElement).innerText = storageGetHighscore() as any as string;
+
     const menuScene: Game =
         lastGame || Object.assign(gameCreate(), { [GameProperties.Death]: deathCreate(vectorCreate(0, -10000)) });
     let startingGame = false;

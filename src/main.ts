@@ -8,7 +8,7 @@ import { menuStart } from './menu';
 import { personInit } from './person';
 
 const main = async () => {
-    const canvas: HTMLCanvasElement = document.querySelector('#game-canvas');
+    const canvas = document.querySelector('canvas');
     const program = glProgramCreate(canvas, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
     deathInit(program);
     personInit(program);
