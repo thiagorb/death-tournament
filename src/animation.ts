@@ -172,23 +172,23 @@ export const enum AnimatedProperty {
 const enum BoundElementProperties {
     AnimationElement,
     AnimatedProperty,
-    TransformPath,
+    ComponentId,
 }
 
 type BoundElement = {
     [BoundElementProperties.AnimationElement]: AnimationElement;
     [BoundElementProperties.AnimatedProperty]: AnimatedProperty;
-    [BoundElementProperties.TransformPath]: number;
+    [BoundElementProperties.ComponentId]: number;
 };
 
 export const boundElementCreate = (
     element: AnimationElement,
-    transformPath: number,
+    componentId: number,
     property: AnimatedProperty = AnimatedProperty.Rotation
 ): BoundElement => ({
     [BoundElementProperties.AnimationElement]: element,
     [BoundElementProperties.AnimatedProperty]: property,
-    [BoundElementProperties.TransformPath]: transformPath,
+    [BoundElementProperties.ComponentId]: componentId,
 });
 
 export const enum AnimatableProperties {
@@ -210,7 +210,7 @@ export const animatableBeginStep = (animatable: Animatable) => {
         animationElementBeginStep(boundElement[BoundElementProperties.AnimationElement]);
         const transform = objectGetComponentTransform(
             animatable[AnimatableProperties.Object],
-            boundElement[BoundElementProperties.TransformPath]
+            boundElement[BoundElementProperties.ComponentId]
         );
         matrixSetIdentity(transform);
     }
@@ -222,7 +222,7 @@ export const animatableCreate = (
 ): Animatable => {
     const boundElementsByObjectComponent = objectGetComponentTransformOrder(object).map(c => []);
     for (const element of elements) {
-        boundElementsByObjectComponent[element[BoundElementProperties.TransformPath]].push(element);
+        boundElementsByObjectComponent[element[BoundElementProperties.ComponentId]].push(element);
     }
 
     return {

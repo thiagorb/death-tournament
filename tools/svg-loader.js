@@ -176,12 +176,16 @@ module.exports.default = function (source) {
 
         const relativeOrigin = translateVertexToOrigin(path.transformOrigin, parentOrigin);
 
-        polygons.push([
-            translateVerticesToOrigin(path.vertices, path.transformOrigin).flat(),
-            earcut(path.vertices.flat()),
-            path.color,
-            path.meta.connectTo ? relativeOrigin : [0, 0],
-        ]);
+        if (path.meta.placeholder) {
+            polygons.push([[], [], [], path.meta.connectTo ? relativeOrigin : [0, 0]]);
+        } else {
+            polygons.push([
+                translateVerticesToOrigin(path.vertices, path.transformOrigin).flat(),
+                earcut(path.vertices.flat()),
+                path.color,
+                path.meta.connectTo ? relativeOrigin : [0, 0],
+            ]);
+        }
         statements.push(`export const ${path.id}ComponentId = ${pathIdMap.get(path.id)};`);
     }
 

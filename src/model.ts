@@ -61,12 +61,16 @@ const enum ObjectProperty {
     Components,
     Model,
     Transform,
+    Subobjects,
 }
 
 export type Object = {
     [ObjectProperty.Components]: Array<ObjectComponent>;
     [ObjectProperty.Model]: Model;
     [ObjectProperty.Transform]: Matrix3;
+    [ObjectProperty.Subobjects]: {
+        [componentId: number]: Object;
+    };
 };
 
 export const modelCreate = (program: Program, data: ModelData): Model => {
@@ -93,13 +97,14 @@ export const modelCreate = (program: Program, data: ModelData): Model => {
     };
 };
 
-export const objectCreate = (model: Model): Object => {
+export const objectCreate = (model: Model, subobjects: Object[ObjectProperty.Subobjects] = {}): Object => {
     const components = model[ModelProperty.Meshes].map(mesh => objectComponentFromMesh(mesh));
 
     return {
         [ObjectProperty.Components]: components,
         [ObjectProperty.Model]: model,
         [ObjectProperty.Transform]: matrixCreate(),
+        [ObjectProperty.Subobjects]: subobjects,
     };
 };
 
@@ -112,7 +117,9 @@ const objectComponentFromMesh = (mesh: ModelMesh): ObjectComponent => {
 
 export const objectTransformComponent = (object: Object, componentId: number) => {
     const component = object[ObjectProperty.Components][componentId];
-    const matrix = component[ObjectComponentProperty.Matrix];
+    const subobject = object[ObjectProperty.Subobjects][componentId];
+    const matrix = subobject ? objectGetRootTransform(subobject) : component[ObjectComponentProperty.Matrix];
+
     const parentId = object[ObjectProperty.Model][ModelProperty.ParentMap][componentId];
     if (typeof parentId === 'number') {
         matrixCopy(matrix, object[ObjectProperty.Components][parentId][ObjectComponentProperty.Matrix]);
@@ -120,6 +127,10 @@ export const objectTransformComponent = (object: Object, componentId: number) =>
         matrixCopy(matrix, object[ObjectProperty.Transform]);
     }
     matrixTranslateVector(matrix, component[ObjectComponentProperty.Mesh][ModelMeshProperty.TransformOrigin]);
+
+    if (subobject) {
+        objectApplyTransforms(subobject);
+    }
 };
 
 export const objectApplyTransforms = (object: Object) => {
@@ -129,9 +140,18 @@ export const objectApplyTransforms = (object: Object) => {
 };
 
 export const objectDraw = (object: Object, program: Program) => {
-    for (const component of object[ObjectProperty.Components]) {
-        // if component is mesh, render as usual
-        // if component is subobject, call objectDraw
+    const componentsLength = object[ObjectProperty.Components].length;
+    for (let componentId = 0; componentId < componentsLength; componentId++) {
+        const subobject = object[ObjectProperty.Subobjects][componentId];
+        if (subobject !== undefined) {
+            if (subobject !== null) {
+                matrixCopy(objectGetRootTransform(subobject), objectGetComponentTransform(object, componentId));
+                objectDraw(subobject, program);
+            }
+            continue;
+        }
+
+        const component = object[ObjectProperty.Components][componentId];
         glSetModelTransform(program, component[ObjectComponentProperty.Matrix]);
         glMeshDraw(program, component[ObjectComponentProperty.Mesh][ModelMeshProperty.Mesh]);
     }

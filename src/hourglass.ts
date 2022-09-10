@@ -31,8 +31,6 @@ const enum HourglassProperties {
 
 export type Hourglass = ReturnType<typeof hourglassCreate>;
 
-export const hourglassGetModel = () => model;
-
 export const hourglassCreate = (position: Vec2) => {
     const glass = animationElementCreate();
 

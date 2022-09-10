@@ -1,12 +1,11 @@
-import * as modelDataRight from '../art/death.svg';
-import * as modelDataLeft from '../art/death_left.svg';
+import * as modelData from '../art/death.svg';
+import * as scytheModelData from '../art/scythe.svg';
 import {
     Animatable,
     animatableBeginStep,
     animatableCreate,
     animatableDraw,
     animatableGetRootTransform,
-    AnimatableProperties,
     animatableTransform,
     AnimatedProperty,
     Animation,
@@ -23,26 +22,16 @@ import {
 } from './animation';
 import { GAME_WIDTH } from './game';
 import { glSetGlobalOpacity, Program } from './gl';
-import { matrixCopy, matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
-import { Hourglass, hourglassGetModel, hourglassGetPosition } from './hourglass';
-import {
-    Model,
-    modelCreate,
-    Object,
-    objectApplyTransforms,
-    objectCreate,
-    objectDraw,
-    objectGetComponentTransform,
-    objectGetRootTransform,
-} from './model';
-import * as hourglassModelData from '../art/hourglass.svg';
+import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
+import { Hourglass, hourglassGetPosition } from './hourglass';
+import { Model, modelCreate, Object, objectCreate } from './model';
 
-let modelRight: Model;
-let modelLeft: Model;
+let model: Model;
+let scytheModel: Model;
 
 export const deathInit = (program: Program) => {
-    modelRight = modelCreate(program, modelDataRight.model);
-    modelLeft = modelCreate(program, modelDataLeft.model);
+    model = modelCreate(program, modelData.model);
+    scytheModel = modelCreate(program, scytheModelData.model);
 };
 
 const enum DeathProperties {
@@ -59,7 +48,6 @@ const enum DeathProperties {
     AttackingTime,
     Fading,
     Opacity,
-    Weapon,
 }
 
 export type Death = {
@@ -76,7 +64,6 @@ export type Death = {
     [DeathProperties.AttackingTime]: number;
     [DeathProperties.Fading]: boolean;
     [DeathProperties.Opacity]: number;
-    [DeathProperties.Weapon]: Object;
 };
 
 export const deathCreate = (position: Vec2): Death => {
@@ -88,7 +75,7 @@ export const deathCreate = (position: Vec2): Death => {
     const leftArm2 = animationElementCreate(REST_LEFT_2);
     const rightArm1 = animationElementCreate(REST_RIGHT_1);
     const rightArm2 = animationElementCreate(REST_RIGHT_2);
-    const snath = animationElementCreate();
+    const weapon = animationElementCreate();
     const bodyTranslate = animationElementCreate();
 
     const restPositionLeftArm = [
@@ -121,22 +108,34 @@ export const deathCreate = (position: Vec2): Death => {
     const death: Death = {
         [DeathProperties.Position]: position,
         [DeathProperties.AttackCooldown]: 0,
-        [DeathProperties.AnimatableRight]: animatableCreate(objectCreate(modelRight), [
-            boundElementCreate(leftArm1, modelDataRight.leftArm1ComponentId),
-            boundElementCreate(leftArm2, modelDataRight.leftArm2ComponentId),
-            boundElementCreate(rightArm1, modelDataRight.rightArm1ComponentId),
-            boundElementCreate(rightArm2, modelDataRight.rightArm2ComponentId),
-            boundElementCreate(snath, modelDataRight.snathComponentId),
-            boundElementCreate(bodyTranslate, modelDataRight.bodyComponentId, AnimatedProperty.TranslationY),
-        ]),
-        [DeathProperties.AnimatableLeft]: animatableCreate(objectCreate(modelLeft), [
-            boundElementCreate(leftArm1, modelDataLeft.leftArm1ComponentId),
-            boundElementCreate(leftArm2, modelDataLeft.leftArm2ComponentId),
-            boundElementCreate(rightArm1, modelDataLeft.rightArm1ComponentId),
-            boundElementCreate(rightArm2, modelDataLeft.rightArm2ComponentId),
-            boundElementCreate(snath, modelDataLeft.snathComponentId),
-            boundElementCreate(bodyTranslate, modelDataLeft.bodyComponentId, AnimatedProperty.TranslationY),
-        ]),
+        [DeathProperties.AnimatableRight]: animatableCreate(
+            objectCreate(model, {
+                [modelData.weaponLeftComponentId]: objectCreate(scytheModel),
+                [modelData.weaponRightComponentId]: null,
+            }),
+            [
+                boundElementCreate(leftArm1, modelData.leftArm1ComponentId),
+                boundElementCreate(leftArm2, modelData.leftArm2ComponentId),
+                boundElementCreate(rightArm1, modelData.rightArm1ComponentId),
+                boundElementCreate(rightArm2, modelData.rightArm2ComponentId),
+                boundElementCreate(weapon, modelData.weaponLeftComponentId),
+                boundElementCreate(bodyTranslate, modelData.bodyComponentId, AnimatedProperty.TranslationY),
+            ]
+        ),
+        [DeathProperties.AnimatableLeft]: animatableCreate(
+            objectCreate(model, {
+                [modelData.weaponLeftComponentId]: null,
+                [modelData.weaponRightComponentId]: objectCreate(scytheModel),
+            }),
+            [
+                boundElementCreate(rightArm1, modelData.leftArm1ComponentId),
+                boundElementCreate(rightArm2, modelData.leftArm2ComponentId),
+                boundElementCreate(leftArm1, modelData.rightArm1ComponentId),
+                boundElementCreate(leftArm2, modelData.rightArm2ComponentId),
+                boundElementCreate(weapon, modelData.weaponLeftComponentId),
+                boundElementCreate(bodyTranslate, modelData.bodyComponentId, AnimatedProperty.TranslationY),
+            ]
+        ),
         [DeathProperties.AttackAnimation]: null,
         [DeathProperties.RestAnimation]: restAnimation,
         [DeathProperties.WalkAnimation]: walkAnimation,
@@ -146,7 +145,6 @@ export const deathCreate = (position: Vec2): Death => {
         [DeathProperties.AttackingTime]: 0,
         [DeathProperties.Fading]: false,
         [DeathProperties.Opacity]: 0,
-        [DeathProperties.Weapon]: objectCreate(hourglassGetModel()),
     };
 
     const attackPrepareSpeed = 0.02;
@@ -173,7 +171,7 @@ export const deathCreate = (position: Vec2): Death => {
                 animationFrameItemCreate(leftArm2, 0, 0.01),
                 animationFrameItemCreate(rightArm1, 0, 0.01),
                 animationFrameItemCreate(rightArm2, 0, 0.01),
-                animationFrameItemCreate(snath, 0.6, 0.002),
+                animationFrameItemCreate(weapon, 0.6, 0.002),
                 animationFrameItemCreate(bodyTranslate, 60, 0.05),
             ],
             () => animationStart(death[DeathProperties.DeadAnimation])
@@ -185,25 +183,14 @@ export const deathCreate = (position: Vec2): Death => {
 
 export const deathDraw = (death: Death, program: Program) => {
     glSetGlobalOpacity(program, death[DeathProperties.Opacity]);
+
     if (death[DeathProperties.FacingLeft]) {
         const matrix = animatableGetRootTransform(death[DeathProperties.AnimatableLeft]);
         matrixSetIdentity(matrix);
         matrixTranslateVector(matrix, death[DeathProperties.Position]);
         matrixScale(matrix, -1, 1);
         animatableTransform(death[DeathProperties.AnimatableLeft]);
-
-        matrixCopy(
-            objectGetRootTransform(death[DeathProperties.Weapon]),
-            objectGetComponentTransform(
-                death[DeathProperties.AnimatableLeft][AnimatableProperties.Object],
-                modelDataLeft.snathComponentId
-            )
-        );
-
-        objectApplyTransforms(death[DeathProperties.Weapon]);
-
         animatableDraw(death[DeathProperties.AnimatableLeft], program);
-        objectDraw(death[DeathProperties.Weapon], program);
     } else {
         const matrix = animatableGetRootTransform(death[DeathProperties.AnimatableRight]);
         matrixSetIdentity(matrix);

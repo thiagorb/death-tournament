@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   sodipodi:docname="scythe.svg"
+   inkscape:version="1.2.1 (2ed6d7ae0b, 2022-08-22, custom)"
+   id="svg10609"
+   version="1.1"
+   viewBox="0 0 100 100"
+   height="100mm"
+   width="100mm"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview10611"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.0499685"
+     inkscape:cx="315.24755"
+     inkscape:cy="148.09968"
+     inkscape:window-width="1846"
+     inkscape:window-height="1016"
+     inkscape:window-x="74"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs10606" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:#663800;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
+       d="m 16.832617,15.719112 68.969402,51.915989 -2.57169,3.90869 L 14.197981,17.6184 16.832662,15.719128"
+       id="snath"
+       inkscape:transform-center-x="-14.343675"
+       inkscape:transform-center-y="11.343006" />
+    <path
+       style="fill:#a7a7a7;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
+       d="m 78.560609,65.921441 -8.73252,11.59134 -18.94481,11.04922 14.8289,-1.56823 11.74819,-7.8008 6.10279,-9.64937 -5.00254,-3.62216"
+       id="blade"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:transform-center-x="13.479786"
+       inkscape:transform-center-y="9.4291174">
+      <desc
+         id="desc18759">{
+    &quot;connectTo&quot;: &quot;snath&quot;
+}</desc>
+    </path>
+  </g>
+</svg>
