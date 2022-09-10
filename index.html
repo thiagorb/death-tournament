@@ -51,7 +51,7 @@
         }
 
         #timer:before {
-            background: #0a0;
+            background: hsl(calc(var(--progress) * 120) 50% 50%);
             display: block;
             content: '';
             width: 100%;
@@ -109,7 +109,7 @@
             padding: 1em 1.5em;
             border-radius: 200px;
             cursor: pointer;
-            border: 5px solid rgba(128, 0, 255, 0.3);
+            box-shadow: 0px 0px 0px 5px rgba(128, 0, 255, 0.3);
             background-color: slateblue;
         }
 
