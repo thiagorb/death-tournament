@@ -5,6 +5,7 @@ import {
     animatableCreate,
     animatableDraw,
     animatableGetRootTransform,
+    animatableTransform,
     Animation,
     animationCreate,
     animationElementCreate,
@@ -61,15 +62,15 @@ export const personCreate = (position: Vec2): Person => {
     const person: Person = {
         [PersonProperties.Position]: position,
         [PersonProperties.Animatable]: animatableCreate(objectCreate(modelRight), [
-            boundElementCreate(leftArm1, modelDataRight.leftArm1TransformPath),
-            boundElementCreate(leftArm2, modelDataRight.leftArm3TransformPath),
-            boundElementCreate(rightArm1, modelDataRight.rightArm1TransformPath),
-            boundElementCreate(rightArm2, modelDataRight.rightArm3TransformPath),
-            boundElementCreate(leftLeg1, modelDataRight.leftLeg1TransformPath),
-            boundElementCreate(leftLeg2, modelDataRight.leftLeg2TransformPath),
-            boundElementCreate(rightLeg1, modelDataRight.rightLeg1TransformPath),
-            boundElementCreate(rightLeg2, modelDataRight.rightLeg2TransformPath),
-            boundElementCreate(body, modelDataRight.bodyTransformPath),
+            boundElementCreate(leftArm1, modelDataRight.leftArm1ComponentId),
+            boundElementCreate(leftArm2, modelDataRight.leftArm3ComponentId),
+            boundElementCreate(rightArm1, modelDataRight.rightArm1ComponentId),
+            boundElementCreate(rightArm2, modelDataRight.rightArm3ComponentId),
+            boundElementCreate(leftLeg1, modelDataRight.leftLeg1ComponentId),
+            boundElementCreate(leftLeg2, modelDataRight.leftLeg2ComponentId),
+            boundElementCreate(rightLeg1, modelDataRight.rightLeg1ComponentId),
+            boundElementCreate(rightLeg2, modelDataRight.rightLeg2ComponentId),
+            boundElementCreate(body, modelDataRight.bodyComponentId),
         ]),
         [PersonProperties.WalkAnimation]: null,
         [PersonProperties.DeadAnimation]: null,
@@ -137,6 +138,7 @@ export const personDraw = (person: Person, program: Program) => {
     if (person[PersonProperties.FacingLeft]) {
         matrixScale(matrix, -1, 1);
     }
+    animatableTransform(person[PersonProperties.Animatable]);
     animatableDraw(person[PersonProperties.Animatable], program);
 
     glSetGlobalOpacity(program, 1);

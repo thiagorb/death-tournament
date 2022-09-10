@@ -5,6 +5,7 @@ import {
     animatableCreate,
     animatableDraw,
     animatableGetRootTransform,
+    animatableTransform,
     AnimatedProperty,
     Animation,
     animationCreate,
@@ -63,13 +64,13 @@ export const dogCreate = (position: Vec2): Dog => {
     const dog: Dog = {
         [DogProperties.Position]: position,
         [DogProperties.Animatable]: animatableCreate(objectCreate(model), [
-            boundElementCreate(frontLeftLeg, modelData.frontLeftLegTransformPath),
-            boundElementCreate(frontRightLeg, modelData.frontRightLegTransformPath),
-            boundElementCreate(backLeftLeg, modelData.backLeftLegTransformPath),
-            boundElementCreate(backRightLeg, modelData.backRightLegTransformPath),
-            boundElementCreate(tail, modelData.tailTransformPath),
-            boundElementCreate(bodyTranslate, modelData.bodyTransformPath, AnimatedProperty.TranslationY),
-            boundElementCreate(head, modelData.headTransformPath),
+            boundElementCreate(frontLeftLeg, modelData.frontLeftLegComponentId),
+            boundElementCreate(frontRightLeg, modelData.frontRightLegComponentId),
+            boundElementCreate(backLeftLeg, modelData.backLeftLegComponentId),
+            boundElementCreate(backRightLeg, modelData.backRightLegComponentId),
+            boundElementCreate(tail, modelData.tailComponentId),
+            boundElementCreate(bodyTranslate, modelData.bodyComponentId, AnimatedProperty.TranslationY),
+            boundElementCreate(head, modelData.headComponentId),
         ]),
         [DogProperties.WalkAnimation]: null,
         [DogProperties.DeadAnimation]: null,
@@ -140,6 +141,8 @@ export const dogDraw = (dog: Dog, program: Program) => {
     if (dog[DogProperties.FacingLeft]) {
         matrixScale(matrix, -1, 1);
     }
+
+    animatableTransform(dog[DogProperties.Animatable]);
     animatableDraw(dog[DogProperties.Animatable], program);
 
     glSetGlobalOpacity(program, 1);

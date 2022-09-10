@@ -4,6 +4,7 @@ import {
     animatableCreate,
     animatableDraw,
     animatableGetRootTransform,
+    animatableTransform,
     animationCreate,
     animationElementCreate,
     animationFrameCreate,
@@ -30,13 +31,15 @@ const enum HourglassProperties {
 
 export type Hourglass = ReturnType<typeof hourglassCreate>;
 
+export const hourglassGetModel = () => model;
+
 export const hourglassCreate = (position: Vec2) => {
     const glass = animationElementCreate();
 
     const hourglass = {
         [HourglassProperties.Position]: position,
         [HourglassProperties.Animatable]: animatableCreate(objectCreate(model), [
-            boundElementCreate(glass, modelData.glassTransformPath),
+            boundElementCreate(glass, modelData.glassComponentId),
         ]),
         [HourglassProperties.Animation]: animationCreate([
             animationFrameCreate([animationFrameItemCreate(glass, -0.6, 0.003)]),
@@ -55,6 +58,7 @@ export const hourglassDraw = (hourglass: Hourglass, program: Program) => {
     const matrix = animatableGetRootTransform(hourglass[HourglassProperties.Animatable]);
     matrixSetIdentity(matrix);
     matrixTranslateVector(matrix, hourglass[HourglassProperties.Position]);
+    animatableTransform(hourglass[HourglassProperties.Animatable]);
     animatableDraw(hourglass[HourglassProperties.Animatable], program);
 };
 

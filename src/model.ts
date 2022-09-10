@@ -38,13 +38,11 @@ export type ModelMesh = {
 const enum ObjectComponentProperty {
     Mesh,
     Matrix,
-    RequiresPush,
 }
 
 export type ObjectComponent = {
     [ObjectComponentProperty.Mesh]: ModelMesh;
     [ObjectComponentProperty.Matrix]: Matrix3;
-    [ObjectComponentProperty.RequiresPush]: boolean;
 };
 
 const enum ModelProperty {
@@ -109,26 +107,19 @@ const objectComponentFromMesh = (mesh: ModelMesh): ObjectComponent => {
     return {
         [ObjectComponentProperty.Mesh]: mesh,
         [ObjectComponentProperty.Matrix]: matrixCreate(),
-        [ObjectComponentProperty.RequiresPush]: false,
     };
 };
 
 export const objectTransformComponent = (object: Object, componentId: number) => {
     const component = object[ObjectProperty.Components][componentId];
-    const origin = component[ObjectComponentProperty.Mesh][ModelMeshProperty.TransformOrigin];
-    const differentOrigin = origin[0] !== 0 || origin[1] !== 0;
-    const hasTransform = component[ObjectComponentProperty.Matrix] !== null;
-    component[ObjectComponentProperty.RequiresPush] = differentOrigin || hasTransform;
-    if (component[ObjectComponentProperty.RequiresPush]) {
-        const matrix = component[ObjectComponentProperty.Matrix];
-        const parentId = object[ObjectProperty.Model][ModelProperty.ParentMap][componentId];
-        if (typeof parentId === 'number') {
-            matrixCopy(matrix, object[ObjectProperty.Components][parentId][ObjectComponentProperty.Matrix]);
-        } else {
-            matrixCopy(matrix, object[ObjectProperty.Transform]);
-        }
-        matrixTranslateVector(matrix, component[ObjectComponentProperty.Mesh][ModelMeshProperty.TransformOrigin]);
+    const matrix = component[ObjectComponentProperty.Matrix];
+    const parentId = object[ObjectProperty.Model][ModelProperty.ParentMap][componentId];
+    if (typeof parentId === 'number') {
+        matrixCopy(matrix, object[ObjectProperty.Components][parentId][ObjectComponentProperty.Matrix]);
+    } else {
+        matrixCopy(matrix, object[ObjectProperty.Transform]);
     }
+    matrixTranslateVector(matrix, component[ObjectComponentProperty.Mesh][ModelMeshProperty.TransformOrigin]);
 };
 
 export const objectApplyTransforms = (object: Object) => {
@@ -139,6 +130,8 @@ export const objectApplyTransforms = (object: Object) => {
 
 export const objectDraw = (object: Object, program: Program) => {
     for (const component of object[ObjectProperty.Components]) {
+        // if component is mesh, render as usual
+        // if component is subobject, call objectDraw
         glSetModelTransform(program, component[ObjectComponentProperty.Matrix]);
         glMeshDraw(program, component[ObjectComponentProperty.Mesh][ModelMeshProperty.Mesh]);
     }

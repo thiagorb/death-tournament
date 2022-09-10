@@ -182,7 +182,7 @@ module.exports.default = function (source) {
             path.color,
             path.meta.connectTo ? relativeOrigin : [0, 0],
         ]);
-        statements.push(`export const ${path.id}TransformPath = ${pathIdMap.get(path.id)};`);
+        statements.push(`export const ${path.id}ComponentId = ${pathIdMap.get(path.id)};`);
     }
 
     const model = [polygons, parentIdMap];

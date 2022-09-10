@@ -232,7 +232,7 @@ export const animatableCreate = (
     };
 };
 
-export const animatableDraw = (animatable: Animatable, program: Program) => {
+export const animatableTransform = (animatable: Animatable) => {
     const object = animatable[AnimatableProperties.Object];
     for (const componentId of objectGetComponentTransformOrder(object)) {
         objectTransformComponent(object, componentId);
@@ -252,7 +252,9 @@ export const animatableDraw = (animatable: Animatable, program: Program) => {
             }
         }
     }
+};
 
+export const animatableDraw = (animatable: Animatable, program: Program) => {
     objectDraw(animatable[AnimatableProperties.Object], program);
 };
 
