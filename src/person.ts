@@ -27,7 +27,6 @@ export const personInit = (program: Program) => {
 
 const enum PersonProperties {
     Position,
-    RestAnimation,
     WalkAnimation,
     DeadAnimation,
     FacingLeft,
@@ -39,7 +38,6 @@ const enum PersonProperties {
 
 export type Person = {
     [PersonProperties.Position]: Vec2;
-    [PersonProperties.RestAnimation]: Animation;
     [PersonProperties.WalkAnimation]: Animation;
     [PersonProperties.DeadAnimation]: Animation;
     [PersonProperties.FacingLeft]: boolean;
@@ -50,38 +48,15 @@ export type Person = {
 };
 
 export const personCreate = (position: Vec2): Person => {
-    const REST_ARM_LEFT_1 = 0;
-    const REST_ARM_LEFT_2 = -0.3;
-    const REST_ARM_RIGHT_1 = 0;
-    const REST_ARM_RIGHT_2 = -0.5;
-    const leftArm1 = animationElementCreate(REST_ARM_LEFT_1);
-    const leftArm2 = animationElementCreate(REST_ARM_LEFT_2);
-    const rightArm1 = animationElementCreate(REST_ARM_RIGHT_1);
-    const rightArm2 = animationElementCreate(REST_ARM_RIGHT_2);
-
-    const REST_LEG_LEFT_1 = 0;
-    const REST_LEG_LEFT_2 = 0;
-    const REST_LEG_RIGHT_1 = 0;
-    const REST_LEG_RIGHT_2 = 0;
-    const leftLeg1 = animationElementCreate(REST_LEG_LEFT_1);
-    const leftLeg2 = animationElementCreate(REST_LEG_LEFT_2);
-    const rightLeg1 = animationElementCreate(REST_LEG_RIGHT_1);
-    const rightLeg2 = animationElementCreate(REST_LEG_RIGHT_2);
+    const leftArm1 = animationElementCreate();
+    const leftArm2 = animationElementCreate();
+    const rightArm1 = animationElementCreate();
+    const rightArm2 = animationElementCreate();
+    const leftLeg1 = animationElementCreate();
+    const leftLeg2 = animationElementCreate();
+    const rightLeg1 = animationElementCreate();
+    const rightLeg2 = animationElementCreate();
     const body = animationElementCreate();
-
-    const restAnimation = animationCreate([
-        animationFrameCreate([
-            animationFrameItemCreate(leftArm1, REST_ARM_LEFT_1, 0.005),
-            animationFrameItemCreate(leftArm2, REST_ARM_LEFT_2, 0.005),
-            animationFrameItemCreate(rightArm1, REST_ARM_RIGHT_1, 0.005),
-            animationFrameItemCreate(rightArm2, REST_ARM_RIGHT_2, 0.005),
-            animationFrameItemCreate(leftLeg1, REST_LEG_LEFT_1, 0.005),
-            animationFrameItemCreate(leftLeg2, REST_LEG_LEFT_2, 0.005),
-            animationFrameItemCreate(rightLeg1, REST_LEG_RIGHT_1, 0.005),
-            animationFrameItemCreate(rightLeg2, REST_LEG_RIGHT_2, 0.005),
-            animationFrameItemCreate(body, 0, 0.005),
-        ]),
-    ]);
 
     const person: Person = {
         [PersonProperties.Position]: position,
@@ -96,7 +71,6 @@ export const personCreate = (position: Vec2): Person => {
             boundElementCreate(rightLeg2, modelDataRight.rightLeg2TransformPath),
             boundElementCreate(body, modelDataRight.bodyTransformPath),
         ]),
-        [PersonProperties.RestAnimation]: restAnimation,
         [PersonProperties.WalkAnimation]: null,
         [PersonProperties.DeadAnimation]: null,
         [PersonProperties.FacingLeft]: false,
@@ -109,12 +83,12 @@ export const personCreate = (position: Vec2): Person => {
         animationFrameCreate(
             [
                 animationFrameItemCreate(leftArm1, -3.1, 0.007),
-                animationFrameItemCreate(leftArm2, REST_ARM_LEFT_2, 0.005),
-                animationFrameItemCreate(rightArm1, REST_ARM_RIGHT_1, 0.005),
+                animationFrameItemCreate(leftArm2, -0.3, 0.005),
+                animationFrameItemCreate(rightArm1, 0, 0.005),
                 animationFrameItemCreate(rightArm2, -2.2, 0.003),
-                animationFrameItemCreate(leftLeg1, REST_LEG_LEFT_1, 0.005),
+                animationFrameItemCreate(leftLeg1, 0, 0.005),
                 animationFrameItemCreate(leftLeg2, 0.1, 0.005),
-                animationFrameItemCreate(rightLeg1, REST_LEG_RIGHT_1, 0.005),
+                animationFrameItemCreate(rightLeg1, 0, 0.005),
                 animationFrameItemCreate(rightLeg2, 0.4, 0.005),
                 animationFrameItemCreate(body, 1.5, 0.003),
             ],
