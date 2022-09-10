@@ -1,7 +1,5 @@
 ## Next Steps
 
--   add mobile controls
-
 ## Feature ideas
 
 -   add more people types (different clothes, women, etc)

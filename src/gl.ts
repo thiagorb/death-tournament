@@ -81,15 +81,18 @@ export const glProgramCreate = (canvas: HTMLCanvasElement, virtualWidth: number,
 
     const viewTransform = gl.getUniformLocation(glProgram, vertexShader.viewTransformRenamed);
     const updateViewport = () => {
-        const pixelSize = devicePixelRatio * 1;
+        const pixelSize = 1 / devicePixelRatio;
+        // const pixelSize = 1;
         canvas.width = document.body.clientWidth / pixelSize;
         canvas.height = document.body.clientHeight / pixelSize;
 
-        const vMinPx = Math.min(canvas.width / virtualWidth, canvas.height / virtualHeight);
-        virtualScreenWidth = canvas.width / vMinPx;
-        virtualScreenHeight = canvas.height / vMinPx;
+        const canvasWidth = document.body.clientWidth / pixelSize;
+        const canvasHeight = document.body.clientHeight / pixelSize;
+        const vMinPx = Math.min(canvasWidth / virtualWidth, canvasHeight / virtualHeight);
+        virtualScreenWidth = canvasWidth / vMinPx;
+        virtualScreenHeight = canvasHeight / vMinPx;
 
-        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.viewport(0, 0, canvasWidth, canvasHeight);
         const matrix = matrixCreate();
         matrixScale(matrix, 2 / virtualScreenWidth, 2 / virtualScreenHeight);
         gl.uniformMatrix3fv(viewTransform, false, matrix);

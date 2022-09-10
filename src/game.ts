@@ -44,9 +44,9 @@ import {
 import { storageGetHighscore, storageSetHighscore } from './storage';
 import { updaterCreate, updaterSet } from './ui';
 
-export const FLOOR_LEVEL = -140;
+export const FLOOR_LEVEL = -90;
 export const VIRTUAL_WIDTH = 800;
-export const VIRTUAL_HEIGHT = 400;
+export const VIRTUAL_HEIGHT = 500;
 export const GAME_WIDTH = 670;
 const INITIAL_TIME = 30;
 

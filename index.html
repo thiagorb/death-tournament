@@ -15,17 +15,18 @@
             -ms-user-select: none;
             user-select: none;
             outline: none;
-            -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+            -webkit-tap-highlight-color: #fff0;
             overflow: hidden;
             touch-action: none;
         }
 
         html {
             height: -webkit-fill-available;
-            color: white;
             font-family: sans-serif;
             font-weight: 900;
             font-size: 20px;
+            color: #fff;
+            background: #000;
         }
 
         body {
@@ -35,18 +36,17 @@
             width: 100%;
             height: 100%;
             height: -webkit-fill-available;
-            color: #fff;
         }
 
         #timer {
-            --width: 300px;
             --progress: 0;
             position: absolute;
-            width: var(--width);
+            width: 300px;
             height: 15px;
             top: 20px;
-            left: calc(50% - var(--width) / 2);
-            outline: 1px solid rgba(255, 255, 255, 0.5);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 15px;
         }
 
@@ -84,6 +84,9 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
+        }
+
+        .game-ui, #menu-ui {
             transition: 0.5s opacity, 0.5s filter, 0.5s transform;
         }
 
@@ -106,7 +109,7 @@
             padding: 1em 1.5em;
             border-radius: 200px;
             cursor: pointer;
-            outline: 5px solid rgba(128, 0, 255, 0.3);
+            border: 5px solid rgba(128, 0, 255, 0.3);
             background-color: slateblue;
         }
 
@@ -125,15 +128,22 @@
         .indicator, #game-ui, #menu-ui {
             text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
+
+        [data-key] {
+            width: 80px;
+            height: 60px;
+            background-color: #fff3;
+            border-radius: 20px;
+        }
     </style>
     <script src="https://js13kgames.com/src/near-api-js.js"></script>
 </head>
 
 <body>
     <div style="position: absolute; top: 0; left: 0; bottom: 0; right: 0">
-        <canvas style="width: 100vw; height: 100vh; height: -webkit-fill-available; image-rendering: crisp-edges; image-rendering: pixelated; background: #000;"></canvas>
+        <canvas style="width: 100vw; height: 100vh; height: -webkit-fill-available; image-rendering: crisp-edges; image-rendering: pixelated"></canvas>
         <div id="screen" style="position: absolute; left: 0; top: 0; transform-origin: 0 0;">
-            <div id="game-ui" class="hidden">
+            <div id="game-ui" class="hidden game-ui">
                 <div id="timer"></div>
                 <div id="score">SCORE</div>
             </div>
@@ -146,8 +156,12 @@
                 <div id="start-game" class="button">START</div>
             </div>
             <!--
-            <div id="death-bb" style="position: absolute; border: 2px solid white;"></div>
+            <div id="death-bb" style="position: absolute; border: 2px solid #fff;"></div>
             -->
+        </div>
+        <div id="touch" class="hidden game-ui" style="position:absolute; padding: 0 10px; display:grid; grid-template-columns: 1fr auto; width: 100%; gap: 10px; bottom: 20px; box-sizing: border-box;">
+            <div data-key="Arrows" style="width: 160px;"></div>
+            <div data-key="Space"></div>
         </div>
     </div>
 </body>

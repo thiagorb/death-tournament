@@ -18,7 +18,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
 
         if (startingGame) {
             if (canStart(menuScene)) {
-                (document.querySelector('#game-ui') as HTMLElement).classList.remove('hidden');
+                document.querySelectorAll('.game-ui').forEach(e => e.classList.remove('hidden'));
                 const game = gameCreate();
                 gameStart(game, program);
                 return;
@@ -50,7 +50,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         () => {
             startButton.addEventListener('click', startGame);
             document.body.addEventListener('keypress', startGame);
-            (document.querySelector('#game-ui') as HTMLElement).classList.add('hidden');
+            document.querySelectorAll('.game-ui').forEach(e => e.classList.add('hidden'));
             (document.querySelector('#menu-ui') as HTMLElement).classList.remove('hidden');
         },
         lastGame ? 3000 : 0
