@@ -294,7 +294,7 @@ export const gameStart = (game: Game, program: Program) => {
             requestAnimationFrame(loop);
         } else {
             deathStartFade(game[GameProperties.Death]);
-            (document.querySelector('#game-over') as HTMLElement).classList.remove('hidden');
+            document.querySelectorAll('.after-game').forEach(e => e.classList.remove('hidden'));
 
             const score = game[GameProperties.Score];
             storageSetHighscore(Math.max(storageGetHighscore(), score));

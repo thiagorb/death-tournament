@@ -1,11 +1,15 @@
 ## Next Steps
 
+-   add mobile controls
+
 ## Feature ideas
 
 -   add more people types (different clothes, women, etc)
 -   make dog stop and change direction
 
 ## Performance improvement ideas
+
+-   automatically increase pixel size if fps is dropping
 
 ## Size reduction ideas
 

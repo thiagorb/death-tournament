@@ -138,12 +138,10 @@
                 <div id="score">SCORE</div>
             </div>
             <div id="menu-ui">
-                <div id="game-over" class="nothidden">
-                    <h2>GAME OVER</h2>
-                    <div style="display: grid; grid-template-columns: auto auto; gap: 15px 30px; padding: 0 0 30px">
-                        <div>SCORE</div><div id="last-score">0</div>
-                        <div>HIGH-SCORE</div><div id="high-score">0</div>
-                    </div>
+                <h2 class="hidden after-game">GAME OVER</h2>
+                <div style="display: grid; grid-template-columns: auto auto; gap: 15px 30px; padding: 0 0 30px">
+                    <div class="hidden after-game">SCORE</div><div id="last-score" class="hidden after-game">0</div>
+                    <div>HIGH-SCORE</div><div id="high-score">0</div>
                 </div>
                 <div id="start-game" class="button">START</div>
             </div>
