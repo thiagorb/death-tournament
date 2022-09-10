@@ -5,7 +5,7 @@ import {
     animatableBeginStep,
     animatableCreate,
     animatableDraw,
-    animatableStep,
+    animatableGetRootTransform,
     AnimatedProperty,
     Animation,
     animationCreate,
@@ -20,8 +20,8 @@ import {
     boundElementCreate,
 } from './animation';
 import { GAME_WIDTH } from './game';
-import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, glSetGlobalOpacity, Program } from './gl';
-import { Vec2 } from './glm';
+import { glSetGlobalOpacity, Program } from './gl';
+import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
 import { Hourglass, hourglassGetPosition } from './hourglass';
 import { Model, modelCreate, objectCreate } from './model';
 
@@ -170,16 +170,19 @@ export const deathCreate = (position: Vec2): Death => {
 
 export const deathDraw = (death: Death, program: Program) => {
     glSetGlobalOpacity(program, death[DeathProperties.Opacity]);
-    glModelPush(program);
-    glModelTranslateVector(program, death[DeathProperties.Position]);
     if (death[DeathProperties.FacingLeft]) {
-        glModelScale(program, -1, 1);
+        const matrix = animatableGetRootTransform(death[DeathProperties.AnimatableLeft]);
+        matrixSetIdentity(matrix);
+        matrixTranslateVector(matrix, death[DeathProperties.Position]);
+        matrixScale(matrix, -1, 1);
         animatableDraw(death[DeathProperties.AnimatableLeft], program);
     } else {
+        const matrix = animatableGetRootTransform(death[DeathProperties.AnimatableRight]);
+        matrixSetIdentity(matrix);
+        matrixTranslateVector(matrix, death[DeathProperties.Position]);
         animatableDraw(death[DeathProperties.AnimatableRight], program);
     }
 
-    glModelPop(program);
     glSetGlobalOpacity(program, 1);
 
     // glDrawRect(program, vectorCreate(getAttackLeft(death), 0), vectorCreate(ATTACK_WIDTH, 100));
@@ -253,10 +256,6 @@ export const deathStep = (death: Death, deltaTime: number) => {
     animationStep(death[DeathProperties.RestAnimation], deltaTime);
 
     animationPause(death[DeathProperties.WalkAnimation]);
-
-    animatableStep(
-        death[death[DeathProperties.FacingLeft] ? DeathProperties.AnimatableLeft : DeathProperties.AnimatableRight]
-    );
 };
 
 const ATTACK_GAP = 20;

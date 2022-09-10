@@ -29,4 +29,4 @@ const glslLoaderTest = async () => {
     console.log(await vai(path.join(__dirname, 'src/shaders/vertex.vert')));
 };
 
-glslLoaderTest();
+testSvg2js();

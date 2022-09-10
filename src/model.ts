@@ -1,16 +1,5 @@
-import {
-    ColorRGB,
-    glMeshDraw,
-    glMeshCreate,
-    glModelMultiply,
-    glModelPop,
-    glModelPush,
-    glModelTranslateVector,
-    Mesh,
-    Program,
-} from './gl';
-import { Matrix3, matrixCreate, Vec2 } from './glm';
-import functionCreate from './function';
+import { ColorRGB, glMeshDraw, glMeshCreate, Mesh, Program, glSetModelTransform } from './gl';
+import { Matrix3, matrixCopy, matrixCreate, matrixTranslateVector, Vec2, vectorCreate } from './glm';
 
 export const enum PolygonProperty {
     Vertices,
@@ -26,26 +15,14 @@ export type Polygon = {
     [PolygonProperty.TransformOrigin]: [number, number];
 };
 
-const enum PolygonHierarchyProperties {
-    Index,
-    SubpolygonsBack,
-    SubpolygonsFront,
-}
-
-type PolygonHierarchy = {
-    [PolygonHierarchyProperties.Index]: number;
-    [PolygonHierarchyProperties.SubpolygonsBack]?: Array<PolygonHierarchy>;
-    [PolygonHierarchyProperties.SubpolygonsFront]?: Array<PolygonHierarchy>;
-};
-
 export const enum ModelDataProperty {
     Polygons,
-    PolygonHierarchy,
+    ParentMap,
 }
 
 export type ModelData = {
     [ModelDataProperty.Polygons]: Array<Polygon>;
-    [ModelDataProperty.PolygonHierarchy]: Array<PolygonHierarchy>;
+    [ModelDataProperty.ParentMap]: Array<number>;
 };
 
 const enum ModelMeshProperty {
@@ -55,7 +32,7 @@ const enum ModelMeshProperty {
 
 export type ModelMesh = {
     [ModelMeshProperty.Mesh]: Mesh;
-    [ModelMeshProperty.TransformOrigin]: [number, number];
+    [ModelMeshProperty.TransformOrigin]: Vec2;
 };
 
 const enum ObjectComponentProperty {
@@ -72,64 +49,49 @@ export type ObjectComponent = {
 
 const enum ModelProperty {
     Meshes,
-    DrawFunction,
+    ParentMap,
+    TransformOrder,
 }
 
 export type Model = {
     [ModelProperty.Meshes]: Array<ModelMesh>;
-    [ModelProperty.DrawFunction]: (o: Object, p: Program) => void;
+    [ModelProperty.ParentMap]: Array<number>;
+    [ModelProperty.TransformOrder]: Array<number>;
 };
 
 const enum ObjectProperty {
     Components,
     Model,
+    Transform,
 }
 
 export type Object = {
     [ObjectProperty.Components]: Array<ObjectComponent>;
     [ObjectProperty.Model]: Model;
-};
-
-const drawFunctionCreate = (polygonHierarchyLevel: Array<PolygonHierarchy>) => {
-    const object = 'o';
-    const program = 'p';
-    const objectComponentDrawStart = 's';
-    const objectComponentDrawEnd = 'e';
-    const glMeshDraw = 'd';
-
-    const visitInOrder = (polygonHierarchyLevel: Array<PolygonHierarchy>, drawStatements: Array<string> = []) => {
-        for (const polygonHierarhcy of polygonHierarchyLevel ?? []) {
-            const index = polygonHierarhcy[PolygonHierarchyProperties.Index];
-            const component = `${object}[${ObjectProperty.Components}][${index}]`;
-            drawStatements.push(`${objectComponentDrawStart}(${component},${program})`);
-
-            visitInOrder(polygonHierarhcy[PolygonHierarchyProperties.SubpolygonsBack], drawStatements);
-
-            drawStatements.push(
-                `${glMeshDraw}(${program},${component}[${ObjectComponentProperty.Mesh}][${ModelMeshProperty.Mesh}])`
-            );
-
-            visitInOrder(polygonHierarhcy[PolygonHierarchyProperties.SubpolygonsFront], drawStatements);
-
-            drawStatements.push(`${objectComponentDrawEnd}(${component},${program})`);
-        }
-        return drawStatements;
-    };
-
-    const body = `return (${object},${program})=>{${visitInOrder(polygonHierarchyLevel).join(';')}}`;
-    return functionCreate([objectComponentDrawStart, glMeshDraw, objectComponentDrawEnd], body);
+    [ObjectProperty.Transform]: Matrix3;
 };
 
 export const modelCreate = (program: Program, data: ModelData): Model => {
     const meshes = data[ModelDataProperty.Polygons].map(polygon => modelMeshFromPolygon(program, polygon));
 
+    const calculateLevel = (index: number) => {
+        let level = 0;
+        let current = index;
+        while (typeof data[ModelDataProperty.ParentMap][current] === 'number') {
+            level++;
+            current = data[ModelDataProperty.ParentMap][current];
+        }
+
+        return level;
+    };
+
+    const transformOrder = data[ModelDataProperty.ParentMap].map((parentId, index) => index);
+    transformOrder.sort((a, b) => calculateLevel(a) - calculateLevel(b));
+
     return {
         [ModelProperty.Meshes]: meshes,
-        [ModelProperty.DrawFunction]: drawFunctionCreate(data[ModelDataProperty.PolygonHierarchy])(
-            objectComponentDrawStart,
-            glMeshDraw,
-            objectComponentDrawEnd
-        ),
+        [ModelProperty.ParentMap]: data[ModelDataProperty.ParentMap],
+        [ModelProperty.TransformOrder]: transformOrder,
     };
 };
 
@@ -139,39 +101,48 @@ export const objectCreate = (model: Model): Object => {
     return {
         [ObjectProperty.Components]: components,
         [ObjectProperty.Model]: model,
+        [ObjectProperty.Transform]: matrixCreate(),
     };
 };
 
 const objectComponentFromMesh = (mesh: ModelMesh): ObjectComponent => {
     return {
         [ObjectComponentProperty.Mesh]: mesh,
-        [ObjectComponentProperty.Matrix]: null,
+        [ObjectComponentProperty.Matrix]: matrixCreate(),
         [ObjectComponentProperty.RequiresPush]: false,
     };
 };
 
-const objectComponentDrawStart = (component: ObjectComponent, program: Program) => {
+export const objectTransformComponent = (object: Object, componentId: number) => {
+    const component = object[ObjectProperty.Components][componentId];
     const origin = component[ObjectComponentProperty.Mesh][ModelMeshProperty.TransformOrigin];
     const differentOrigin = origin[0] !== 0 || origin[1] !== 0;
     const hasTransform = component[ObjectComponentProperty.Matrix] !== null;
     component[ObjectComponentProperty.RequiresPush] = differentOrigin || hasTransform;
     if (component[ObjectComponentProperty.RequiresPush]) {
-        glModelPush(program);
-        glModelTranslateVector(program, component[ObjectComponentProperty.Mesh][ModelMeshProperty.TransformOrigin]);
-        if (hasTransform) {
-            glModelMultiply(program, component[ObjectComponentProperty.Matrix]);
+        const matrix = component[ObjectComponentProperty.Matrix];
+        const parentId = object[ObjectProperty.Model][ModelProperty.ParentMap][componentId];
+        if (typeof parentId === 'number') {
+            matrixCopy(matrix, object[ObjectProperty.Components][parentId][ObjectComponentProperty.Matrix]);
+        } else {
+            matrixCopy(matrix, object[ObjectProperty.Transform]);
         }
+        matrixTranslateVector(matrix, component[ObjectComponentProperty.Mesh][ModelMeshProperty.TransformOrigin]);
     }
 };
 
-const objectComponentDrawEnd = (component: ObjectComponent, program: Program) => {
-    if (component[ObjectComponentProperty.RequiresPush]) {
-        glModelPop(program);
+export const objectApplyTransforms = (object: Object) => {
+    for (const componentId of object[ObjectProperty.Model][ModelProperty.TransformOrder]) {
+        objectTransformComponent(object, componentId);
     }
 };
 
-export const objectDraw = (object: Object, program: Program) =>
-    object[ObjectProperty.Model][ModelProperty.DrawFunction](object, program);
+export const objectDraw = (object: Object, program: Program) => {
+    for (const component of object[ObjectProperty.Components]) {
+        glSetModelTransform(program, component[ObjectComponentProperty.Matrix]);
+        glMeshDraw(program, component[ObjectComponentProperty.Mesh][ModelMeshProperty.Mesh]);
+    }
+};
 
 const modelMeshFromPolygon = (program: Program, polygon: Polygon): ModelMesh => {
     return {
@@ -181,15 +152,14 @@ const modelMeshFromPolygon = (program: Program, polygon: Polygon): ModelMesh => 
             polygon[PolygonProperty.Indices],
             polygon[PolygonProperty.Color]
         ),
-        [ModelMeshProperty.TransformOrigin]: polygon[PolygonProperty.TransformOrigin] ?? [0, 0],
+        [ModelMeshProperty.TransformOrigin]: vectorCreate(...(polygon[PolygonProperty.TransformOrigin] || [0, 0])),
     };
 };
 
-export const objectGetComponentTransform = (object: Object, componentPath: number) => {
-    const component = object[ObjectProperty.Components][componentPath];
-    if (component[ObjectComponentProperty.Matrix] === null) {
-        component[ObjectComponentProperty.Matrix] = matrixCreate();
-    }
+export const objectGetComponentTransform = (object: Object, componentPath: number) =>
+    object[ObjectProperty.Components][componentPath][ObjectComponentProperty.Matrix];
 
-    return component[ObjectComponentProperty.Matrix];
-};
+export const objectGetRootTransform = (object: Object) => object[ObjectProperty.Transform];
+
+export const objectGetComponentTransformOrder = (object: Object) =>
+    object[ObjectProperty.Model][ModelProperty.TransformOrder];

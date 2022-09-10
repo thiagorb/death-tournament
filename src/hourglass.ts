@@ -3,7 +3,7 @@ import {
     animatableBeginStep,
     animatableCreate,
     animatableDraw,
-    animatableStep,
+    animatableGetRootTransform,
     animationCreate,
     animationElementCreate,
     animationFrameCreate,
@@ -12,8 +12,8 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
-import { glModelPop, glModelPush, glModelTranslateVector, Program } from './gl';
-import { Vec2 } from './glm';
+import { Program } from './gl';
+import { matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
 import { Model, modelCreate, objectCreate } from './model';
 
 let model: Model;
@@ -52,16 +52,15 @@ export const hourglassCreate = (position: Vec2) => {
 };
 
 export const hourglassDraw = (hourglass: Hourglass, program: Program) => {
-    glModelPush(program);
-    glModelTranslateVector(program, hourglass[HourglassProperties.Position]);
+    const matrix = animatableGetRootTransform(hourglass[HourglassProperties.Animatable]);
+    matrixSetIdentity(matrix);
+    matrixTranslateVector(matrix, hourglass[HourglassProperties.Position]);
     animatableDraw(hourglass[HourglassProperties.Animatable], program);
-    glModelPop(program);
 };
 
 export const hourglassStep = (hourglass: Hourglass, deltaTime: number) => {
     animatableBeginStep(hourglass[HourglassProperties.Animatable]);
     animationStep(hourglass[HourglassProperties.Animation], deltaTime);
-    animatableStep(hourglass[HourglassProperties.Animatable]);
     hourglass[HourglassProperties.Position][1] -= deltaTime * 0.2;
 };
 

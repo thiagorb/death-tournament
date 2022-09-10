@@ -4,7 +4,7 @@ import {
     animatableBeginStep,
     animatableCreate,
     animatableDraw,
-    animatableStep,
+    animatableGetRootTransform,
     AnimatedProperty,
     Animation,
     animationCreate,
@@ -15,9 +15,9 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
-import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, glSetGlobalOpacity, Program } from './gl';
-import { Vec2 } from './glm';
-import { Model, modelCreate, Object, objectCreate, objectDraw } from './model';
+import { glSetGlobalOpacity, Program } from './gl';
+import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
+import { Model, modelCreate, objectCreate } from './model';
 
 let model: Model;
 
@@ -133,13 +133,15 @@ export const dogTurnLeft = (dog: Dog) => {
 
 export const dogDraw = (dog: Dog, program: Program) => {
     glSetGlobalOpacity(program, dog[DogProperties.Opacity]);
-    glModelPush(program);
-    glModelTranslateVector(program, dog[DogProperties.Position]);
+
+    const matrix = animatableGetRootTransform(dog[DogProperties.Animatable]);
+    matrixSetIdentity(matrix);
+    matrixTranslateVector(matrix, dog[DogProperties.Position]);
     if (dog[DogProperties.FacingLeft]) {
-        glModelScale(program, -1, 1);
+        matrixScale(matrix, -1, 1);
     }
     animatableDraw(dog[DogProperties.Animatable], program);
-    glModelPop(program);
+
     glSetGlobalOpacity(program, 1);
 };
 
@@ -160,8 +162,6 @@ export const dogStep = (dog: Dog, deltaTime: number) => {
 
     animationStep(dog[DogProperties.DeadAnimation], deltaTime);
     animationStep(dog[DogProperties.WalkAnimation], deltaTime);
-
-    animatableStep(dog[DogProperties.Animatable]);
 };
 
 const DOG_WIDTH = 40;

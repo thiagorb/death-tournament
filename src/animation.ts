@@ -1,6 +1,13 @@
 import { Program } from './gl';
 import { matrixRotate, matrixSetIdentity, matrixTranslate } from './glm';
-import { Object, objectDraw, objectGetComponentTransform } from './model';
+import {
+    Object,
+    objectDraw,
+    objectGetComponentTransform,
+    objectGetComponentTransformOrder,
+    objectGetRootTransform,
+    objectTransformComponent,
+} from './model';
 
 const enum ElementProperties {
     CurrentValue,
@@ -187,10 +194,12 @@ export const boundElementCreate = (
 export const enum AnimatableProperties {
     Object,
     AnimationElements,
+    BoundElementsByObjectComponent,
 }
 export type Animatable = {
     [AnimatableProperties.Object]: Object;
     [AnimatableProperties.AnimationElements]: Array<BoundElement>;
+    [AnimatableProperties.BoundElementsByObjectComponent]: Array<Array<BoundElement>>;
 };
 
 export const animatableBeginStep = (animatable: Animatable) => {
@@ -206,35 +215,46 @@ export const animatableBeginStep = (animatable: Animatable) => {
         matrixSetIdentity(transform);
     }
 };
-export const animatableStep = (animatable: Animatable) => {
-    const elements = animatable[AnimatableProperties.AnimationElements];
-    let i = elements.length;
-    while (i--) {
-        const boundElement = elements[i];
-        const transform = objectGetComponentTransform(
-            animatable[AnimatableProperties.Object],
-            boundElement[BoundElementProperties.TransformPath]
-        );
-        if (boundElement[BoundElementProperties.AnimatedProperty] === AnimatedProperty.Rotation) {
-            matrixRotate(transform, animationElementGetValue(boundElement[BoundElementProperties.AnimationElement]));
-        } else if (boundElement[BoundElementProperties.AnimatedProperty] === AnimatedProperty.TranslationY) {
-            matrixTranslate(
-                transform,
-                0,
-                animationElementGetValue(boundElement[BoundElementProperties.AnimationElement])
-            );
-        }
-    }
-};
 
 export const animatableCreate = (
     object: Object,
     elements: Animatable[AnimatableProperties.AnimationElements]
-): Animatable => ({
-    [AnimatableProperties.Object]: object,
-    [AnimatableProperties.AnimationElements]: elements,
-});
+): Animatable => {
+    const boundElementsByObjectComponent = objectGetComponentTransformOrder(object).map(c => []);
+    for (const element of elements) {
+        boundElementsByObjectComponent[element[BoundElementProperties.TransformPath]].push(element);
+    }
+
+    return {
+        [AnimatableProperties.Object]: object,
+        [AnimatableProperties.AnimationElements]: elements,
+        [AnimatableProperties.BoundElementsByObjectComponent]: boundElementsByObjectComponent,
+    };
+};
 
 export const animatableDraw = (animatable: Animatable, program: Program) => {
+    const object = animatable[AnimatableProperties.Object];
+    for (const componentId of objectGetComponentTransformOrder(object)) {
+        objectTransformComponent(object, componentId);
+        const transform = objectGetComponentTransform(animatable[AnimatableProperties.Object], componentId);
+        for (const boundElement of animatable[AnimatableProperties.BoundElementsByObjectComponent][componentId]) {
+            if (boundElement[BoundElementProperties.AnimatedProperty] === AnimatedProperty.Rotation) {
+                matrixRotate(
+                    transform,
+                    animationElementGetValue(boundElement[BoundElementProperties.AnimationElement])
+                );
+            } else if (boundElement[BoundElementProperties.AnimatedProperty] === AnimatedProperty.TranslationY) {
+                matrixTranslate(
+                    transform,
+                    0,
+                    animationElementGetValue(boundElement[BoundElementProperties.AnimationElement])
+                );
+            }
+        }
+    }
+
     objectDraw(animatable[AnimatableProperties.Object], program);
 };
+
+export const animatableGetRootTransform = (animatable: Animatable) =>
+    objectGetRootTransform(animatable[AnimatableProperties.Object]);

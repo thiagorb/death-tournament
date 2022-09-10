@@ -4,7 +4,7 @@ import {
     animatableBeginStep,
     animatableCreate,
     animatableDraw,
-    animatableStep,
+    animatableGetRootTransform,
     Animation,
     animationCreate,
     animationElementCreate,
@@ -15,8 +15,8 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
-import { glModelPop, glModelPush, glModelScale, glModelTranslateVector, glSetGlobalOpacity, Program } from './gl';
-import { Vec2 } from './glm';
+import { glSetGlobalOpacity, Program } from './gl';
+import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
 import { Model, modelCreate, objectCreate } from './model';
 
 let modelRight: Model;
@@ -131,13 +131,14 @@ export const personCreate = (position: Vec2): Person => {
 export const personDraw = (person: Person, program: Program) => {
     glSetGlobalOpacity(program, person[PersonProperties.Opacity]);
 
-    glModelPush(program);
-    glModelTranslateVector(program, person[PersonProperties.Position]);
+    const matrix = animatableGetRootTransform(person[PersonProperties.Animatable]);
+    matrixSetIdentity(matrix);
+    matrixTranslateVector(matrix, person[PersonProperties.Position]);
     if (person[PersonProperties.FacingLeft]) {
-        glModelScale(program, -1, 1);
+        matrixScale(matrix, -1, 1);
     }
     animatableDraw(person[PersonProperties.Animatable], program);
-    glModelPop(program);
+
     glSetGlobalOpacity(program, 1);
 };
 
@@ -190,8 +191,6 @@ export const personStep = (person: Person, deltaTime: number) => {
     } else {
         animationStep(person[PersonProperties.WalkAnimation], deltaTime);
     }
-
-    animatableStep(person[PersonProperties.Animatable]);
 };
 
 const PERSON_WIDTH = 50;

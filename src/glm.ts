@@ -1,5 +1,5 @@
 export type Matrix3 = Float32Array & { __matrix: boolean };
-export type Vec2 = [number, number] & { __vector: boolean };
+export type Vec2 = Float32Array & { __vector: boolean };
 
 const identity: Matrix3 = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]) as Matrix3;
 export const matrixCreate = (): Matrix3 => {
@@ -7,7 +7,7 @@ export const matrixCreate = (): Matrix3 => {
 };
 
 export const vectorCreate = (x: number = 0, y: number = 0): Vec2 => {
-    return [x, y] as Vec2;
+    return new Float32Array([x, y]) as Vec2;
 };
 
 export const vectorCopy = (v: Vec2): Vec2 => {

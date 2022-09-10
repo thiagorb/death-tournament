@@ -111,7 +111,7 @@ export const backgroundInit = (program: Program) => {
 
     const data: ModelData = {
         [ModelDataProperty.Polygons]: polygons,
-        [ModelDataProperty.PolygonHierarchy]: [...polygons.keys()].map(k => [k]),
+        [ModelDataProperty.ParentMap]: [],
     };
 
     background = objectCreate(modelCreate(program, data));
