@@ -24,9 +24,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="4.1691932"
-     inkscape:cx="141.51419"
-     inkscape:cy="95.821897"
+     inkscape:zoom="16.676773"
+     inkscape:cx="152.90728"
+     inkscape:cy="86.557514"
      inkscape:window-width="1846"
      inkscape:window-height="1016"
      inkscape:window-x="74"
@@ -168,9 +168,9 @@
        inkscape:transform-center-y="-49.981786" />
     <path
        style="fill:#ffccaa;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
-       d="M 21.6853 57.8677 L 23.9116 59.7529 L 26.9178 57.4532 L 28.0638 42.648 L 21.9938 42.3985"
+       d="m 21.985353,55.873474 1.007387,2.679119 3.548996,0.587823 0.651998,-3.437505 L 28.0638,42.648 l -6.07,-0.2495"
        id="rightArm2"
-       sodipodi:nodetypes="ccccc"
+       sodipodi:nodetypes="cccccc"
        inkscape:transform-center-x="-0.38024573"
        inkscape:transform-center-y="7.4654316">
       <desc
@@ -180,11 +180,11 @@
     </path>
     <path
        style="fill:#ffccaa;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
-       d="M 21.6266 66.8555 L 21.3915 70.2793 L 23.4228 71.8683 L 28.059 70.9139 L 29.6204 67.125 L 26.9969 66.6316 L 26.9251 57.4416 L 23.5877 54.4065 L 21.6769 56.9451"
+       d="m 21.510334,66.229375 -0.367065,3.412174 1.968458,1.666214 4.669582,-0.774754 1.706469,-3.725816 -2.602502,-0.594284 0.282941,-9.185925 -1.081328,-3.437259 -2.436953,-0.196981 -1.706849,2.935564"
        id="rightArm3"
-       sodipodi:nodetypes="ccccccccc"
-       inkscape:transform-center-x="-1.340209"
-       inkscape:transform-center-y="7.0828346">
+       sodipodi:nodetypes="cccccccccc"
+       inkscape:transform-center-x="0.2301641"
+       inkscape:transform-center-y="6.7471431">
       <desc
          id="desc18761-5-6">{
     &quot;connectTo&quot;: &quot;rightArm2&quot;
@@ -224,9 +224,9 @@
     </path>
     <path
        style="fill:#2b0000;stroke-width:0.210546"
-       d="M 38.2764 17.5251 L 37.2152 19.4544 L 38.3291 21.2734 L 39.1938 19.3496 L 38.2764 17.5251"
+       d="m 38.276015,18.351391 -1.05552,1.078694 1.107938,1.017024 0.860072,-1.075619"
        id="rightEye"
-       sodipodi:nodetypes="ccccc">
+       sodipodi:nodetypes="cccc">
       <desc
          id="desc280">{
     &quot;connectTo&quot;: &quot;face&quot;
@@ -234,9 +234,9 @@
     </path>
     <path
        style="fill:#2b0000;stroke-width:0.210546"
-       d="M 41.9796 16.7344 L 40.9184 18.6637 L 42.0323 20.4827 L 42.897 18.5589 L 41.9796 16.7344"
+       d="m 41.975798,17.421202 -1.005085,1.222288 1.054998,1.152408 0.818976,-1.218803"
        id="leftEye"
-       sodipodi:nodetypes="ccccc">
+       sodipodi:nodetypes="cccc">
       <desc
          id="desc280-7">{
     &quot;connectTo&quot;: &quot;face&quot;
@@ -249,6 +249,16 @@
       <desc
          id="desc28369">{
     &quot;connectTo&quot;: &quot;face&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#ffebde;fill-opacity:1;stroke-width:0.152088"
+       d="m 40.889012,21.420719 -0.58046,2.113192 1.599148,-0.253008 z"
+       id="nose"
+       sodipodi:nodetypes="cccc">
+      <desc
+         id="desc6278">{
+    &quot;connectTo&quot;: &quot;body&quot;
 }</desc>
     </path>
   </g>
