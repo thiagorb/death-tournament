@@ -105,8 +105,7 @@ export const gamePeopleStep = (game: Game, deltaTime: number) => {
             deathIsHitting(game[GameProperties.Death], personGetLeft(person), personGetRight(person))
         ) {
             personDie(person);
-            game[GameProperties.Score] += 2 ** game[GameProperties.Combo];
-            game[GameProperties.Combo]++;
+            game[GameProperties.Score] += ++game[GameProperties.Combo];
             game[GameProperties.TimeLeft] += 400;
         }
         personStep(person, deltaTime);
