@@ -8,7 +8,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
     (document.querySelector('#high-score') as HTMLElement).innerText = storageGetHighscore() as any as string;
 
     const menuScene: Game =
-        lastGame || Object.assign(gameCreate(), { [GameProperties.Death]: deathCreate(vectorCreate(0, -10000)) });
+        lastGame || Object.assign(gameCreate(), { [GameProperties.Death]: deathCreate(vectorCreate(0, -10000), null) });
     let startingGame = false;
     let previousTime = 0;
     let speedMultiplier = 0.5;

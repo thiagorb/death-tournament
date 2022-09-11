@@ -1,4 +1,4 @@
-import * as modelDataRight from '../art/person.svg';
+import * as modelData from '../art/person.svg';
 import {
     Animatable,
     animatableBeginStep,
@@ -18,13 +18,7 @@ import {
 } from './animation';
 import { glSetGlobalOpacity, Program } from './gl';
 import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
-import { Model, modelCreate, objectCreate } from './model';
-
-let modelRight: Model;
-
-export const personInit = (program: Program) => {
-    modelRight = modelCreate(program, modelDataRight.model);
-};
+import { Models, models, objectCreate } from './model';
 
 const enum PersonProperties {
     Position,
@@ -61,16 +55,16 @@ export const personCreate = (position: Vec2): Person => {
 
     const person: Person = {
         [PersonProperties.Position]: position,
-        [PersonProperties.Animatable]: animatableCreate(objectCreate(modelRight), [
-            boundElementCreate(leftArm1, modelDataRight.leftArm1ComponentId),
-            boundElementCreate(leftArm2, modelDataRight.leftArm3ComponentId),
-            boundElementCreate(rightArm1, modelDataRight.rightArm1ComponentId),
-            boundElementCreate(rightArm2, modelDataRight.rightArm3ComponentId),
-            boundElementCreate(leftLeg1, modelDataRight.leftLeg1ComponentId),
-            boundElementCreate(leftLeg2, modelDataRight.leftLeg2ComponentId),
-            boundElementCreate(rightLeg1, modelDataRight.rightLeg1ComponentId),
-            boundElementCreate(rightLeg2, modelDataRight.rightLeg2ComponentId),
-            boundElementCreate(body, modelDataRight.bodyComponentId),
+        [PersonProperties.Animatable]: animatableCreate(objectCreate(models[Models.Person]), [
+            boundElementCreate(leftArm1, modelData.leftArm1ComponentId),
+            boundElementCreate(leftArm2, modelData.leftArm3ComponentId),
+            boundElementCreate(rightArm1, modelData.rightArm1ComponentId),
+            boundElementCreate(rightArm2, modelData.rightArm3ComponentId),
+            boundElementCreate(leftLeg1, modelData.leftLeg1ComponentId),
+            boundElementCreate(leftLeg2, modelData.leftLeg2ComponentId),
+            boundElementCreate(rightLeg1, modelData.rightLeg1ComponentId),
+            boundElementCreate(rightLeg2, modelData.rightLeg2ComponentId),
+            boundElementCreate(body, modelData.bodyComponentId),
         ]),
         [PersonProperties.WalkAnimation]: null,
         [PersonProperties.DeadAnimation]: null,

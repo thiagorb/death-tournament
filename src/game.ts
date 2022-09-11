@@ -33,6 +33,7 @@ import { Vec2, vectorCreate, vectorMultiply } from './glm';
 import { Hourglass, hourglassCreate, hourglassDraw, hourglassGetPosition, hourglassStep } from './hourglass';
 import { keyboardInitialize } from './keyboard';
 import { menuStart } from './menu';
+import { Models, models, objectCreate } from './model';
 import {
     Person,
     personCreate,
@@ -92,7 +93,7 @@ export const enum GameProperties {
 export type Game = ReturnType<typeof gameCreate>;
 
 export const gameCreate = () => ({
-    [GameProperties.Death]: deathCreate(vectorCreate(0, FLOOR_LEVEL)),
+    [GameProperties.Death]: deathCreate(vectorCreate(0, FLOOR_LEVEL), objectCreate(models[Models.Scythe])),
     [GameProperties.People]: new Set<Person>(),
     [GameProperties.Hourglasses]: new Set<Hourglass>(),
     [GameProperties.Dogs]: new Set<Dog>(),
@@ -273,7 +274,7 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
 
     game[GameProperties.NextEnemy] -= deltaTime;
     if (game[GameProperties.NextEnemy] < 0) {
-        const enemy = deathCreate(vectorCreate(0, FLOOR_LEVEL));
+        const enemy = deathCreate(vectorCreate(0, FLOOR_LEVEL), objectCreate(models[Models.ScytheCurved]));
         if (Math.random() < 0.5) {
             deathWalk(enemy, deltaTime, true);
         }

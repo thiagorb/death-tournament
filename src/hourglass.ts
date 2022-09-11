@@ -15,13 +15,7 @@ import {
 } from './animation';
 import { Program } from './gl';
 import { matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
-import { Model, modelCreate, objectCreate } from './model';
-
-let model: Model;
-
-export const hourglassInit = (program: Program) => {
-    model = modelCreate(program, modelData.model);
-};
+import { Models, models, objectCreate } from './model';
 
 const enum HourglassProperties {
     Position,
@@ -36,7 +30,7 @@ export const hourglassCreate = (position: Vec2) => {
 
     const hourglass = {
         [HourglassProperties.Position]: position,
-        [HourglassProperties.Animatable]: animatableCreate(objectCreate(model), [
+        [HourglassProperties.Animatable]: animatableCreate(objectCreate(models[Models.Hourglass]), [
             boundElementCreate(glass, modelData.glassComponentId),
         ]),
         [HourglassProperties.Animation]: animationCreate([

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   sodipodi:docname="scythe-curved.svg"
+   inkscape:version="1.2.1 (2ed6d7ae0b, 2022-08-22, custom)"
+   id="svg10609"
+   version="1.1"
+   viewBox="0 0 100 100"
+   height="100mm"
+   width="100mm"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview10611"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="2.099937"
+     inkscape:cx="203.81564"
+     inkscape:cy="124.52754"
+     inkscape:window-width="1846"
+     inkscape:window-height="1016"
+     inkscape:window-x="74"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs10606" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:#663800;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
+       d="M 16.8326 15.7191 L 67.2232 52.0476 L 64.6515 55.9563 L 14.198 17.6184 L 16.8327 15.7191"
+       id="snath"
+       inkscape:transform-center-x="-14.343675"
+       inkscape:transform-center-y="11.343006"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       style="fill:#b3b3b3;stroke-width:0.264583"
+       d="M 67.2232 52.0476 L 69.7727 53.5109 L 78.4681 54.4284 L 85.3143 61.4702 L 86.4196 69.7113 L 81.1029 79.8183 L 81.825 66.5119 L 76.7615 59.841 L 68.28 55.9563 L 64.6515 55.9563 L 67.2232 52.0476"
+       id="blade"
+       sodipodi:nodetypes="ccccccccccc">
+      <desc
+         id="desc17303">{
+    &quot;connectTo&quot;: &quot;snath&quot;
+}</desc>
+    </path>
+  </g>
+</svg>

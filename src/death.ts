@@ -1,5 +1,5 @@
 import * as modelData from '../art/death.svg';
-import * as scytheModelData from '../art/scythe.svg';
+import * as scytheModelData from '../art/scythe-curved.svg';
 import {
     Animatable,
     animatableBeginStep,
@@ -24,15 +24,7 @@ import { GAME_WIDTH } from './game';
 import { glSetGlobalOpacity, Program } from './gl';
 import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
 import { Hourglass, hourglassGetPosition } from './hourglass';
-import { Model, modelCreate, Object, objectCreate } from './model';
-
-let model: Model;
-let scytheModel: Model;
-
-export const deathInit = (program: Program) => {
-    model = modelCreate(program, modelData.model);
-    scytheModel = modelCreate(program, scytheModelData.model);
-};
+import { Models, models, Object, objectCreate } from './model';
 
 const enum DeathProperties {
     Position,
@@ -66,7 +58,7 @@ export type Death = {
     [DeathProperties.Opacity]: number;
 };
 
-export const deathCreate = (position: Vec2): Death => {
+export const deathCreate = (position: Vec2, weaponObject: Object): Death => {
     const REST_LEFT_1 = 0;
     const REST_LEFT_2 = -1.5;
     const REST_RIGHT_1 = 0;
@@ -109,8 +101,8 @@ export const deathCreate = (position: Vec2): Death => {
         [DeathProperties.Position]: position,
         [DeathProperties.AttackCooldown]: 0,
         [DeathProperties.AnimatableRight]: animatableCreate(
-            objectCreate(model, {
-                [modelData.weaponLeftComponentId]: objectCreate(scytheModel),
+            objectCreate(models[Models.Death], {
+                [modelData.weaponLeftComponentId]: weaponObject,
                 [modelData.weaponRightComponentId]: null,
             }),
             [
@@ -123,9 +115,9 @@ export const deathCreate = (position: Vec2): Death => {
             ]
         ),
         [DeathProperties.AnimatableLeft]: animatableCreate(
-            objectCreate(model, {
+            objectCreate(models[Models.Death], {
                 [modelData.weaponLeftComponentId]: null,
-                [modelData.weaponRightComponentId]: objectCreate(scytheModel),
+                [modelData.weaponRightComponentId]: weaponObject,
             }),
             [
                 boundElementCreate(rightArm1, modelData.leftArm1ComponentId),

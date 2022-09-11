@@ -18,13 +18,7 @@ import {
 } from './animation';
 import { glSetGlobalOpacity, Program } from './gl';
 import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
-import { Model, modelCreate, objectCreate } from './model';
-
-let model: Model;
-
-export const dogInit = (program: Program) => {
-    model = modelCreate(program, modelData.model);
-};
+import { Models, models, objectCreate } from './model';
 
 const enum DogProperties {
     Position,
@@ -63,7 +57,7 @@ export const dogCreate = (position: Vec2): Dog => {
 
     const dog: Dog = {
         [DogProperties.Position]: position,
-        [DogProperties.Animatable]: animatableCreate(objectCreate(model), [
+        [DogProperties.Animatable]: animatableCreate(objectCreate(models[Models.Dog]), [
             boundElementCreate(frontLeftLeg, modelData.frontLeftLegComponentId),
             boundElementCreate(frontRightLeg, modelData.frontRightLegComponentId),
             boundElementCreate(backLeftLeg, modelData.backLeftLegComponentId),
