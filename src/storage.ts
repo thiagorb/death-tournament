@@ -1,19 +1,25 @@
 const enum StorageDataProperties {
     Highscore,
+    NetworkId,
 }
 
 export type StorageData = ReturnType<typeof storageLoad>;
 
-const storageKey = 'thiagorb_death';
+export const storageKey = 'thiagorb_death-tournament';
 
 const storageLoad = () => {
     let storageData = {
         [StorageDataProperties.Highscore]: 0,
+        [StorageDataProperties.NetworkId]: null as string,
     };
 
     try {
         const parsed = JSON.parse(localStorage.getItem(storageKey));
-        if (typeof parsed === 'object' && typeof parsed[StorageDataProperties.Highscore] === 'number') {
+        if (
+            typeof parsed === 'object' &&
+            typeof parsed[StorageDataProperties.Highscore] === 'number' &&
+            typeof parsed[StorageDataProperties.NetworkId] === 'string'
+        ) {
             storageData = parsed;
         }
     } catch (e) {}
@@ -33,4 +39,12 @@ export const storageGetHighscore = () => {
 
 export const storageSetHighscore = (highscore: number) => {
     storageUpdate(s => (s[StorageDataProperties.Highscore] = highscore));
+};
+
+export const storageGetNetworkId = () => {
+    return storageLoad()[StorageDataProperties.NetworkId];
+};
+
+export const storageSetNetworkId = (networkId: string) => {
+    storageUpdate(s => (s[StorageDataProperties.NetworkId] = networkId));
 };

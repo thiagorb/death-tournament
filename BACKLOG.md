@@ -1,6 +1,9 @@
 ## Next Steps
 
--   Create mock contract
+-   Add call to find new opponent
+    Search within the list of registered players
+    If the list is smaller than the number of scythes, add chance of finding non-player opponent
+-   Add call to claim scythe's ownership
 
 ## Feature ideas
 

@@ -18,6 +18,7 @@
             -webkit-tap-highlight-color: #fff0;
             overflow: hidden;
             touch-action: none;
+            margin: 0;
         }
 
         html {
@@ -80,10 +81,10 @@
             top: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
+            display: grid;
+            align-content: center;
+            justify-items: center;
+            gap: 20px;
         }
 
         .game-ui, #menu-ui {
@@ -106,10 +107,18 @@
 
         .button {
             font-size: 20px;
-            padding: 1em 1.5em;
-            border-radius: 200px;
+            border-radius: 20px;
             cursor: pointer;
             box-shadow: 0px 0px 0px 5px rgba(128, 0, 255, 0.3);
+        }
+
+        .button[data-text]:before {
+            content: attr(data-text);
+            display: block;
+        }
+
+        .button:before, .button-label {
+            padding: 0.5em 1em;
             background-color: slateblue;
         }
 
@@ -148,12 +157,20 @@
                 <div id="score">SCORE</div>
             </div>
             <div id="menu-ui">
+                <h1 style="font-family: Times New Roman, Times, serif;">DEATH TOURNAMENT</h1>
                 <h2 class="hidden after-game">GAME OVER</h2>
                 <div style="display: grid; grid-template-columns: auto auto; gap: 15px 30px; padding: 0 0 30px">
                     <div class="hidden after-game">SCORE</div><div id="last-score" class="hidden after-game">0</div>
                     <div>HIGH-SCORE</div><div id="high-score">0</div>
                 </div>
-                <div id="start-game" class="button">START</div>
+                <div id="start-game" class="button" data-text="START"></div>
+                <div id="sign-in" class="button" style="display: none;" data-text="SIGN IN WITH NEAR"></div>
+                <div id="network-id" class="button" style="display: none;">
+                    <div data-network-id="mainnet" class="button-label">MAIN NET</div>
+                    <div data-network-id="testnet" class="button-label">TEST NET</div>
+                </div>
+                <div id="sign-out" class="button" style="display: none;" data-text="SIGN OUT"></div>
+                <span id="account-id" style="display: none"></span>
             </div>
             <!--
             <div id="death-bb" style="position: absolute; border: 2px solid #fff;"></div>
