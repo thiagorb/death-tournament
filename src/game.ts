@@ -1,10 +1,15 @@
 import { backgroundDraw, BACKGROUND_COLOR } from './background';
 import {
+    Death,
     deathAttack,
     deathCollidesWithHourglass,
     deathCreate,
     deathDraw,
+    deathGetBoundingLeft,
+    deathGetBoundingRight,
     deathGetPosition,
+    deathIsFacingLeft,
+    deathIsFading,
     deathIsHitting,
     deathStartFade,
     deathStep,
@@ -72,10 +77,13 @@ export const enum GameProperties {
     People,
     Hourglasses,
     Dogs,
+    Enemy,
+    EnemyHealth,
     Score,
     NextPerson,
     NextHourglass,
     NextDog,
+    NextEnemy,
     TimeLeft,
     TimePassed,
     Combo,
@@ -88,10 +96,13 @@ export const gameCreate = () => ({
     [GameProperties.People]: new Set<Person>(),
     [GameProperties.Hourglasses]: new Set<Hourglass>(),
     [GameProperties.Dogs]: new Set<Dog>(),
+    [GameProperties.Enemy]: null as Death,
+    [GameProperties.EnemyHealth]: 10,
     [GameProperties.Score]: 0,
     [GameProperties.NextPerson]: 1000,
     [GameProperties.NextHourglass]: 3000,
     [GameProperties.NextDog]: 5000,
+    [GameProperties.NextEnemy]: 1000,
     [GameProperties.TimeLeft]: INITIAL_TIME * 1000,
     // [GameProperties.TimePassed]: 3600000,
     [GameProperties.TimePassed]: 0,
@@ -196,6 +207,81 @@ export const gameDogStep = (game: Game, deltaTime: number) => {
     }
 };
 
+let previousIntention = null;
+let responseDelay = 0;
+export const gameEnemyStep = (game: Game, deltaTime: number) => {
+    const player = game[GameProperties.Death];
+    const enemy = game[GameProperties.Enemy];
+    if (enemy) {
+        if (!gameIsOver(game) && !deathIsFading(enemy)) {
+            const playerX = deathGetPosition(player)[0];
+            const playerDeltaX = playerX - deathGetPosition(enemy)[0];
+            let desiredX;
+            if (Math.abs(playerX) > GAME_WIDTH / 2 - 100) {
+                desiredX = playerX + 80 * (playerX > 0 ? -1 : 1);
+            } else {
+                desiredX = playerX + 80 * (playerDeltaX > 0 ? -1 : 1);
+            }
+
+            const deltaX = desiredX - deathGetPosition(enemy)[0];
+            const facingOpposite = deathIsFacingLeft(enemy) !== playerDeltaX < 0;
+
+            let intention = null;
+            if ((Math.abs(deltaX) > 10 && facingOpposite) || Math.abs(deltaX) > 20) {
+                intention = 1;
+            } else if (facingOpposite) {
+                intention = 2;
+            }
+
+            if (responseDelay > 0) {
+                responseDelay -= deltaTime;
+            } else if (previousIntention !== intention) {
+                responseDelay = 150 + Math.random() * 150;
+                previousIntention = intention;
+            } else {
+                if (intention === 1) {
+                    deathWalk(enemy, deltaTime, deltaX < 0);
+                } else if (intention === 2) {
+                    deathWalk(enemy, deltaTime, !deathIsFacingLeft(enemy));
+                }
+            }
+
+            if (!facingOpposite && Math.random() < 0.01) {
+                deathAttack(enemy);
+            }
+
+            if (deathIsHitting(enemy, deathGetBoundingLeft(player), deathGetBoundingRight(player))) {
+                const timeIncrease = -1;
+                game[GameProperties.TimeLeft] += timeIncrease * 1000;
+                createIndicator(
+                    `${timeIncrease}s`,
+                    `#f88`,
+                    deathGetPosition(player)[0],
+                    deathGetPosition(player)[1] + 30
+                );
+            }
+
+            if (deathIsHitting(player, deathGetBoundingLeft(enemy), deathGetBoundingRight(enemy))) {
+                if (--game[GameProperties.EnemyHealth] <= 0) {
+                    deathStartFade(enemy);
+                }
+            }
+        }
+
+        deathStep(enemy, deltaTime);
+    }
+
+    game[GameProperties.NextEnemy] -= deltaTime;
+    if (game[GameProperties.NextEnemy] < 0) {
+        const enemy = deathCreate(vectorCreate(0, FLOOR_LEVEL));
+        if (Math.random() < 0.5) {
+            deathWalk(enemy, deltaTime, true);
+        }
+        game[GameProperties.Enemy] = enemy;
+        game[GameProperties.NextEnemy] = Infinity;
+    }
+};
+
 export const gameStep = (game: Game, deltaTime: number) => {
     if (!gameIsOver(game)) {
         if (keyboard.ArrowLeft || keyboard.ArrowRight) {
@@ -211,6 +297,7 @@ export const gameStep = (game: Game, deltaTime: number) => {
     gamePeopleStep(game, deltaTime);
     gameHourglasssStep(game, deltaTime);
     gameDogStep(game, deltaTime);
+    gameEnemyStep(game, deltaTime);
 };
 
 export const gameRender = (game: Game, program: Program) => {
@@ -227,6 +314,9 @@ export const gameRender = (game: Game, program: Program) => {
         dogDraw(dog, program);
     }
 
+    if (game[GameProperties.Enemy]) {
+        deathDraw(game[GameProperties.Enemy], program);
+    }
     deathDraw(game[GameProperties.Death], program);
     // renderDebuggingRects(program);
 };

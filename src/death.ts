@@ -246,6 +246,8 @@ export const deathStartFade = (death: Death) => {
     animationStart(death[DeathProperties.DeadAnimation]);
 };
 
+export const deathIsFading = (death: Death) => death[DeathProperties.Fading];
+
 export const deathStep = (death: Death, deltaTime: number) => {
     const opacityDirection = death[DeathProperties.Fading] ? -0.5 : 1;
     death[DeathProperties.Opacity] = Math.max(
@@ -307,3 +309,8 @@ export const deathCollidesWithHourglass = (death: Death, hourglass: Hourglass) =
 };
 
 export const deathGetPosition = (death: Death) => death[DeathProperties.Position];
+
+export const deathIsFacingLeft = (death: Death) => death[DeathProperties.FacingLeft];
+
+export const deathGetBoundingLeft = (death: Death) => death[DeathProperties.Position][0] - DEATH_WIDTH / 2;
+export const deathGetBoundingRight = (death: Death) => death[DeathProperties.Position][0] + DEATH_WIDTH / 2;

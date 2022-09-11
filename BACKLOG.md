@@ -1,5 +1,7 @@
 ## Next Steps
 
+-   Spawn enemy AI-controlled death
+
 ## Feature ideas
 
 -   add more people types (different clothes, women, etc)
