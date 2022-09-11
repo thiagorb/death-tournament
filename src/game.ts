@@ -34,6 +34,7 @@ import { Hourglass, hourglassCreate, hourglassDraw, hourglassGetPosition, hourgl
 import { keyboardInitialize } from './keyboard';
 import { menuStart } from './menu';
 import { Models, models, objectCreate } from './model';
+import { nearClaimWeapon, nearGetSignedIn } from './near';
 import {
     Person,
     personCreate,
@@ -88,12 +89,13 @@ export const enum GameProperties {
     TimeLeft,
     TimePassed,
     Combo,
+    Opponent,
 }
 
 export type Game = ReturnType<typeof gameCreate>;
 
-export const gameCreate = () => ({
-    [GameProperties.Death]: deathCreate(vectorCreate(0, FLOOR_LEVEL), objectCreate(models[Models.Scythe])),
+export const gameCreate = (weaponType: number) => ({
+    [GameProperties.Death]: deathCreate(vectorCreate(0, FLOOR_LEVEL), gameCreateWeaponByType(weaponType)),
     [GameProperties.People]: new Set<Person>(),
     [GameProperties.Hourglasses]: new Set<Hourglass>(),
     [GameProperties.Dogs]: new Set<Dog>(),
@@ -103,11 +105,13 @@ export const gameCreate = () => ({
     [GameProperties.NextPerson]: 1000,
     [GameProperties.NextHourglass]: 3000,
     [GameProperties.NextDog]: 5000,
-    [GameProperties.NextEnemy]: 1000,
+    // [GameProperties.NextEnemy]: (15 + 30 * Math.random()) * 1000,
+    [GameProperties.NextEnemy]: 1 * Math.random() * 1000,
     [GameProperties.TimeLeft]: INITIAL_TIME * 1000,
     // [GameProperties.TimePassed]: 3600000,
     [GameProperties.TimePassed]: 0,
     [GameProperties.Combo]: 0,
+    [GameProperties.Opponent]: null as { weaponType: number; playerId: string },
 });
 
 export const gamePeopleStep = (game: Game, deltaTime: number) => {
@@ -265,6 +269,7 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
             if (deathIsHitting(player, deathGetBoundingLeft(enemy), deathGetBoundingRight(enemy))) {
                 if (--game[GameProperties.EnemyHealth] <= 0) {
                     deathStartFade(enemy);
+                    claimWeapon();
                 }
             }
         }
@@ -274,13 +279,31 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
 
     game[GameProperties.NextEnemy] -= deltaTime;
     if (game[GameProperties.NextEnemy] < 0) {
-        const enemy = deathCreate(vectorCreate(0, FLOOR_LEVEL), objectCreate(models[Models.ScytheDouble]));
+        const enemy = deathCreate(
+            vectorCreate(0, FLOOR_LEVEL),
+            gameCreateWeaponByType(game[GameProperties.Opponent].weaponType)
+        );
         if (Math.random() < 0.5) {
             deathWalk(enemy, deltaTime, true);
         }
         game[GameProperties.Enemy] = enemy;
         game[GameProperties.NextEnemy] = Infinity;
     }
+};
+
+const claimWeapon = async () => {
+    const near = await nearGetSignedIn();
+    if (near) {
+        nearClaimWeapon(near);
+    }
+};
+
+export const gameCreateWeaponByType = (type: number) => {
+    return objectCreate(getWeaponModel(type));
+};
+
+const getWeaponModel = (type: number) => {
+    return [models[Models.Scythe], models[Models.ScytheCurved], models[Models.ScytheDouble]][(type / 16) | 0];
 };
 
 export const gameStep = (game: Game, deltaTime: number) => {

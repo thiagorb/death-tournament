@@ -1,10 +1,22 @@
 import { deathCreate } from './death';
-import { Game, gameCreate, GameProperties, gameRender, gameStart, gameStep } from './game';
-import { Program } from './gl';
-import { vectorCreate } from './glm';
+import {
+    Game,
+    gameCreate,
+    gameCreateWeaponByType,
+    GameProperties,
+    gameRender,
+    gameStart,
+    gameStep,
+    VIRTUAL_WIDTH,
+} from './game';
+import { glSetGlobalOpacity, Program } from './gl';
+import { matrixRotate, matrixScale, matrixSetIdentity, matrixTranslate, vectorCreate } from './glm';
+import { Object, objectApplyTransforms, objectDraw, objectGetRootTransform } from './model';
 import {
     nearGetAccountId,
     nearGetNeworkId,
+    nearGetOpponent,
+    nearGetPlayerWeapons,
     nearGetSignedIn,
     NearInstance,
     nearRequestSignIn,
@@ -17,22 +29,43 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
 
     const menuScene: Game =
         lastGame ||
-        Object.assign(gameCreate(), {
+        Object.assign(gameCreate(0), {
             [GameProperties.Death]: deathCreate(vectorCreate(0, -10000), null),
             [GameProperties.NextEnemy]: Infinity,
         });
     let startingGame = false;
     let previousTime = 0;
     let speedMultiplier = 0.5;
+    let opponentPromise: ReturnType<typeof nearGetOpponent> = null;
+    let playerWeapons: Array<Object> = [];
+    let playerWeaponsType: Array<number> = [];
+    let selectedWeapon = 0;
+    let smoothSelectedWeapon = 0;
+
     const loop = (time: number) => {
         const deltaTime = (time - previousTime) * speedMultiplier;
         previousTime = time;
+        menuScene[GameProperties.TimePassed] += deltaTime;
 
         if (startingGame) {
             if (canStart(menuScene)) {
-                document.querySelectorAll('.game-ui').forEach(e => e.classList.remove('hidden'));
-                const game = gameCreate();
-                gameStart(game, program);
+                opponentPromise
+                    .catch(e => {
+                        console.error(e);
+                        return null;
+                    })
+                    .then(opponent => {
+                        document.querySelectorAll('.game-ui').forEach(e => e.classList.remove('hidden'));
+                        const game = gameCreate(
+                            selectedWeapon < playerWeapons.length ? playerWeaponsType[selectedWeapon] : 0
+                        );
+                        game[GameProperties.Opponent] = opponent || {
+                            weaponType: (Math.random() * 48) | 0,
+                            playerId: null,
+                        };
+                        gameStart(game, program);
+                    });
+
                 return;
             }
 
@@ -41,8 +74,40 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
 
         gameStep(menuScene, deltaTime);
         gameRender(menuScene, program);
+        renderWeapons(deltaTime);
 
         requestAnimationFrame(loop);
+    };
+
+    const renderWeapons = (deltaTime: number) => {
+        const delta = selectedWeapon - smoothSelectedWeapon;
+        const speed = 0.01 * deltaTime;
+        if (Math.abs(delta) > speed) {
+            smoothSelectedWeapon += speed * (delta > 0 ? 1 : -1);
+        } else {
+            smoothSelectedWeapon = selectedWeapon;
+        }
+
+        for (let i = -2; i < 3; i++) {
+            const index = selectedWeapon + i;
+            if (index < 0 || index >= playerWeapons.length) {
+                continue;
+            }
+
+            const weapon = playerWeapons[index];
+            const matrix = objectGetRootTransform(weapon);
+            const shift = delta + i;
+            const distance = 1 - Math.abs(shift / 3);
+            matrixSetIdentity(matrix);
+            matrixTranslate(matrix, VIRTUAL_WIDTH / 2 - 100, shift * 60);
+            matrixScale(matrix, distance, distance);
+            matrixTranslate(matrix, 0, shift * 60);
+            matrixRotate(matrix, menuScene[GameProperties.TimePassed] * 0.001);
+            objectApplyTransforms(weapon);
+            glSetGlobalOpacity(program, distance ** 2);
+            objectDraw(weapon, program);
+            glSetGlobalOpacity(program, 1);
+        }
     };
 
     requestAnimationFrame((time: number) => loop((previousTime = time)));
@@ -57,19 +122,22 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         element.style.display = show ? null : 'none';
     };
 
-    const toggleSignIn = (near: NearInstance) => {
+    const toggleSignIn = async (near: NearInstance) => {
         toggleElement(signInButton, near === null);
         toggleElement(signOutButton, near !== null);
         toggleElement(accountId, near !== null);
         if (near) {
             const accountId = document.querySelector('#account-id') as HTMLElement;
             accountId.innerText = `logged as ${nearGetAccountId(near)} (${nearGetNeworkId(near)})`;
+            playerWeaponsType = await nearGetPlayerWeapons(near);
+            playerWeapons = playerWeaponsType.map(type => gameCreateWeaponByType(type));
         }
     };
 
     nearGetSignedIn().then(toggleSignIn);
 
     const startGame = () => {
+        opponentPromise = nearGetSignedIn().then(async near => (near ? nearGetOpponent(near) : null));
         startingGame = true;
         menuScene[GameProperties.NextPerson] = Infinity;
         menuScene[GameProperties.NextDog] = Infinity;
@@ -80,6 +148,17 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         networkIdButton.removeEventListener('click', handleNetworkId);
         signOutButton.removeEventListener('click', signOut);
         document.body.removeEventListener('keypress', startGame);
+        document.body.removeEventListener('click', toggleWeapon);
+    };
+
+    const toggleWeapon = (e: MouseEvent) => {
+        console.log(e);
+        if ((e.target as HTMLElement).id !== 'menu-ui') {
+            return;
+        }
+
+        const increment = e.clientY > document.body.offsetHeight / 2 ? -1 : 1;
+        selectedWeapon = Math.max(0, Math.min(playerWeapons.length - 1, selectedWeapon + increment));
     };
 
     const handleSignIn = () => {
@@ -106,6 +185,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
             signInButton.addEventListener('click', handleSignIn);
             networkIdButton.addEventListener('click', handleNetworkId);
             signOutButton.addEventListener('click', signOut);
+            document.body.addEventListener('click', toggleWeapon);
 
             document.querySelectorAll('.game-ui').forEach(e => e.classList.add('hidden'));
             (document.querySelector('#menu-ui') as HTMLElement).classList.remove('hidden');

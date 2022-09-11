@@ -21,8 +21,12 @@ export type NearInstance = {
     };
     [NearInstanceProperties.Contract]: {
         is_registered(_: { playerId: string }): Promise<boolean>;
-        get_registered_players(): Promise<Set<string>>;
+        get_opponent(_: { playerId: string }): Promise<{ weaponType: number; playerId: string }>;
+        get_player_weapons(_: { playerId: string }): Promise<Array<number>>;
+        get_registered_players(): Promise<Object>;
+        get_weapons(): Promise<Object>;
         register_player(): Promise<void>;
+        claim_weapon(): Promise<void>;
     };
 };
 
@@ -40,20 +44,11 @@ const nearCreate = async (networkId: string): Promise<NearInstance> => {
 
     const walletConnection = new nearApi.WalletConnection(nearConnection, contractStorageKey);
 
-    let contract;
-    if (process.env.NODE_ENV !== 'production') {
-        contract = await new nearApi.Contract(walletConnection.account(), contractName, {
-            viewMethods: ['is_registered', 'get_registered_players'],
-            changeMethods: ['register_player'],
-            sender: walletConnection.getAccountId(),
-        });
-    } else {
-        contract = await new nearApi.Contract(walletConnection.account(), contractName, {
-            viewMethods: ['is_registered', 'get_registered_players'],
-            changeMethods: ['register_player'],
-            sender: walletConnection.getAccountId(),
-        });
-    }
+    const contract = ((window as any).contract = await new nearApi.Contract(walletConnection.account(), contractName, {
+        viewMethods: ['is_registered', 'get_opponent', 'get_player_weapons', 'get_registered_players', 'get_weapons'],
+        changeMethods: ['register_player', 'claim_weapon', 'reset'],
+        sender: walletConnection.getAccountId(),
+    }));
 
     return {
         [NearInstanceProperties.NetworkId]: networkId,
@@ -79,6 +74,18 @@ export const nearRequestSignIn = async (networkId: string) => {
     );
 };
 
+const registerIfNewPlayer = async (near: NearInstance) => {
+    if (!nearIsSignedIn(near)) {
+        return;
+    }
+
+    if (await near[NearInstanceProperties.Contract].is_registered({ playerId: nearGetAccountId(near) })) {
+        return;
+    }
+
+    await near[NearInstanceProperties.Contract].register_player();
+};
+
 export const nearGetSignedIn = (): Promise<NearInstance> => {
     if (!nearSignedIn) {
         nearSignedIn = (async () => {
@@ -88,14 +95,10 @@ export const nearGetSignedIn = (): Promise<NearInstance> => {
             }
 
             const near = await (networkId === 'testnet' ? getNearTest() : getNearMain());
+            registerIfNewPlayer(near);
 
-            if (nearIsSignedIn(near)) {
-                if (
-                    !(await near[NearInstanceProperties.Contract].is_registered({ playerId: nearGetAccountId(near) }))
-                ) {
-                    await near[NearInstanceProperties.Contract].register_player();
-                }
-            }
+            // console.log('players', await near[NearInstanceProperties.Contract].get_registered_players());
+            // console.log('weapons', await near[NearInstanceProperties.Contract].get_weapons());
 
             return nearIsSignedIn(near) ? near : null;
         })();
@@ -105,10 +108,21 @@ export const nearGetSignedIn = (): Promise<NearInstance> => {
 };
 
 export const nearSignOut = async () => {
-    (await getNearMain())[NearInstanceProperties.Connection].signOut();
-    (await getNearTest())[NearInstanceProperties.Connection].signOut();
+    (await nearGetSignedIn())[NearInstanceProperties.Connection].signOut();
     nearSignedIn = null;
     storageSetNetworkId(null);
 };
 
 export const nearGetNeworkId = (near: NearInstance) => near[NearInstanceProperties.NetworkId];
+
+export const nearGetOpponent = (near: NearInstance) => {
+    return near[NearInstanceProperties.Contract].get_opponent({ playerId: nearGetAccountId(near) });
+};
+
+export const nearClaimWeapon = (near: NearInstance) => {
+    return near[NearInstanceProperties.Contract].claim_weapon();
+};
+
+export const nearGetPlayerWeapons = (near: NearInstance) => {
+    return near[NearInstanceProperties.Contract].get_player_weapons({ playerId: nearGetAccountId(near) });
+};

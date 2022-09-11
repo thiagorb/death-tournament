@@ -24,9 +24,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="47.51615"
-     inkscape:cx="149.71752"
-     inkscape:cy="374.78836"
+     inkscape:zoom="2.099937"
+     inkscape:cx="211.91112"
+     inkscape:cy="285.96096"
      inkscape:window-width="1846"
      inkscape:window-height="1016"
      inkscape:window-x="74"
@@ -67,8 +67,8 @@
        style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
        d="M 50.362165,70.561548 69.262629,98.644997 47.481565,72.061793 50.362208,70.56157"
        id="weaponLeft"
-       inkscape:transform-center-x="-8.856344"
-       inkscape:transform-center-y="12.416531"
+       inkscape:transform-center-x="0.97327735"
+       inkscape:transform-center-y="-1.0302031"
        sodipodi:nodetypes="cccc">
       <desc
          id="desc18757-6-5">{
@@ -85,10 +85,10 @@
        inkscape:transform-center-y="-45.114293" />
     <path
        style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
-       d="M 28.512807,72.93196 49.208279,99.720116 25.736413,74.617262 28.512851,72.93198"
+       d="M 30.413003,72.341867 51.108475,99.130023 27.636609,74.027169 30.413047,72.341887"
        id="weaponRight"
-       inkscape:transform-center-x="-9.83508"
-       inkscape:transform-center-y="12.382701"
+       inkscape:transform-center-x="0.49547172"
+       inkscape:transform-center-y="0.024780501"
        sodipodi:nodetypes="cccc">
       <desc
          id="desc18757-6">{
