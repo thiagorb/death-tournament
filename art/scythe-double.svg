@@ -2,7 +2,7 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   sodipodi:docname="scythe.svg"
+   sodipodi:docname="scythe-double.svg"
    inkscape:version="1.2.1 (2ed6d7ae0b, 2022-08-22, custom)"
    id="svg10609"
    version="1.1"
@@ -24,9 +24,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="8.399748"
-     inkscape:cx="73.097431"
-     inkscape:cy="91.371789"
+     inkscape:zoom="2.099937"
+     inkscape:cx="174.76715"
+     inkscape:cy="182.62453"
      inkscape:window-width="1846"
      inkscape:window-height="1016"
      inkscape:window-x="74"
@@ -41,20 +41,32 @@
      id="layer1">
     <path
        style="fill:#663800;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
-       d="m 16.832617,15.719112 68.969402,51.915989 -2.57169,3.90869 L 14.197981,17.6184"
+       d="M 16.913126,19.576551 94.90501,61.210387 91.841576,63.867733 14.331208,21.81621"
        id="snath"
-       inkscape:transform-center-x="-14.343675"
-       inkscape:transform-center-y="11.343006"
+       inkscape:transform-center-x="-12.85849"
+       inkscape:transform-center-y="13.005042"
        sodipodi:nodetypes="cccc" />
     <path
        style="fill:#a7a7a7;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
-       d="m 78.560609,65.921441 -8.73252,11.59134 -18.94481,11.04922 14.8289,-1.56823 11.74819,-7.8008 6.10279,-9.64937"
-       id="blade"
+       d="M 94.90501,61.210387 83.522477,71.084055 54.595606,85.03223 72.704282,80.814998 87.457966,73.419611 97.80442,63.752773"
+       id="blade1"
        sodipodi:nodetypes="cccccc"
-       inkscape:transform-center-x="13.479786"
-       inkscape:transform-center-y="9.4291174">
+       inkscape:transform-center-x="14.677306"
+       inkscape:transform-center-y="7.4903049">
       <desc
          id="desc18759">{
+    &quot;connectTo&quot;: &quot;snath&quot;
+}</desc>
+    </path>
+    <path
+       style="fill:#a7a7a7;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
+       d="M 14.331208,21.81621 25.713741,11.94254 54.640611,-2.0056342 36.531936,2.211598 21.778252,9.6069852 11.431798,19.273824"
+       id="blade2"
+       sodipodi:nodetypes="cccccc"
+       inkscape:transform-center-x="-14.677305"
+       inkscape:transform-center-y="-7.4903025">
+      <desc
+         id="desc18759-7">{
     &quot;connectTo&quot;: &quot;snath&quot;
 }</desc>
     </path>

@@ -1,6 +1,5 @@
 ## Next Steps
 
--   Add different scythe models (curved, double, different colors)
 -   Create mock contract
 
 ## Feature ideas

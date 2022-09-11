@@ -3,6 +3,7 @@ import { Matrix3, matrixCopy, matrixCreate, matrixTranslateVector, Vec2, vectorC
 import * as deathModelData from '../art/death.svg';
 import * as scytheModelData from '../art/scythe.svg';
 import * as scytheCurvedModelData from '../art/scythe-curved.svg';
+import * as scytheDoubleModelData from '../art/scythe-double.svg';
 import * as dogModelData from '../art/dog.svg';
 import * as personModelData from '../art/person.svg';
 import * as hourglassModelData from '../art/hourglass.svg';
@@ -11,6 +12,7 @@ export const enum Models {
     Death,
     Scythe,
     ScytheCurved,
+    ScytheDouble,
     Dog,
     Person,
     Hourglass,
@@ -22,6 +24,7 @@ export const modelsInit = (program: Program) => {
         [Models.Death]: modelCreate(program, deathModelData.model),
         [Models.Scythe]: modelCreate(program, scytheModelData.model),
         [Models.ScytheCurved]: modelCreate(program, scytheCurvedModelData.model),
+        [Models.ScytheDouble]: modelCreate(program, scytheDoubleModelData.model),
         [Models.Dog]: modelCreate(program, dogModelData.model),
         [Models.Person]: modelCreate(program, personModelData.model),
         [Models.Hourglass]: modelCreate(program, hourglassModelData.model),

@@ -274,7 +274,7 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
 
     game[GameProperties.NextEnemy] -= deltaTime;
     if (game[GameProperties.NextEnemy] < 0) {
-        const enemy = deathCreate(vectorCreate(0, FLOOR_LEVEL), objectCreate(models[Models.ScytheCurved]));
+        const enemy = deathCreate(vectorCreate(0, FLOOR_LEVEL), objectCreate(models[Models.ScytheDouble]));
         if (Math.random() < 0.5) {
             deathWalk(enemy, deltaTime, true);
         }
