@@ -294,7 +294,7 @@ const getAttackLeft = (death: Death, progress: number) => {
 };
 
 export const deathIsHitting = (death: Death, boundingLeft: number, boundingRight: number) => {
-    if (!death[DeathProperties.Attacking]) {
+    if (!deathIsAttacking(death)) {
         return false;
     }
 
@@ -356,6 +356,10 @@ export const deathHit = (death: Death, power: number) => {
 export const deathGetHealth = (death: Death) => death[DeathProperties.Health];
 
 export const deathIncreaseHealth = (death: Death, amount: number) => {
+    if (deathIsDead(death)) {
+        return;
+    }
+
     death[DeathProperties.Health] += amount;
     if (deathIsDead(death)) {
         deathDie(death);
