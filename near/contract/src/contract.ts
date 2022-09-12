@@ -86,7 +86,7 @@ export class DeathTournament {
         );
 
         let selectedOption = Number(near.blockTimestamp() % BigInt(options));
-        if (selectedOption < this.weapons.length && this.weapons[selectedOption].ownerId === playerId) {
+        while (selectedOption < this.weapons.length && this.weapons[selectedOption].ownerId === playerId) {
             selectedOption++;
         }
 
