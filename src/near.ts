@@ -48,7 +48,10 @@ const nearCreate = async (networkId: string): Promise<NearInstance> => {
 
     const contract = ((window as any).contract = await new nearApi.Contract(walletConnection.account(), contractName, {
         viewMethods: ['is_registered', 'get_opponent', 'get_player_weapons', 'get_registered_players', 'get_weapons'],
-        changeMethods: ['register_player', 'claim_weapon', 'reset'],
+        changeMethods:
+            process.env.NODE_ENV !== 'production'
+                ? ['register_player', 'claim_weapon', 'reset']
+                : ['register_player', 'claim_weapon'],
         sender: walletConnection.getAccountId(),
     }));
 

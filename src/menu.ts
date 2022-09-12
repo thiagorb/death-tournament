@@ -14,6 +14,7 @@ import {
 import { getVirtualScreenWidth, glSetGlobalOpacity, Program } from './gl';
 import { matrixRotate, matrixScale, matrixSetIdentity, matrixTranslate, vectorCreate } from './glm';
 import { Object, objectApplyTransforms, objectDraw, objectGetRootTransform } from './model';
+import { monetizationIsEnabled } from './monetization';
 import {
     nearGetAccountId,
     nearGetNeworkId,
@@ -46,6 +47,13 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
     let opponentPromise: Promise<NearOpponent> = null;
     let playerWeapons: Array<Object> = [];
     let playerWeaponsType: Array<number> = [];
+    let monetizationEnabled = false;
+    monetizationIsEnabled.then(enabled => {
+        monetizationEnabled = enabled;
+        updatePlayerWeapons(playerWeaponsType);
+    });
+
+    const initialWeapons = () => (monetizationEnabled ? [0, 1] : [0, 1, 12]);
 
     const incrementSelectedWeapon = (increment: number) => {
         selectedWeapon = Math.max(0, Math.min(playerWeapons.length - 1, selectedWeapon + increment));
@@ -232,5 +240,3 @@ const opponentFromNearOpponent = (opponent: NearOpponent): Opponent => ({
     [OpponentProperties.WeaponType]: opponent?.weaponType || weaponGetRandomId(Math.random()),
     [OpponentProperties.Name]: formatPlayerName(opponent?.playerId || 'ENEMY'),
 });
-
-const initialWeapons = () => [0, 1];

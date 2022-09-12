@@ -31,16 +31,27 @@ const statsMap = (() => {
             stats.push([attack, defense]);
         }
     }
-    stats.sort((a, b) => {
-        if ((a[0] >= b[0] && a[0] >= b[1]) || (a[1] >= b[0] && a[1] >= b[1])) {
-            return 1;
+    stats.sort(([attackA, defenseA], [attackB, defenseB]) => {
+        const allValues = [attackA, defenseA, attackB, defenseB];
+        const min = Math.min(...allValues);
+        const max = Math.max(...allValues);
+        if (min === max) {
+            return 0;
         }
 
-        if ((b[0] >= a[0] && b[0] >= a[1]) || (b[1] >= a[0] && b[1] >= a[1])) {
-            return -1;
+        if ((attackA === max) !== (attackB === max)) {
+            return attackA === max ? 1 : -1;
         }
 
-        return 0;
+        if ((defenseA === max) !== (defenseB === max)) {
+            return defenseA === max ? 1 : -1;
+        }
+
+        if (attackA === max) {
+            return defenseA - defenseB;
+        }
+
+        return attackA - attackB;
     });
 
     return stats;
