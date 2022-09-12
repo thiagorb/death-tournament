@@ -109,8 +109,8 @@ export type Object = {
     };
 };
 
-export const modelCreate = (program: Program, data: ModelData): Model => {
-    const meshes = data[ModelDataProperty.Polygons].map(polygon => modelMeshFromPolygon(program, polygon));
+export const modelCreate = (program: Program, data: ModelData, loaded: boolean = true): Model => {
+    const meshes = data[ModelDataProperty.Polygons].map(polygon => modelMeshFromPolygon(program, polygon, loaded));
 
     const calculateLevel = (index: number) => {
         let level = 0;
@@ -199,15 +199,20 @@ export const objectDraw = (object: Object, program: Program) => {
     }
 };
 
-const modelMeshFromPolygon = (program: Program, polygon: Polygon): ModelMesh => {
+const modelMeshFromPolygon = (program: Program, polygon: Polygon, loaded: boolean): ModelMesh => {
+    const transformCoordinate = (c: number) => c / (loaded ? 10 : 1);
+    const transformColor = (c: number) => c / (loaded ? 99 : 1);
+
     return {
         [ModelMeshProperty.Mesh]: glMeshCreate(
             program,
-            polygon[PolygonProperty.Vertices],
+            polygon[PolygonProperty.Vertices].map(transformCoordinate),
             polygon[PolygonProperty.Indices],
-            polygon[PolygonProperty.Color]
+            polygon[PolygonProperty.Color].map(transformColor) as ColorRGB
         ),
-        [ModelMeshProperty.TransformOrigin]: vectorCreate(...(polygon[PolygonProperty.TransformOrigin] || [0, 0])),
+        [ModelMeshProperty.TransformOrigin]: vectorCreate(
+            ...(polygon[PolygonProperty.TransformOrigin].map(transformCoordinate) || [0, 0])
+        ),
     };
 };
 

@@ -114,7 +114,7 @@ export const backgroundInit = (program: Program) => {
         [ModelDataProperty.ParentMap]: [],
     };
 
-    background = objectCreate(modelCreate(program, data));
+    background = objectCreate(modelCreate(program, data, false));
 };
 
 const blendColor = (c1: ColorRGB, c2: ColorRGB | ColorRGBA, blend: number) =>

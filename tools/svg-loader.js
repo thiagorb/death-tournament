@@ -177,13 +177,13 @@ module.exports.default = function (source) {
         const relativeOrigin = translateVertexToOrigin(path.transformOrigin, parentOrigin);
 
         if (path.meta.placeholder) {
-            polygons.push([[], [], [], path.meta.connectTo ? relativeOrigin : [0, 0]]);
+            polygons.push([[], [], [], path.meta.connectTo ? relativeOrigin.map(transformCoordinate) : [0, 0]]);
         } else {
             polygons.push([
-                translateVerticesToOrigin(path.vertices, path.transformOrigin).flat(),
+                translateVerticesToOrigin(path.vertices, path.transformOrigin).flat().map(transformCoordinate),
                 earcut(path.vertices.flat()),
-                path.color,
-                path.meta.connectTo ? relativeOrigin : [0, 0],
+                path.color.map(transformColorComponent),
+                path.meta.connectTo ? relativeOrigin.map(transformCoordinate) : [0, 0],
             ]);
         }
         statements.push(`export const ${path.id}ComponentId = ${pathIdMap.get(path.id)};`);
@@ -191,22 +191,13 @@ module.exports.default = function (source) {
 
     const model = [polygons, parentIdMap];
 
-    statements.push(
-        `export const model = ${JSON.stringify(
-            model,
-            function (key, value) {
-                if (typeof value === 'number') {
-                    return parseFloat(value.toFixed(2));
-                }
-
-                return value;
-            },
-            4
-        )};`
-    );
+    statements.push(`export const model = ${JSON.stringify(model, 4)};`);
 
     return statements.join('\n\n');
 };
+
+const transformColorComponent = c => Math.round(c * 99);
+const transformCoordinate = c => Math.round(c * 10);
 
 const getNodes = nodes => {
     if (!nodes) {
