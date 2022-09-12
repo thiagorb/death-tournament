@@ -1,12 +1,11 @@
 import { NearBindgen, near, call, view } from 'near-sdk-js';
+import { weaponGetRandomId, weaponTotalTypes } from '../../../src/weapon';
 
 type Opponent = { type: number } | { weaponId: number };
 type Weapon = {
     type: number;
     ownerId: string;
 };
-
-const weaponTotalTypes = 60;
 
 @NearBindgen({})
 export class DeathTournament {
@@ -96,7 +95,8 @@ export class DeathTournament {
                 weaponId: selectedOption,
             };
         } else {
-            return { type: Number(near.blockTimestamp() % BigInt(weaponTotalTypes)) };
+            const precision = 1_000_000;
+            return { type: weaponGetRandomId(Number(near.blockTimestamp() % BigInt(precision)) / precision) };
         }
     }
 }

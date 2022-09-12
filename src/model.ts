@@ -218,3 +218,5 @@ export const objectGetRootTransform = (object: Object) => object[ObjectProperty.
 
 export const objectGetComponentTransformOrder = (object: Object) =>
     object[ObjectProperty.Model][ModelProperty.TransformOrder];
+
+export const modelGetWeapons = () => [models[Models.Scythe], models[Models.ScytheCurved], models[Models.ScytheDouble]];

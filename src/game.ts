@@ -1,3 +1,6 @@
+import * as scytheCurvedModelData from '../art/scythe-curved.svg';
+import * as scytheDoubleModelData from '../art/scythe-double.svg';
+import * as scytheModelData from '../art/scythe.svg';
 import { backgroundDraw, BACKGROUND_COLOR } from './background';
 import {
     Death,
@@ -31,11 +34,12 @@ import {
     dogStep,
     dogTurnLeft,
 } from './dog';
-import { getVirtualScreenHeight, getVirtualScreenWidth, glClear, glDrawRect, Program } from './gl';
+import { ColorRGB, getVirtualScreenHeight, getVirtualScreenWidth, glClear, glDrawRect, Program } from './gl';
 import { Vec2, vectorCreate, vectorMultiply } from './glm';
 import { Hourglass, hourglassCreate, hourglassDraw, hourglassGetPosition, hourglassStep } from './hourglass';
 import { keyboardInitialize } from './keyboard';
 import { menuStart } from './menu';
+import { modelGetWeapons, Object, objectCreate } from './model';
 import { nearClaimWeapon, nearGetSignedIn } from './near';
 import {
     Person,
@@ -59,7 +63,7 @@ import {
     uiUpdaterCreate,
     uiUpdaterSet,
 } from './ui';
-import { weaponCreate } from './weapon';
+import { weaponGetAttack, weaponGetDefense, weaponGetModelType } from './weapon';
 
 export const FLOOR_LEVEL = -90;
 export const VIRTUAL_WIDTH = 800;
@@ -426,3 +430,51 @@ export const gameStart = (game: Game, program: Program) => {
 };
 
 export const gameIsOver = (game: Game) => deathIsDead(game[GameProperties.Death]);
+
+const enum WeaponProperties {
+    Object,
+    Id,
+}
+
+export type Weapon = {
+    [WeaponProperties.Object]: Object;
+    [WeaponProperties.Id]: number;
+};
+
+const weaponColors: Array<ColorRGB> = [
+    [0.4, 0.22, 0], // wood
+    [0.75, 0.54, 0.44], // bronze
+    [0.81, 0.82, 0.84], // steel
+    [0.83, 0.69, 0.22], // gold
+    [1, 0, 0], // red
+];
+
+export const weaponCreate = (weaponId: number): Weapon => {
+    const model = modelGetWeapons()[weaponId];
+    const modelType = weaponGetModelType(weaponId);
+    const bladeColor = weaponColors[1 + weaponGetAttack(weaponId)];
+    const snathColor = weaponColors[weaponGetDefense(weaponId)];
+    const colorOverrides = [
+        {
+            [scytheModelData.bladeComponentId]: bladeColor,
+            [scytheModelData.snathComponentId]: snathColor,
+        },
+        {
+            [scytheCurvedModelData.bladeComponentId]: bladeColor,
+            [scytheCurvedModelData.snathComponentId]: snathColor,
+        },
+        {
+            [scytheDoubleModelData.blade1ComponentId]: bladeColor,
+            [scytheDoubleModelData.blade2ComponentId]: bladeColor,
+            [scytheDoubleModelData.snathComponentId]: snathColor,
+        },
+    ][modelType];
+
+    return {
+        [WeaponProperties.Object]: objectCreate(model, {}, colorOverrides),
+        [WeaponProperties.Id]: weaponId,
+    };
+};
+
+export const weaponGetObject = (weapon: Weapon) => weapon[WeaponProperties.Object];
+export const weaponGetId = (weapon: Weapon) => weapon[WeaponProperties.Id];

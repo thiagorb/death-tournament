@@ -19,12 +19,12 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
-import { GAME_WIDTH } from './game';
+import { GAME_WIDTH, Weapon, weaponGetId, weaponGetObject } from './game';
 import { glSetGlobalOpacity, Program } from './gl';
 import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
 import { Hourglass, hourglassGetPosition } from './hourglass';
 import { Models, models, objectCreate } from './model';
-import { Weapon, weaponGetAttack, weaponGetDefense, weaponGetGap, weaponGetObject, weaponGetRange } from './weapon';
+import { weaponGetAttack, weaponGetDefense, weaponGetGap, weaponGetRange } from './weapon';
 
 const enum DeathProperties {
     Position,
@@ -274,8 +274,8 @@ export const deathStep = (death: Death, deltaTime: number) => {
 
 const ATTACK_WIDTH = 1;
 const getAttackLeft = (death: Death) => {
-    const gap = weaponGetGap(death[DeathProperties.Weapon]);
-    const range = weaponGetRange(death[DeathProperties.Weapon]);
+    const gap = weaponGetGap(weaponGetId(death[DeathProperties.Weapon]));
+    const range = weaponGetRange(weaponGetId(death[DeathProperties.Weapon]));
     const direction = death[DeathProperties.FacingLeft] ? -1 : 1;
     const attackOrigin = death[DeathProperties.Position][0] + direction * gap;
     return attackOrigin + death[DeathProperties.AttackingTime] * direction * range - ATTACK_WIDTH;
@@ -313,8 +313,8 @@ export const deathIsFacingLeft = (death: Death) => death[DeathProperties.FacingL
 export const deathGetBoundingLeft = (death: Death) => death[DeathProperties.Position][0] - DEATH_WIDTH / 2;
 export const deathGetBoundingRight = (death: Death) => death[DeathProperties.Position][0] + DEATH_WIDTH / 2;
 
-export const deathGetAttackPower = (death: Death) => weaponGetAttack(death[DeathProperties.Weapon]);
-export const deathGetDefense = (death: Death) => 10 + weaponGetDefense(death[DeathProperties.Weapon]);
+export const deathGetAttackPower = (death: Death) => weaponGetAttack(weaponGetId(death[DeathProperties.Weapon]));
+export const deathGetDefense = (death: Death) => 10 + weaponGetDefense(weaponGetId(death[DeathProperties.Weapon]));
 export const deathHit = (death: Death, power: number) => {
     debugger;
     death[DeathProperties.Health] -= power / deathGetDefense(death);

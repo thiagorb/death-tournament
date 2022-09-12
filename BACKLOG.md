@@ -1,13 +1,14 @@
 ## Next Steps
 
--   Make probability of scythe inversely proportional to how good it is
 -   Prevent selecting player as its own opponent
 -   prevent hitting the same object more than twice per attack
+-   save collected weapons in local storage when not logged in to near
 
 ## Feature ideas
 
 -   drop weapon and animate
 -   add more people types (different clothes, women, etc)
+-   add goodish weapon for coil subscribers
 
 ## Performance improvement ideas
 

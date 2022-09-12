@@ -8,7 +8,8 @@ import {
     gameStep,
     Opponent,
     OpponentProperties,
-    VIRTUAL_WIDTH,
+    weaponCreate,
+    weaponGetObject,
 } from './game';
 import { getVirtualScreenWidth, glSetGlobalOpacity, Program } from './gl';
 import { matrixRotate, matrixScale, matrixSetIdentity, matrixTranslate, vectorCreate } from './glm';
@@ -26,7 +27,7 @@ import {
 } from './near';
 import { storageGetHighscore } from './storage';
 import { uiSetPlayerName, uiToggleOpponentHealth } from './ui';
-import { weaponCreate, weaponGetObject, weaponTotalTypes } from './weapon';
+import { weaponGetRandomId } from './weapon';
 
 export const menuStart = (program: Program, lastGame: Game = null) => {
     (document.querySelector('#high-score') as HTMLElement).innerText = storageGetHighscore() as any as string;
@@ -221,7 +222,7 @@ const formatPlayerName = (name: string) => {
 };
 
 const opponentFromNearOpponent = (opponent: NearOpponent): Opponent => ({
-    [OpponentProperties.WeaponType]: opponent?.weaponType || (Math.random() * weaponTotalTypes()) | 0,
+    [OpponentProperties.WeaponType]: opponent?.weaponType || weaponGetRandomId(Math.random()),
     [OpponentProperties.Name]: formatPlayerName(opponent?.playerId || 'ENEMY'),
 });
 
