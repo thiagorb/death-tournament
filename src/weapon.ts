@@ -12,15 +12,15 @@ const enum WeaponType {
 const types = {
     [WeaponType.Basic]: {
         [WeaponTypeStatsProperty.Gap]: 20,
-        [WeaponTypeStatsProperty.Range]: 1.3,
+        [WeaponTypeStatsProperty.Range]: 78,
     },
     [WeaponType.Curved]: {
         [WeaponTypeStatsProperty.Gap]: 0,
-        [WeaponTypeStatsProperty.Range]: 1.1,
+        [WeaponTypeStatsProperty.Range]: 66,
     },
     [WeaponType.Double]: {
         [WeaponTypeStatsProperty.Gap]: -5,
-        [WeaponTypeStatsProperty.Range]: 1.5,
+        [WeaponTypeStatsProperty.Range]: 90,
     },
 };
 
@@ -55,9 +55,5 @@ export const weaponGetDefense = (weaponId: number) => statsMap[weaponGetStatsId(
 export const weaponGetType = (weaponId: number) => weaponId % typesCount;
 export const weaponGetRange = (weaponId: number) => types[weaponGetType(weaponId)][WeaponTypeStatsProperty.Range];
 export const weaponGetGap = (weaponId: number) => types[weaponGetType(weaponId)][WeaponTypeStatsProperty.Gap];
-export const weaponGetRandomId = (random: number): number => {
-    const value = (random ** 1.5 * weaponTotalTypes()) | 0;
-    console.log({ randomWeaponId: value });
-    return value;
-};
+export const weaponGetRandomId = (random: number): number => (random ** 1.5 * weaponTotalTypes()) | 0;
 export const weaponGetModelType = (weaponId: number) => weaponId % Object.values(types).length;

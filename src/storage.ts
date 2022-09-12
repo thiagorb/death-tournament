@@ -1,6 +1,7 @@
 const enum StorageDataProperties {
     Highscore,
     NetworkId,
+    WeaponIds,
 }
 
 export type StorageData = ReturnType<typeof storageLoad>;
@@ -11,6 +12,7 @@ const storageLoad = () => {
     let storageData = {
         [StorageDataProperties.Highscore]: 0,
         [StorageDataProperties.NetworkId]: null as string,
+        [StorageDataProperties.WeaponIds]: [] as Array<number>,
     };
 
     try {
@@ -24,11 +26,22 @@ const storageLoad = () => {
 };
 
 const validateData = (parsed: any) => {
+    if (process.env.NODE_ENV === 'production') {
+        return true;
+    }
+
     if (typeof parsed !== 'object') {
         return false;
     }
 
     if (typeof parsed[StorageDataProperties.Highscore] !== 'number') {
+        return false;
+    }
+
+    if (
+        !Array.isArray(parsed[StorageDataProperties.WeaponIds]) ||
+        parsed[StorageDataProperties.WeaponIds].some(weaponId => typeof weaponId !== 'number')
+    ) {
         return false;
     }
 
@@ -59,4 +72,12 @@ export const storageGetNetworkId = () => {
 
 export const storageSetNetworkId = (networkId: string) => {
     storageUpdate(s => (s[StorageDataProperties.NetworkId] = networkId));
+};
+
+export const storageGetWeaponIds = () => {
+    return storageLoad()[StorageDataProperties.WeaponIds];
+};
+
+export const storageSetWeaponIds = (weaponIds: Array<number>) => {
+    storageUpdate(s => (s[StorageDataProperties.WeaponIds] = weaponIds));
 };

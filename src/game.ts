@@ -13,6 +13,7 @@ import {
     deathGetBoundingRight,
     deathGetHealth,
     deathGetPosition,
+    deathGetWeaponId,
     deathHit,
     deathIncreaseHealth,
     deathIsDead,
@@ -55,7 +56,7 @@ import {
     personStep,
     personTurnLeft,
 } from './person';
-import { storageGetHighscore, storageSetHighscore } from './storage';
+import { storageGetHighscore, storageGetWeaponIds, storageSetHighscore, storageSetWeaponIds } from './storage';
 import {
     uiOpponentUpdater,
     uiPlayerHealthUpdater,
@@ -64,7 +65,7 @@ import {
     uiUpdaterCreate,
     uiUpdaterSet,
 } from './ui';
-import { weaponGetAttack, weaponGetDefense, weaponGetModelType } from './weapon';
+import { weaponGetAttack, weaponGetDefense, weaponGetGap, weaponGetModelType, weaponGetRange } from './weapon';
 
 export const FLOOR_LEVEL = -90;
 export const VIRTUAL_WIDTH = 800;
@@ -245,14 +246,18 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
     const player = game[GameProperties.Death];
     const enemy = game[GameProperties.Enemy];
     if (enemy) {
+        deathStep(enemy, deltaTime);
+
         if (!gameIsOver(game) && !deathIsDead(enemy)) {
             const playerX = deathGetPosition(player)[0];
             const playerDeltaX = playerX - deathGetPosition(enemy)[0];
             let desiredX;
+            const weaponId = deathGetWeaponId(enemy);
+            const desiredDistance = weaponGetGap(weaponId) + weaponGetRange(weaponId);
             if (Math.abs(playerX) > GAME_WIDTH / 2 - 100) {
-                desiredX = playerX + 80 * (playerX > 0 ? -1 : 1);
+                desiredX = playerX + desiredDistance * (playerX > 0 ? -1 : 1);
             } else {
-                desiredX = playerX + 80 * (playerDeltaX > 0 ? -1 : 1);
+                desiredX = playerX + desiredDistance * (playerDeltaX > 0 ? -1 : 1);
             }
 
             const deltaX = desiredX - deathGetPosition(enemy)[0];
@@ -299,12 +304,10 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
                 uiUpdaterSet(uiOpponentUpdater, deathGetHealth(enemy));
                 if (deathIsDead(enemy)) {
                     uiToggleOpponentHealth(false);
-                    claimWeapon();
+                    claimWeapon(deathGetWeaponId(enemy));
                 }
             }
         }
-
-        deathStep(enemy, deltaTime);
     }
 
     game[GameProperties.NextEnemy] -= deltaTime;
@@ -323,10 +326,12 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
     }
 };
 
-const claimWeapon = async () => {
+const claimWeapon = async (weaponId: number) => {
     const near = await nearGetSignedIn();
     if (near) {
         nearClaimWeapon(near);
+    } else {
+        storageSetWeaponIds([...new Set([...storageGetWeaponIds(), weaponId])]);
     }
 };
 

@@ -25,10 +25,12 @@ import {
     nearRequestSignIn,
     nearSignOut,
 } from './near';
-import { storageGetHighscore } from './storage';
+import { storageGetHighscore, storageGetWeaponIds } from './storage';
 import { uiSetPlayerName, uiToggleOpponentHealth } from './ui';
 import { weaponGetRandomId } from './weapon';
 
+let selectedWeapon = 0;
+let smoothSelectedWeapon = -3;
 export const menuStart = (program: Program, lastGame: Game = null) => {
     (document.querySelector('#high-score') as HTMLElement).innerText = storageGetHighscore() as any as string;
 
@@ -44,14 +46,16 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
     let opponentPromise: Promise<NearOpponent> = null;
     let playerWeapons: Array<Object> = [];
     let playerWeaponsType: Array<number> = [];
-    let selectedWeapon = 0;
-    let smoothSelectedWeapon = -1000;
+
+    const incrementSelectedWeapon = (increment: number) => {
+        selectedWeapon = Math.max(0, Math.min(playerWeapons.length - 1, selectedWeapon + increment));
+    };
 
     const updatePlayerWeapons = (newWeaponsType: Array<number>) => {
         playerWeaponsType = [...new Set([...initialWeapons(), ...newWeaponsType])];
         playerWeaponsType.sort((a, b) => a - b).reverse();
         playerWeapons = playerWeaponsType.map(weaponCreate).map(weaponGetObject);
-        selectedWeapon = 0;
+        incrementSelectedWeapon(0);
     };
 
     const loop = (time: number) => {
@@ -63,7 +67,9 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
             if (canStart(menuScene)) {
                 opponentPromise
                     .catch(e => {
-                        console.error(e);
+                        if (process.env.NODE_ENV !== 'production') {
+                            console.error(e);
+                        }
                         return null;
                     })
                     .then((opponent: NearOpponent) => {
@@ -90,21 +96,22 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
     const renderWeapons = (deltaTime: number) => {
         const delta = selectedWeapon - smoothSelectedWeapon;
         const speed = 0.01 * deltaTime;
+        const dir = startingGame || delta > 0 ? 1 : -1;
         if (Math.abs(delta) > speed || startingGame) {
-            smoothSelectedWeapon += speed * (startingGame || delta > 0 ? 1 : -1);
+            smoothSelectedWeapon += speed * dir;
         } else {
             smoothSelectedWeapon = selectedWeapon;
         }
 
         for (let i = -2; i < 3; i++) {
-            const index = selectedWeapon + i;
+            const index = dir > 0 ? Math.ceil(smoothSelectedWeapon + i) : Math.floor(smoothSelectedWeapon + i);
             if (index < 0 || index >= playerWeapons.length) {
                 continue;
             }
 
             const weapon = playerWeapons[index];
             const matrix = objectGetRootTransform(weapon);
-            const shift = delta + i;
+            const shift = index - smoothSelectedWeapon;
             const distance = 1 - Math.abs(shift / 3);
             matrixSetIdentity(matrix);
             matrixTranslate(matrix, getVirtualScreenWidth() / 2 - 150, shift * 60);
@@ -140,7 +147,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
             accountId.innerText = `logged as ${nearGetAccountId(near)} (${nearGetNeworkId(near)})`;
             updatePlayerWeapons(await nearGetPlayerWeapons(near));
         } else {
-            updatePlayerWeapons([]);
+            updatePlayerWeapons(storageGetWeaponIds());
         }
     };
 
@@ -167,7 +174,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         }
 
         const increment = e.clientY > document.body.offsetHeight / 2 ? -1 : 1;
-        selectedWeapon = Math.max(0, Math.min(playerWeapons.length - 1, selectedWeapon + increment));
+        incrementSelectedWeapon(increment);
     };
 
     const handleSignIn = () => {

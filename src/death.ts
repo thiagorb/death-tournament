@@ -9,7 +9,9 @@ import {
     AnimatedProperty,
     Animation,
     animationCreate,
+    AnimationElement,
     animationElementCreate,
+    animationElementGetValue,
     animationFrameCreate,
     animationFrameItemCreate,
     animationIsRunning,
@@ -20,8 +22,8 @@ import {
     boundElementCreate,
 } from './animation';
 import { GAME_WIDTH, Weapon, weaponGetId, weaponGetObject } from './game';
-import { glSetGlobalOpacity, Program } from './gl';
-import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
+import { glDrawRect, glSetGlobalOpacity, Program } from './gl';
+import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2, vectorAdd, vectorCreate } from './glm';
 import { Hourglass, hourglassGetPosition } from './hourglass';
 import { Models, models, objectCreate } from './model';
 import { weaponGetAttack, weaponGetDefense, weaponGetGap, weaponGetRange } from './weapon';
@@ -37,11 +39,11 @@ const enum DeathProperties {
     DeadAnimation,
     FacingLeft,
     Attacking,
-    AttackingTime,
     HitSet,
     Opacity,
     Weapon,
     Health,
+    AttackingArm,
 }
 
 export type Death = {
@@ -55,13 +57,15 @@ export type Death = {
     [DeathProperties.DeadAnimation]: Animation;
     [DeathProperties.FacingLeft]: boolean;
     [DeathProperties.Attacking]: boolean;
-    [DeathProperties.AttackingTime]: number;
     [DeathProperties.HitSet]: WeakSet<object>;
     [DeathProperties.Opacity]: number;
     [DeathProperties.Weapon]: Weapon;
     [DeathProperties.Health]: number;
+    [DeathProperties.AttackingArm]: AnimationElement;
 };
 
+const ATTACK_START = -3;
+const ATTACK_END = -0.7;
 export const deathCreate = (position: Vec2, weapon: Weapon): Death => {
     const REST_LEFT_1 = 0;
     const REST_LEFT_2 = -1.5;
@@ -138,11 +142,11 @@ export const deathCreate = (position: Vec2, weapon: Weapon): Death => {
         [DeathProperties.DeadAnimation]: null,
         [DeathProperties.FacingLeft]: false,
         [DeathProperties.Attacking]: false,
-        [DeathProperties.AttackingTime]: 0,
         [DeathProperties.HitSet]: null,
         [DeathProperties.Opacity]: 0,
         [DeathProperties.Weapon]: weapon,
         [DeathProperties.Health]: 1,
+        [DeathProperties.AttackingArm]: leftArm1,
     };
 
     const attackPrepareSpeed = 0.02;
@@ -150,19 +154,18 @@ export const deathCreate = (position: Vec2, weapon: Weapon): Death => {
     death[DeathProperties.AttackAnimation] = animationCreate([
         animationFrameCreate(
             [
-                animationFrameItemCreate(leftArm1, -3, attackPrepareSpeed),
+                animationFrameItemCreate(leftArm1, ATTACK_START, attackPrepareSpeed),
                 animationFrameItemCreate(leftArm2, -2, attackPrepareSpeed),
             ],
             () => {
                 death[DeathProperties.Attacking] = true;
-                death[DeathProperties.AttackingTime] = 0;
                 death[DeathProperties.HitSet] = new WeakSet();
             }
         ),
-        animationFrameCreate(
-            [animationFrameItemCreate(leftArm1, -0.7, attackSpeed), animationFrameItemCreate(leftArm2, 0, attackSpeed)],
-            () => (death[DeathProperties.Attacking] = false)
-        ),
+        animationFrameCreate([
+            animationFrameItemCreate(leftArm1, ATTACK_END, attackSpeed),
+            animationFrameItemCreate(leftArm2, 0, attackSpeed),
+        ]),
         animationFrameCreate(restPositionLeftArm),
     ]);
 
@@ -186,36 +189,33 @@ export const deathCreate = (position: Vec2, weapon: Weapon): Death => {
 export const deathDraw = (death: Death, program: Program) => {
     glSetGlobalOpacity(program, death[DeathProperties.Opacity]);
 
+    const animatable = death[DeathProperties.FacingLeft]
+        ? death[DeathProperties.AnimatableLeft]
+        : death[DeathProperties.AnimatableRight];
+    const matrix = animatableGetRootTransform(animatable);
+    matrixSetIdentity(matrix);
+    matrixTranslateVector(matrix, death[DeathProperties.Position]);
     if (death[DeathProperties.FacingLeft]) {
-        const matrix = animatableGetRootTransform(death[DeathProperties.AnimatableLeft]);
-        matrixSetIdentity(matrix);
-        matrixTranslateVector(matrix, death[DeathProperties.Position]);
         matrixScale(matrix, -1, 1);
-        animatableTransform(death[DeathProperties.AnimatableLeft]);
-        animatableDraw(death[DeathProperties.AnimatableLeft], program);
-    } else {
-        const matrix = animatableGetRootTransform(death[DeathProperties.AnimatableRight]);
-        matrixSetIdentity(matrix);
-        matrixTranslateVector(matrix, death[DeathProperties.Position]);
-        animatableTransform(death[DeathProperties.AnimatableRight]);
-        animatableDraw(death[DeathProperties.AnimatableRight], program);
     }
+    animatableTransform(animatable);
+    animatableDraw(animatable, program);
 
     glSetGlobalOpacity(program, 1);
 
-    // glDrawRect(program, vectorCreate(getAttackLeft(death), 0), vectorCreate(ATTACK_WIDTH, 100));
-    //updateHtmlBb(death);
-};
+    if (false && process.env.NODE_ENV !== 'production') {
+        const progress = deathIsAttacking(death) ? getAttackProgress(death) : 1;
+        if (death[DeathProperties.Weapon]) {
+            glDrawRect(program, vectorCreate(getAttackLeft(death, progress), 0), vectorCreate(ATTACK_WIDTH, 100));
+        }
 
-/*
-const updateHtmlBb = (death: Death) => {
-    const bb = document.querySelector('#death-bb') as HTMLElement;
-    bb.style.width = `${DEATH_WIDTH}px`;
-    bb.style.height = `${DEATH_HEIGHT}px`;
-    bb.style.left = `calc(50% + ${death[DeathProperties.Position][0] - DEATH_WIDTH / 2}px)`;
-    bb.style.top = `calc(50% - ${death[DeathProperties.Position][1] + DEATH_HEIGHT}px)`;
+        glDrawRect(
+            program,
+            vectorAdd(vectorCreate(-DEATH_WIDTH / 2, 0), death[DeathProperties.Position]),
+            vectorCreate(DEATH_WIDTH, DEATH_HEIGHT)
+        );
+    }
 };
-*/
 
 const ATTACK_COOLDOWN_TIME = 100;
 
@@ -251,6 +251,10 @@ export const deathDie = (death: Death) => {
 export const deathIsDead = (death: Death) => death[DeathProperties.Health] <= 0;
 
 export const deathStep = (death: Death, deltaTime: number) => {
+    if (deathIsAttacking(death) && getAttackProgress(death) === 1) {
+        death[DeathProperties.Attacking] = false;
+    }
+
     const opacityDirection = deathIsDead(death) ? -0.5 : 1;
     death[DeathProperties.Opacity] = Math.max(
         0,
@@ -260,9 +264,6 @@ export const deathStep = (death: Death, deltaTime: number) => {
     animatableBeginStep(death[DeathProperties.AnimatableLeft]);
 
     death[DeathProperties.AttackCooldown] = Math.max(0, death[DeathProperties.AttackCooldown] - deltaTime);
-    if (death[DeathProperties.Attacking]) {
-        death[DeathProperties.AttackingTime] += deltaTime;
-    }
 
     animationStep(death[DeathProperties.DeadAnimation], deltaTime);
     if (animationStep(death[DeathProperties.AttackAnimation], deltaTime)) {
@@ -279,12 +280,17 @@ export const deathStep = (death: Death, deltaTime: number) => {
 };
 
 const ATTACK_WIDTH = 1;
-const getAttackLeft = (death: Death) => {
+const getAttackProgress = (death: Death) => {
+    const arm = death[DeathProperties.AttackingArm];
+
+    return (animationElementGetValue(arm) - ATTACK_START) / (ATTACK_END - ATTACK_START);
+};
+const getAttackLeft = (death: Death, progress: number) => {
     const gap = weaponGetGap(weaponGetId(death[DeathProperties.Weapon]));
     const range = weaponGetRange(weaponGetId(death[DeathProperties.Weapon]));
     const direction = death[DeathProperties.FacingLeft] ? -1 : 1;
     const attackOrigin = death[DeathProperties.Position][0] + direction * gap;
-    return attackOrigin + death[DeathProperties.AttackingTime] * direction * range - ATTACK_WIDTH;
+    return attackOrigin + progress * direction * range - ATTACK_WIDTH / 2;
 };
 
 export const deathIsHitting = (death: Death, boundingLeft: number, boundingRight: number) => {
@@ -292,7 +298,8 @@ export const deathIsHitting = (death: Death, boundingLeft: number, boundingRight
         return false;
     }
 
-    const attackLeft = getAttackLeft(death);
+    const attackProgress = getAttackProgress(death);
+    const attackLeft = getAttackLeft(death, attackProgress);
     const attackRight = attackLeft + ATTACK_WIDTH;
     return attackLeft < boundingRight && attackRight >= boundingLeft;
 };
@@ -306,6 +313,7 @@ export const deathRegisterHit = (death: Death, target: object): boolean => {
     return true;
 };
 
+// This was measured
 const DEATH_WIDTH = 50;
 const DEATH_HEIGHT = 100;
 const HOURGLASS_WIDTH = 30;
@@ -325,6 +333,7 @@ export const deathGetPosition = (death: Death) => death[DeathProperties.Position
 
 export const deathIsFacingLeft = (death: Death) => death[DeathProperties.FacingLeft];
 
+const ATTACK_DURATION = 50;
 export const deathGetBoundingLeft = (death: Death) => death[DeathProperties.Position][0] - DEATH_WIDTH / 2;
 export const deathGetBoundingRight = (death: Death) => death[DeathProperties.Position][0] + DEATH_WIDTH / 2;
 
@@ -345,3 +354,5 @@ export const deathIncreaseHealth = (death: Death, amount: number) => {
         deathDie(death);
     }
 };
+
+export const deathGetWeaponId = (death: Death) => weaponGetId(death[DeathProperties.Weapon]);

@@ -1,7 +1,5 @@
 ## Next Steps
 
--   save collected weapons in local storage when not logged in to near
-
 ## Feature ideas
 
 -   drop weapon and animate

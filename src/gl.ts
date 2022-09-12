@@ -201,14 +201,17 @@ const corners = [
 ];
 export const glDrawRect = (program: Program, position: Vec2, size: Vec2) => {
     const vertices = [];
-    const colors = [];
     let i = corners.length;
     while (i--) {
         const v = corners[i];
         vertices.push([position[0] + size[0] * v[0], position[1] + size[1] * v[1]]);
-        colors.push([1, 1, 1]);
     }
 
+    glSetModelTransform(program, matrixCreate());
+    program[ProgramProperty.WebGL2Context].uniform3fv(
+        program[ProgramProperty.Uniforms][UniformsProperty.Color],
+        [1, 1, 1]
+    );
     glDrawLineStrip(program, vertices);
 };
 
