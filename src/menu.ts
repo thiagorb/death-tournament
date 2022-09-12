@@ -6,6 +6,7 @@ import {
     gameRender,
     gameStart,
     gameStep,
+    Opponent,
     OpponentProperties,
     VIRTUAL_WIDTH,
 } from './game';
@@ -45,6 +46,13 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
     let selectedWeapon = 0;
     let smoothSelectedWeapon = -1000;
 
+    const updatePlayerWeapons = (newWeaponsType: Array<number>) => {
+        playerWeaponsType = [...new Set([...initialWeapons(), ...newWeaponsType])];
+        playerWeaponsType.sort((a, b) => a - b).reverse();
+        playerWeapons = playerWeaponsType.map(type => weaponCreate(type));
+        selectedWeapon = 0;
+    };
+
     const loop = (time: number) => {
         const deltaTime = (time - previousTime) * speedMultiplier;
         previousTime = time;
@@ -58,22 +66,12 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
                         return null;
                     })
                     .then((opponent: NearOpponent) => {
-                        console.log(opponent);
                         document.querySelectorAll('.game-ui').forEach(e => e.classList.remove('hidden'));
                         const game = gameCreate(
                             selectedWeapon < playerWeapons.length ? playerWeaponsType[selectedWeapon] : 0
                         );
-                        game[GameProperties.Opponent] = opponent
-                            ? {
-                                  [OpponentProperties.WeaponType]: opponent.weaponType,
-                                  [OpponentProperties.Name]: formatPlayerName(opponent.playerId),
-                                  [OpponentProperties.Health]: 1,
-                              }
-                            : {
-                                  [OpponentProperties.WeaponType]: (Math.random() * weaponTotalTypes()) | 0,
-                                  [OpponentProperties.Name]: 'ENEMY',
-                                  [OpponentProperties.Health]: 1,
-                              };
+
+                        game[GameProperties.Opponent] = opponentFromNearOpponent(opponent);
                         gameStart(game, program);
                     });
 
@@ -141,9 +139,9 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         if (near) {
             const accountId = document.querySelector('#account-id') as HTMLElement;
             accountId.innerText = `logged as ${nearGetAccountId(near)} (${nearGetNeworkId(near)})`;
-            playerWeaponsType = [...new Set(await nearGetPlayerWeapons(near))];
-            playerWeaponsType.sort((a, b) => a - b).reverse();
-            playerWeapons = playerWeaponsType.map(type => weaponCreate(type));
+            updatePlayerWeapons(await nearGetPlayerWeapons(near));
+        } else {
+            updatePlayerWeapons([]);
         }
     };
 
@@ -216,4 +214,18 @@ const canStart = (menuScene: Game) => {
     );
 };
 
-const formatPlayerName = (name: string) => name.split('.').slice(0, -1).join('.');
+const formatPlayerName = (name: string) => {
+    const parts = name.split('.');
+    if (parts.length > 1) {
+        parts.pop();
+    }
+    return parts.join('.');
+};
+
+const opponentFromNearOpponent = (opponent: NearOpponent): Opponent => ({
+    [OpponentProperties.WeaponType]: opponent?.weaponType || (Math.random() * weaponTotalTypes()) | 0,
+    [OpponentProperties.Name]: formatPlayerName(opponent?.playerId || 'ENEMY'),
+    [OpponentProperties.Health]: 1,
+});
+
+const initialWeapons = () => [1, 2];
