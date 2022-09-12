@@ -23,6 +23,7 @@ import {
     nearSignOut,
 } from './near';
 import { storageGetHighscore } from './storage';
+import { toggleOpponentHealth } from './ui';
 
 export const menuStart = (program: Program, lastGame: Game = null) => {
     (document.querySelector('#high-score') as HTMLElement).innerText = storageGetHighscore() as any as string;
@@ -184,6 +185,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
 
     setTimeout(
         () => {
+            toggleOpponentHealth(false);
             startButton.addEventListener('click', startGame);
             document.body.addEventListener('keypress', startGame);
             signInButton.addEventListener('click', handleSignIn);

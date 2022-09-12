@@ -1,3 +1,6 @@
+import * as scytheCurvedModelData from '../art/scythe-curved.svg';
+import * as scytheDoubleModelData from '../art/scythe-double.svg';
+import * as scytheModelData from '../art/scythe.svg';
 import { backgroundDraw, BACKGROUND_COLOR } from './background';
 import {
     Death,
@@ -49,23 +52,22 @@ import {
     personTurnLeft,
 } from './person';
 import { storageGetHighscore, storageSetHighscore } from './storage';
-import { updaterCreate, updaterSet } from './ui';
-import * as scytheModelData from '../art/scythe.svg';
-import * as scytheCurvedModelData from '../art/scythe-curved.svg';
-import * as scytheDoubleModelData from '../art/scythe-double.svg';
+import {
+    opponentHealth,
+    opponentUpdater,
+    scoreUpdater,
+    timerUpdater,
+    toggleOpponentHealth,
+    updaterCreate,
+    updaterSet,
+} from './ui';
 
 export const FLOOR_LEVEL = -90;
 export const VIRTUAL_WIDTH = 800;
 export const VIRTUAL_HEIGHT = 500;
 export const GAME_WIDTH = 670;
-const INITIAL_TIME = 30;
+export const INITIAL_TIME = 30;
 
-const timerDiv: HTMLDivElement = document.querySelector('#timer');
-const scoreDiv: HTMLDivElement = document.querySelector('#score');
-const timerUpdater = updaterCreate((n: number) =>
-    timerDiv.style.setProperty('--progress', (n / (INITIAL_TIME - 2)) as any as string)
-);
-const scoreUpdater = updaterCreate((n: number) => scoreDiv.style.setProperty('--score', `'${n}`));
 const keyboard = keyboardInitialize(['Space', 'ArrowLeft', 'ArrowRight']);
 
 export const gameIsOutOfArea = (position: Vec2) => {
@@ -103,7 +105,7 @@ export const gameCreate = (weaponType: number) => ({
     [GameProperties.Hourglasses]: new Set<Hourglass>(),
     [GameProperties.Dogs]: new Set<Dog>(),
     [GameProperties.Enemy]: null as Death,
-    [GameProperties.EnemyHealth]: 10,
+    [GameProperties.EnemyHealth]: 1,
     [GameProperties.Score]: 0,
     [GameProperties.NextPerson]: 1000,
     [GameProperties.NextHourglass]: 3000,
@@ -270,7 +272,10 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
             }
 
             if (deathIsHitting(player, deathGetBoundingLeft(enemy), deathGetBoundingRight(enemy))) {
-                if (--game[GameProperties.EnemyHealth] <= 0) {
+                game[GameProperties.EnemyHealth] -= 0.1;
+                updaterSet(opponentUpdater, game[GameProperties.EnemyHealth]);
+                if (game[GameProperties.EnemyHealth] <= 0) {
+                    toggleOpponentHealth(false);
                     deathStartFade(enemy);
                     claimWeapon();
                 }
@@ -291,6 +296,8 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
         }
         game[GameProperties.Enemy] = enemy;
         game[GameProperties.NextEnemy] = Infinity;
+        toggleOpponentHealth(true, 'ENEMY');
+        updaterSet(opponentUpdater, game[GameProperties.EnemyHealth]);
     }
 };
 
@@ -334,7 +341,6 @@ export const gameCreateWeaponByType = (type: number) => {
     const bladeColor = colors[1 + bladeColorId];
     const snathColorId = x[colorsBits][1];
     const snathColor = colors[snathColorId];
-    console.log({ type, bladeColorId, snathColorId, modelType, colorsBits });
     const model = [models[Models.Scythe], models[Models.ScytheCurved], models[Models.ScytheDouble]][modelType];
     const colorOverrides = [
         {
@@ -442,9 +448,8 @@ export const gameStart = (game: Game, program: Program) => {
 
         game[GameProperties.TimeLeft] = Math.max(0, game[GameProperties.TimeLeft] - deltaTime);
         game[GameProperties.TimePassed] += deltaTime;
-        updaterSet(timerUpdater, (game[GameProperties.TimeLeft] / 1000) | 0);
+        updaterSet(timerUpdater, ((game[GameProperties.TimeLeft] / 1000) | 0) / (INITIAL_TIME - 2));
         updaterSet(scoreUpdater, game[GameProperties.Score]);
-
         updaterSet(comboUpdater, game[GameProperties.Combo]);
         comboTime -= deltaTime;
         if (comboTime <= 0) {

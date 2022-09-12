@@ -39,19 +39,15 @@
             height: -webkit-fill-available;
         }
 
-        #timer {
+        .progress-bar {
             --progress: 0;
-            position: absolute;
             width: 300px;
             height: 15px;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
             border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 15px;
         }
 
-        #timer:before {
+        .progress-bar:before {
             background: hsl(calc(var(--progress) * 120) 50% 50%);
             display: block;
             content: '';
@@ -152,7 +148,11 @@
         <canvas style="width: 100vw; height: 100vh; height: -webkit-fill-available; image-rendering: crisp-edges; image-rendering: pixelated"></canvas>
         <div id="screen" style="position: absolute; left: 0; top: 0; transform-origin: 0 0;">
             <div id="game-ui" class="hidden game-ui">
-                <div id="timer"></div>
+                <div style="position: absolute; display: grid; gap: 5px; top: 20px; left: 50%; transform: translateX(-50%);">
+                    <div id="timer" class="progress-bar"></div>
+                    <div id="opponent-health" class="progress-bar hidden"></div>
+                    <div id="opponent-name" class="hidden">ENEMY</div>
+                </div>
                 <div id="score">SCORE</div>
             </div>
             <div id="menu-ui">
