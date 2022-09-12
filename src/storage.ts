@@ -15,16 +15,28 @@ const storageLoad = () => {
 
     try {
         const parsed = JSON.parse(localStorage.getItem(storageKey));
-        if (
-            typeof parsed === 'object' &&
-            typeof parsed[StorageDataProperties.Highscore] === 'number' &&
-            typeof parsed[StorageDataProperties.NetworkId] === 'string'
-        ) {
+        if (validateData(parsed)) {
             storageData = parsed;
         }
     } catch (e) {}
 
     return storageData;
+};
+
+const validateData = (parsed: any) => {
+    if (typeof parsed !== 'object') {
+        return false;
+    }
+
+    if (typeof parsed[StorageDataProperties.Highscore] !== 'number') {
+        return false;
+    }
+
+    if (parsed[StorageDataProperties.NetworkId] !== null) {
+        return typeof parsed[StorageDataProperties.NetworkId] === 'string';
+    }
+
+    return true;
 };
 
 const storageUpdate = (updater: (storageData: StorageData) => void) => {

@@ -120,14 +120,32 @@
 
         @keyframes indicator {
             0%   {opacity:0; transform: translate(-50%, 0rem);}
-            50%   {opacity:1; transform: translate(-50%, -2rem);}
-            100%   {opacity:0; transform: translate(-50%, -2rem);}
+            50%   {opacity:1; transform: translate(-50%, -1em);}
+            100%   {opacity:0; transform: translate(-50%, -1em);}
         }
         .indicator {
-            font-size: 16px;
+            font-size: 14px;
             position: absolute;
             animation-name: indicator;
             animation-duration: 4s;
+        }
+
+        .hit {
+            font-size: 10px;
+            animation-duration: 1s;
+            color: #88f;
+        }
+
+        .combo {
+            color: #ff8;
+        }
+
+        .time-penalty {
+            color: #f88;
+        }
+
+        .time-bonus {
+            color: #8f8;
         }
 
         .indicator, #game-ui, #menu-ui {

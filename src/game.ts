@@ -28,7 +28,7 @@ import {
     dogStep,
     dogTurnLeft,
 } from './dog';
-import { ColorRGB, getVirtualScreenHeight, getVirtualScreenWidth, glClear, glDrawRect, Program } from './gl';
+import { getVirtualScreenHeight, getVirtualScreenWidth, glClear, glDrawRect, Program } from './gl';
 import { Vec2, vectorCreate, vectorMultiply } from './glm';
 import { Hourglass, hourglassCreate, hourglassDraw, hourglassGetPosition, hourglassStep } from './hourglass';
 import { keyboardInitialize } from './keyboard';
@@ -50,8 +50,8 @@ import {
 import { storageGetHighscore, storageSetHighscore } from './storage';
 import {
     uiOpponentUpdater,
-    uiScoreUpdater,
     uiPlayerHealthUpdater,
+    uiScoreUpdater,
     uiToggleOpponentHealth,
     uiUpdaterCreate,
     uiUpdaterSet,
@@ -125,12 +125,22 @@ export const gameCreate = (weaponType: number) => ({
     [GameProperties.Opponent]: null as Opponent,
 });
 
+const createHitIndicator = (position: Vec2) => createIndicator('HIT', position[0], position[1] + 50, 'hit');
+const increaseTime = (game: Game, amount: number) => {
+    game[GameProperties.TimeLeft] += amount * 1000;
+    const deathPosition = deathGetPosition(game[GameProperties.Death]);
+    const type = amount > 0 ? 'time-bonus' : 'time-penalty';
+    const sign = amount > 0 ? '+' : '';
+    createIndicator(`${sign}${amount}s`, deathPosition[0], deathPosition[1] + 120, type);
+};
+
 export const gamePeopleStep = (game: Game, deltaTime: number) => {
     for (const person of game[GameProperties.People]) {
         if (
             !personIsDead(person) &&
             deathIsHitting(game[GameProperties.Death], personGetLeft(person), personGetRight(person))
         ) {
+            createHitIndicator(personGetPosition(person));
             personDie(person);
             game[GameProperties.Score] += ++game[GameProperties.Combo];
             game[GameProperties.TimeLeft] += 400;
@@ -153,15 +163,15 @@ export const gamePeopleStep = (game: Game, deltaTime: number) => {
     }
 };
 
-const createIndicator = (text: string, color: string, x: number, y: number) => {
+const createIndicator = (text: string, x: number, y: number, type: string) => {
     const indicator = document.createElement('div');
     indicator.classList.add('indicator');
+    indicator.classList.add(type);
     indicator.onanimationend = () => indicator.remove();
     indicator.innerText = text;
     Object.assign(indicator.style, {
         left: `calc(50% + ${x}px`,
         top: `calc(50% - ${y}px`,
-        color: color,
     });
     document.querySelector('#screen').appendChild(indicator);
 };
@@ -172,14 +182,7 @@ export const gameHourglasssStep = (game: Game, deltaTime: number) => {
 
         if (deathCollidesWithHourglass(game[GameProperties.Death], hourglass) && !gameIsOver(game)) {
             game[GameProperties.Hourglasses].delete(hourglass);
-            const timeIncrease = 10;
-            game[GameProperties.TimeLeft] += timeIncrease * 1000;
-            createIndicator(
-                `+${timeIncrease}s`,
-                `#8f8`,
-                hourglassGetPosition(hourglass)[0],
-                hourglassGetPosition(hourglass)[1] + 10
-            );
+            increaseTime(game, 10);
         }
 
         if (gameIsOutOfArea(hourglassGetPosition(hourglass))) {
@@ -200,10 +203,9 @@ export const gameDogStep = (game: Game, deltaTime: number) => {
     for (const dog of game[GameProperties.Dogs]) {
         dogStep(dog, deltaTime);
         if (!dogIsDead(dog) && deathIsHitting(game[GameProperties.Death], dogGetLeft(dog), dogGetRight(dog))) {
+            createHitIndicator(dogGetPosition(dog));
             dogDie(dog);
-            const timeIncrease = -5;
-            game[GameProperties.TimeLeft] += timeIncrease * 1000;
-            createIndicator(`${timeIncrease}s`, `#f88`, dogGetPosition(dog)[0], dogGetPosition(dog)[1] + 30);
+            increaseTime(game, -5);
         }
 
         if (dogGetDeadTime(dog) > 2000 || gameIsOutOfArea(dogGetPosition(dog))) {
@@ -267,18 +269,12 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
             }
 
             if (deathIsHitting(enemy, deathGetBoundingLeft(player), deathGetBoundingRight(player))) {
-                const timeIncrease = -1;
-                game[GameProperties.TimeLeft] += timeIncrease * 1000;
-                createIndicator(
-                    `${timeIncrease}s`,
-                    `#f88`,
-                    deathGetPosition(player)[0],
-                    deathGetPosition(player)[1] + 30
-                );
+                createHitIndicator(deathGetPosition(player));
             }
 
             if (deathIsHitting(player, deathGetBoundingLeft(enemy), deathGetBoundingRight(enemy))) {
                 game[GameProperties.Opponent][OpponentProperties.Health] -= 0.1;
+                createHitIndicator(deathGetPosition(enemy));
                 uiUpdaterSet(uiOpponentUpdater, game[GameProperties.Opponent][OpponentProperties.Health]);
                 if (game[GameProperties.Opponent][OpponentProperties.Health] <= 0) {
                     uiToggleOpponentHealth(false);
@@ -388,7 +384,7 @@ export const gameStart = (game: Game, program: Program) => {
 
         const deathPosition = deathGetPosition(game[GameProperties.Death]);
         const text = `${value}x`;
-        createIndicator(text, `#ff8`, deathPosition[0], deathPosition[1] + 100);
+        createIndicator(text, deathPosition[0], deathPosition[1] + 100, 'combo');
     });
 
     let previousTime = 0;
