@@ -94,6 +94,7 @@ const enum ObjectProperty {
     Model,
     Transform,
     Subobjects,
+    ColorOverrides,
 }
 
 export type Object = {
@@ -102,6 +103,9 @@ export type Object = {
     [ObjectProperty.Transform]: Matrix3;
     [ObjectProperty.Subobjects]: {
         [componentId: number]: Object;
+    };
+    [ObjectProperty.ColorOverrides]: {
+        [componentId: number]: ColorRGB;
     };
 };
 
@@ -129,7 +133,11 @@ export const modelCreate = (program: Program, data: ModelData): Model => {
     };
 };
 
-export const objectCreate = (model: Model, subobjects: Object[ObjectProperty.Subobjects] = {}): Object => {
+export const objectCreate = (
+    model: Model,
+    subobjects: Object[ObjectProperty.Subobjects] = {},
+    colorOverrides: Object[ObjectProperty.ColorOverrides] = {}
+): Object => {
     const components = model[ModelProperty.Meshes].map(mesh => objectComponentFromMesh(mesh));
 
     return {
@@ -137,6 +145,7 @@ export const objectCreate = (model: Model, subobjects: Object[ObjectProperty.Sub
         [ObjectProperty.Model]: model,
         [ObjectProperty.Transform]: matrixCreate(),
         [ObjectProperty.Subobjects]: subobjects,
+        [ObjectProperty.ColorOverrides]: colorOverrides,
     };
 };
 
@@ -185,7 +194,8 @@ export const objectDraw = (object: Object, program: Program) => {
 
         const component = object[ObjectProperty.Components][componentId];
         glSetModelTransform(program, component[ObjectComponentProperty.Matrix]);
-        glMeshDraw(program, component[ObjectComponentProperty.Mesh][ModelMeshProperty.Mesh]);
+        const colorOverride = object[ObjectProperty.ColorOverrides][componentId];
+        glMeshDraw(program, component[ObjectComponentProperty.Mesh][ModelMeshProperty.Mesh], colorOverride);
     }
 };
 

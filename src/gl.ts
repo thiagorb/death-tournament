@@ -237,10 +237,10 @@ export const glSetModelTransform = (program: Program, matrix: Matrix3) => {
     );
 };
 
-export const glMeshDraw = (program: Program, mesh: Mesh) => {
+export const glMeshDraw = (program: Program, mesh: Mesh, colorOverride: ColorRGB) => {
     const gl = program[ProgramProperty.WebGL2Context];
     gl.bindVertexArray(mesh[MeshProperty.VertexArrayObject]);
-    gl.uniform3fv(program[ProgramProperty.Uniforms][UniformsProperty.Color], mesh[MeshProperty.Color]);
+    gl.uniform3fv(program[ProgramProperty.Uniforms][UniformsProperty.Color], colorOverride || mesh[MeshProperty.Color]);
     gl.drawElements(mesh[MeshProperty.DrawMode], mesh[MeshProperty.VerticesLength], gl.UNSIGNED_SHORT, 0);
     gl.bindVertexArray(null);
 };

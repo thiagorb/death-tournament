@@ -94,11 +94,7 @@ export class DeathTournament {
                 weaponId: selectedOption,
             };
         } else {
-            return { type: Number(near.blockTimestamp() % BigInt(48)) };
+            return { type: Number(near.blockTimestamp() % BigInt(60)) };
         }
     }
 }
-
-// blades: red, golden, bronze, steel
-// snath: red, golden, bronze, steel
-// type: basic, curved, double

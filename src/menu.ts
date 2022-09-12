@@ -40,7 +40,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
     let playerWeapons: Array<Object> = [];
     let playerWeaponsType: Array<number> = [];
     let selectedWeapon = 0;
-    let smoothSelectedWeapon = 0;
+    let smoothSelectedWeapon = -1000;
 
     const loop = (time: number) => {
         const deltaTime = (time - previousTime) * speedMultiplier;
@@ -60,7 +60,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
                             selectedWeapon < playerWeapons.length ? playerWeaponsType[selectedWeapon] : 0
                         );
                         game[GameProperties.Opponent] = opponent || {
-                            weaponType: (Math.random() * 48) | 0,
+                            weaponType: (Math.random() * 75) | 0,
                             playerId: null,
                         };
                         gameStart(game, program);
@@ -82,8 +82,8 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
     const renderWeapons = (deltaTime: number) => {
         const delta = selectedWeapon - smoothSelectedWeapon;
         const speed = 0.01 * deltaTime;
-        if (Math.abs(delta) > speed) {
-            smoothSelectedWeapon += speed * (delta > 0 ? 1 : -1);
+        if (Math.abs(delta) > speed || startingGame) {
+            smoothSelectedWeapon += speed * (startingGame || delta > 0 ? 1 : -1);
         } else {
             smoothSelectedWeapon = selectedWeapon;
         }
@@ -100,11 +100,11 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
             const distance = 1 - Math.abs(shift / 3);
             matrixSetIdentity(matrix);
             matrixTranslate(matrix, VIRTUAL_WIDTH / 2 - 100, shift * 60);
-            matrixScale(matrix, distance, distance);
+            matrixScale(matrix, Math.max(0, distance), Math.max(0, distance));
             matrixTranslate(matrix, 0, shift * 60);
             matrixRotate(matrix, menuScene[GameProperties.TimePassed] * 0.001);
             objectApplyTransforms(weapon);
-            glSetGlobalOpacity(program, distance ** 2);
+            glSetGlobalOpacity(program, Math.max(0, distance) ** 2);
             objectDraw(weapon, program);
             glSetGlobalOpacity(program, 1);
         }
@@ -129,10 +129,15 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         if (near) {
             const accountId = document.querySelector('#account-id') as HTMLElement;
             accountId.innerText = `logged as ${nearGetAccountId(near)} (${nearGetNeworkId(near)})`;
-            playerWeaponsType = await nearGetPlayerWeapons(near);
+            playerWeaponsType = [...new Set(await nearGetPlayerWeapons(near))];
+            playerWeaponsType.sort((a, b) => a - b).reverse();
             playerWeapons = playerWeaponsType.map(type => gameCreateWeaponByType(type));
         }
     };
+
+    for (let i = 0; i < 60; i++) {
+        gameCreateWeaponByType(i);
+    }
 
     nearGetSignedIn().then(toggleSignIn);
 
@@ -152,7 +157,6 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
     };
 
     const toggleWeapon = (e: MouseEvent) => {
-        console.log(e);
         if ((e.target as HTMLElement).id !== 'menu-ui') {
             return;
         }
@@ -189,6 +193,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
 
             document.querySelectorAll('.game-ui').forEach(e => e.classList.add('hidden'));
             (document.querySelector('#menu-ui') as HTMLElement).classList.remove('hidden');
+            smoothSelectedWeapon = -3;
         },
         lastGame ? 3000 : 0
     );

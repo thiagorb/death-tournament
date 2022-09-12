@@ -1,9 +1,9 @@
 ## Next Steps
 
--   Add call to find new opponent
-    Search within the list of registered players
-    If the list is smaller than the number of scythes, add chance of finding non-player opponent
--   Add call to claim scythe's ownership
+-   Add opponent health bar with opponent's name
+-   Add indicator for hits on opponent
+-   Make weapon colors change stats (better snaths increase defense, better blades increase attack)
+-   Make probability of scythe inversely proportional to how good it is
 
 ## Feature ideas
 

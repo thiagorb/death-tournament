@@ -28,7 +28,7 @@ import {
     dogStep,
     dogTurnLeft,
 } from './dog';
-import { getVirtualScreenHeight, getVirtualScreenWidth, glClear, glDrawRect, Program } from './gl';
+import { ColorRGB, getVirtualScreenHeight, getVirtualScreenWidth, glClear, glDrawRect, Program } from './gl';
 import { Vec2, vectorCreate, vectorMultiply } from './glm';
 import { Hourglass, hourglassCreate, hourglassDraw, hourglassGetPosition, hourglassStep } from './hourglass';
 import { keyboardInitialize } from './keyboard';
@@ -50,6 +50,9 @@ import {
 } from './person';
 import { storageGetHighscore, storageSetHighscore } from './storage';
 import { updaterCreate, updaterSet } from './ui';
+import * as scytheModelData from '../art/scythe.svg';
+import * as scytheCurvedModelData from '../art/scythe-curved.svg';
+import * as scytheDoubleModelData from '../art/scythe-double.svg';
 
 export const FLOOR_LEVEL = -90;
 export const VIRTUAL_WIDTH = 800;
@@ -299,11 +302,56 @@ const claimWeapon = async () => {
 };
 
 export const gameCreateWeaponByType = (type: number) => {
-    return objectCreate(getWeaponModel(type));
-};
+    const colors: Array<ColorRGB> = [
+        [0.4, 0.22, 0], // wood
+        [0.75, 0.54, 0.44], // bronze
+        [0.81, 0.82, 0.84], // steel
+        [0.83, 0.69, 0.22], // gold
+        [1, 0, 0], // red
+    ];
+    const modelType = type % 3;
 
-const getWeaponModel = (type: number) => {
-    return [models[Models.Scythe], models[Models.ScytheCurved], models[Models.ScytheDouble]][(type / 16) | 0];
+    const x = [];
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 5; j++) {
+            x.push([i, j]);
+        }
+    }
+    x.sort((a, b) => {
+        if ((a[0] >= b[0] && a[0] >= b[1]) || (a[1] >= b[0] && a[1] >= b[1])) {
+            return 1;
+        }
+
+        if ((b[0] >= a[0] && b[0] >= a[1]) || (b[1] >= a[0] && b[1] >= a[1])) {
+            return -1;
+        }
+
+        return 0;
+    });
+
+    const colorsBits = (type / 3) | 0;
+    const bladeColorId = x[colorsBits][0];
+    const bladeColor = colors[1 + bladeColorId];
+    const snathColorId = x[colorsBits][1];
+    const snathColor = colors[snathColorId];
+    console.log({ type, bladeColorId, snathColorId, modelType, colorsBits });
+    const model = [models[Models.Scythe], models[Models.ScytheCurved], models[Models.ScytheDouble]][modelType];
+    const colorOverrides = [
+        {
+            [scytheModelData.bladeComponentId]: bladeColor,
+            [scytheModelData.snathComponentId]: snathColor,
+        },
+        {
+            [scytheCurvedModelData.bladeComponentId]: bladeColor,
+            [scytheCurvedModelData.snathComponentId]: snathColor,
+        },
+        {
+            [scytheDoubleModelData.blade1ComponentId]: bladeColor,
+            [scytheDoubleModelData.blade2ComponentId]: bladeColor,
+            [scytheDoubleModelData.snathComponentId]: snathColor,
+        },
+    ][modelType];
+    return objectCreate(model, {}, colorOverrides);
 };
 
 export const gameStep = (game: Game, deltaTime: number) => {
