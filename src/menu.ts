@@ -2,11 +2,11 @@ import { deathCreate } from './death';
 import {
     Game,
     gameCreate,
-    gameCreateWeaponByType,
     GameProperties,
     gameRender,
     gameStart,
     gameStep,
+    OpponentProperties,
     VIRTUAL_WIDTH,
 } from './game';
 import { glSetGlobalOpacity, Program } from './gl';
@@ -19,11 +19,13 @@ import {
     nearGetPlayerWeapons,
     nearGetSignedIn,
     NearInstance,
+    NearOpponent,
     nearRequestSignIn,
     nearSignOut,
 } from './near';
 import { storageGetHighscore } from './storage';
-import { toggleOpponentHealth } from './ui';
+import { uiSetPlayerName, uiToggleOpponentHealth } from './ui';
+import { weaponCreate, weaponTotalTypes } from './weapon';
 
 export const menuStart = (program: Program, lastGame: Game = null) => {
     (document.querySelector('#high-score') as HTMLElement).innerText = storageGetHighscore() as any as string;
@@ -37,7 +39,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
     let startingGame = false;
     let previousTime = 0;
     let speedMultiplier = 0.5;
-    let opponentPromise: ReturnType<typeof nearGetOpponent> = null;
+    let opponentPromise: Promise<NearOpponent> = null;
     let playerWeapons: Array<Object> = [];
     let playerWeaponsType: Array<number> = [];
     let selectedWeapon = 0;
@@ -55,15 +57,23 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
                         console.error(e);
                         return null;
                     })
-                    .then(opponent => {
+                    .then((opponent: NearOpponent) => {
+                        console.log(opponent);
                         document.querySelectorAll('.game-ui').forEach(e => e.classList.remove('hidden'));
                         const game = gameCreate(
                             selectedWeapon < playerWeapons.length ? playerWeaponsType[selectedWeapon] : 0
                         );
-                        game[GameProperties.Opponent] = opponent || {
-                            weaponType: (Math.random() * 75) | 0,
-                            playerId: null,
-                        };
+                        game[GameProperties.Opponent] = opponent
+                            ? {
+                                  [OpponentProperties.WeaponType]: opponent.weaponType,
+                                  [OpponentProperties.Name]: formatPlayerName(opponent.playerId),
+                                  [OpponentProperties.Health]: 1,
+                              }
+                            : {
+                                  [OpponentProperties.WeaponType]: (Math.random() * weaponTotalTypes()) | 0,
+                                  [OpponentProperties.Name]: 'ENEMY',
+                                  [OpponentProperties.Health]: 1,
+                              };
                         gameStart(game, program);
                     });
 
@@ -127,18 +137,15 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         toggleElement(signInButton, near === null);
         toggleElement(signOutButton, near !== null);
         toggleElement(accountId, near !== null);
+        uiSetPlayerName(near !== null ? formatPlayerName(nearGetAccountId(near)) : 'HEALTH');
         if (near) {
             const accountId = document.querySelector('#account-id') as HTMLElement;
             accountId.innerText = `logged as ${nearGetAccountId(near)} (${nearGetNeworkId(near)})`;
             playerWeaponsType = [...new Set(await nearGetPlayerWeapons(near))];
             playerWeaponsType.sort((a, b) => a - b).reverse();
-            playerWeapons = playerWeaponsType.map(type => gameCreateWeaponByType(type));
+            playerWeapons = playerWeaponsType.map(type => weaponCreate(type));
         }
     };
-
-    for (let i = 0; i < 60; i++) {
-        gameCreateWeaponByType(i);
-    }
 
     nearGetSignedIn().then(toggleSignIn);
 
@@ -185,7 +192,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
 
     setTimeout(
         () => {
-            toggleOpponentHealth(false);
+            uiToggleOpponentHealth(false);
             startButton.addEventListener('click', startGame);
             document.body.addEventListener('keypress', startGame);
             signInButton.addEventListener('click', handleSignIn);
@@ -208,3 +215,5 @@ const canStart = (menuScene: Game) => {
         menuScene[GameProperties.Hourglasses].size === 0
     );
 };
+
+const formatPlayerName = (name: string) => name.split('.').slice(0, -1).join('.');

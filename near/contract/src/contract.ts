@@ -6,6 +6,8 @@ type Weapon = {
     ownerId: string;
 };
 
+const weaponTotalTypes = 60;
+
 @NearBindgen({})
 export class DeathTournament {
     registeredPlayers: { [playerId: string]: { opponent: Opponent } } = {};
@@ -94,7 +96,7 @@ export class DeathTournament {
                 weaponId: selectedOption,
             };
         } else {
-            return { type: Number(near.blockTimestamp() % BigInt(60)) };
+            return { type: Number(near.blockTimestamp() % BigInt(weaponTotalTypes)) };
         }
     }
 }

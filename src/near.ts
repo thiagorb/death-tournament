@@ -9,6 +9,8 @@ const enum NearInstanceProperties {
     Contract,
 }
 
+export type NearOpponent = { weaponType: number; playerId: string };
+
 export type NearInstance = {
     [NearInstanceProperties.NetworkId]: string;
     [NearInstanceProperties.ContractName]: string;
@@ -21,7 +23,7 @@ export type NearInstance = {
     };
     [NearInstanceProperties.Contract]: {
         is_registered(_: { playerId: string }): Promise<boolean>;
-        get_opponent(_: { playerId: string }): Promise<{ weaponType: number; playerId: string }>;
+        get_opponent(_: { playerId: string }): Promise<NearOpponent>;
         get_player_weapons(_: { playerId: string }): Promise<Array<number>>;
         get_registered_players(): Promise<Object>;
         get_weapons(): Promise<Object>;

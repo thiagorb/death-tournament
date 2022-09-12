@@ -1,9 +1,9 @@
 ## Next Steps
 
--   Add opponent health bar with opponent's name
 -   Add indicator for hits on opponent
 -   Make weapon colors change stats (better snaths increase defense, better blades increase attack)
 -   Make probability of scythe inversely proportional to how good it is
+-   Prevent selecting player as its own opponent
 
 ## Feature ideas
 

@@ -8,24 +8,27 @@ type Updater = {
     [UpdaterProperties.UpdateFunction]: (n: number) => void;
 };
 
-export const updaterCreate = (updateFunction: Updater[UpdaterProperties.UpdateFunction]): Updater => ({
+export const uiUpdaterCreate = (updateFunction: Updater[UpdaterProperties.UpdateFunction]): Updater => ({
     [UpdaterProperties.LastUpdatedValue]: 0,
     [UpdaterProperties.UpdateFunction]: updateFunction,
 });
 
-export const updaterSet = (updater: Updater, displayValue: number) => {
+export const uiUpdaterSet = (updater: Updater, displayValue: number) => {
     if (displayValue !== updater[UpdaterProperties.LastUpdatedValue]) {
         updater[UpdaterProperties.LastUpdatedValue] = displayValue;
         updater[UpdaterProperties.UpdateFunction](displayValue);
     }
 };
 
-export const timerDiv: HTMLDivElement = document.querySelector('#timer');
-export const scoreDiv: HTMLDivElement = document.querySelector('#score');
-export const opponentHealth = document.querySelector('#opponent-health') as HTMLElement;
-export const opponentName = document.querySelector('#opponent-name') as HTMLElement;
+const scoreDiv: HTMLDivElement = document.querySelector('#score');
+const playerHealth = document.querySelector('#player-health') as HTMLElement;
+const playerName = document.querySelector('#player-name') as HTMLElement;
+const opponentHealth = document.querySelector('#opponent-health') as HTMLElement;
+const opponentName = document.querySelector('#opponent-name') as HTMLElement;
 
-export const toggleOpponentHealth = (value: boolean, name: string = null) => {
+export const uiSetPlayerName = (name: string) => (playerName.innerText = name);
+
+export const uiToggleOpponentHealth = (value: boolean, name: string = null) => {
     opponentHealth.classList.toggle('hidden', !value);
     opponentName.classList.toggle('hidden', !value);
     if (name) {
@@ -33,8 +36,9 @@ export const toggleOpponentHealth = (value: boolean, name: string = null) => {
     }
 };
 
-export const scoreUpdater = updaterCreate((n: number) => scoreDiv.style.setProperty('--score', `'${n}`));
-export const timerUpdater = updaterCreate((n: number) => timerDiv.style.setProperty('--progress', n as any as string));
-export const opponentUpdater = updaterCreate((n: number) =>
-    opponentHealth.style.setProperty('--progress', n as any as string)
-);
+export const uiScoreUpdater = uiUpdaterCreate((n: number) => scoreDiv.style.setProperty('--score', `'${n}`));
+export const uiPlayerHealthUpdater = uiUpdaterCreate((n: number) => updateHealth(playerHealth, n));
+export const uiOpponentUpdater = uiUpdaterCreate((n: number) => updateHealth(opponentHealth, n));
+
+const updateHealth = (healthBar: HTMLElement, n: number) =>
+    healthBar.style.setProperty('--progress', Math.max(0, Math.min(1, n)) as any as string);

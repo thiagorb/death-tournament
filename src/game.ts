@@ -1,6 +1,3 @@
-import * as scytheCurvedModelData from '../art/scythe-curved.svg';
-import * as scytheDoubleModelData from '../art/scythe-double.svg';
-import * as scytheModelData from '../art/scythe.svg';
 import { backgroundDraw, BACKGROUND_COLOR } from './background';
 import {
     Death,
@@ -36,7 +33,6 @@ import { Vec2, vectorCreate, vectorMultiply } from './glm';
 import { Hourglass, hourglassCreate, hourglassDraw, hourglassGetPosition, hourglassStep } from './hourglass';
 import { keyboardInitialize } from './keyboard';
 import { menuStart } from './menu';
-import { Models, models, objectCreate } from './model';
 import { nearClaimWeapon, nearGetSignedIn } from './near';
 import {
     Person,
@@ -53,14 +49,14 @@ import {
 } from './person';
 import { storageGetHighscore, storageSetHighscore } from './storage';
 import {
-    opponentHealth,
-    opponentUpdater,
-    scoreUpdater,
-    timerUpdater,
-    toggleOpponentHealth,
-    updaterCreate,
-    updaterSet,
+    uiOpponentUpdater,
+    uiScoreUpdater,
+    uiPlayerHealthUpdater,
+    uiToggleOpponentHealth,
+    uiUpdaterCreate,
+    uiUpdaterSet,
 } from './ui';
+import { weaponCreate } from './weapon';
 
 export const FLOOR_LEVEL = -90;
 export const VIRTUAL_WIDTH = 800;
@@ -85,7 +81,6 @@ export const enum GameProperties {
     Hourglasses,
     Dogs,
     Enemy,
-    EnemyHealth,
     Score,
     NextPerson,
     NextHourglass,
@@ -99,13 +94,24 @@ export const enum GameProperties {
 
 export type Game = ReturnType<typeof gameCreate>;
 
+export const enum OpponentProperties {
+    WeaponType,
+    Name,
+    Health,
+}
+
+export type Opponent = {
+    [OpponentProperties.WeaponType]: number;
+    [OpponentProperties.Name]: string;
+    [OpponentProperties.Health]: 1;
+};
+
 export const gameCreate = (weaponType: number) => ({
-    [GameProperties.Death]: deathCreate(vectorCreate(0, FLOOR_LEVEL), gameCreateWeaponByType(weaponType)),
+    [GameProperties.Death]: deathCreate(vectorCreate(0, FLOOR_LEVEL), weaponCreate(weaponType)),
     [GameProperties.People]: new Set<Person>(),
     [GameProperties.Hourglasses]: new Set<Hourglass>(),
     [GameProperties.Dogs]: new Set<Dog>(),
     [GameProperties.Enemy]: null as Death,
-    [GameProperties.EnemyHealth]: 1,
     [GameProperties.Score]: 0,
     [GameProperties.NextPerson]: 1000,
     [GameProperties.NextHourglass]: 3000,
@@ -116,7 +122,7 @@ export const gameCreate = (weaponType: number) => ({
     // [GameProperties.TimePassed]: 3600000,
     [GameProperties.TimePassed]: 0,
     [GameProperties.Combo]: 0,
-    [GameProperties.Opponent]: null as { weaponType: number; playerId: string },
+    [GameProperties.Opponent]: null as Opponent,
 });
 
 export const gamePeopleStep = (game: Game, deltaTime: number) => {
@@ -272,10 +278,10 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
             }
 
             if (deathIsHitting(player, deathGetBoundingLeft(enemy), deathGetBoundingRight(enemy))) {
-                game[GameProperties.EnemyHealth] -= 0.1;
-                updaterSet(opponentUpdater, game[GameProperties.EnemyHealth]);
-                if (game[GameProperties.EnemyHealth] <= 0) {
-                    toggleOpponentHealth(false);
+                game[GameProperties.Opponent][OpponentProperties.Health] -= 0.1;
+                uiUpdaterSet(uiOpponentUpdater, game[GameProperties.Opponent][OpponentProperties.Health]);
+                if (game[GameProperties.Opponent][OpponentProperties.Health] <= 0) {
+                    uiToggleOpponentHealth(false);
                     deathStartFade(enemy);
                     claimWeapon();
                 }
@@ -289,15 +295,15 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
     if (game[GameProperties.NextEnemy] < 0) {
         const enemy = deathCreate(
             vectorCreate(0, FLOOR_LEVEL),
-            gameCreateWeaponByType(game[GameProperties.Opponent].weaponType)
+            weaponCreate(game[GameProperties.Opponent][OpponentProperties.WeaponType])
         );
         if (Math.random() < 0.5) {
             deathWalk(enemy, deltaTime, true);
         }
         game[GameProperties.Enemy] = enemy;
         game[GameProperties.NextEnemy] = Infinity;
-        toggleOpponentHealth(true, 'ENEMY');
-        updaterSet(opponentUpdater, game[GameProperties.EnemyHealth]);
+        uiToggleOpponentHealth(true, game[GameProperties.Opponent][OpponentProperties.Name]);
+        uiUpdaterSet(uiOpponentUpdater, game[GameProperties.Opponent][OpponentProperties.Health]);
     }
 };
 
@@ -306,58 +312,6 @@ const claimWeapon = async () => {
     if (near) {
         nearClaimWeapon(near);
     }
-};
-
-export const gameCreateWeaponByType = (type: number) => {
-    const colors: Array<ColorRGB> = [
-        [0.4, 0.22, 0], // wood
-        [0.75, 0.54, 0.44], // bronze
-        [0.81, 0.82, 0.84], // steel
-        [0.83, 0.69, 0.22], // gold
-        [1, 0, 0], // red
-    ];
-    const modelType = type % 3;
-
-    const x = [];
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 5; j++) {
-            x.push([i, j]);
-        }
-    }
-    x.sort((a, b) => {
-        if ((a[0] >= b[0] && a[0] >= b[1]) || (a[1] >= b[0] && a[1] >= b[1])) {
-            return 1;
-        }
-
-        if ((b[0] >= a[0] && b[0] >= a[1]) || (b[1] >= a[0] && b[1] >= a[1])) {
-            return -1;
-        }
-
-        return 0;
-    });
-
-    const colorsBits = (type / 3) | 0;
-    const bladeColorId = x[colorsBits][0];
-    const bladeColor = colors[1 + bladeColorId];
-    const snathColorId = x[colorsBits][1];
-    const snathColor = colors[snathColorId];
-    const model = [models[Models.Scythe], models[Models.ScytheCurved], models[Models.ScytheDouble]][modelType];
-    const colorOverrides = [
-        {
-            [scytheModelData.bladeComponentId]: bladeColor,
-            [scytheModelData.snathComponentId]: snathColor,
-        },
-        {
-            [scytheCurvedModelData.bladeComponentId]: bladeColor,
-            [scytheCurvedModelData.snathComponentId]: snathColor,
-        },
-        {
-            [scytheDoubleModelData.blade1ComponentId]: bladeColor,
-            [scytheDoubleModelData.blade2ComponentId]: bladeColor,
-            [scytheDoubleModelData.snathComponentId]: snathColor,
-        },
-    ][modelType];
-    return objectCreate(model, {}, colorOverrides);
 };
 
 export const gameStep = (game: Game, deltaTime: number) => {
@@ -422,7 +376,7 @@ const renderDebuggingRects = (program: Program) => {
 
 export const gameStart = (game: Game, program: Program) => {
     let comboTime = 0;
-    const comboUpdater = updaterCreate((value: number) => {
+    const comboUpdater = uiUpdaterCreate((value: number) => {
         if (value === 0) {
             return;
         }
@@ -448,9 +402,9 @@ export const gameStart = (game: Game, program: Program) => {
 
         game[GameProperties.TimeLeft] = Math.max(0, game[GameProperties.TimeLeft] - deltaTime);
         game[GameProperties.TimePassed] += deltaTime;
-        updaterSet(timerUpdater, ((game[GameProperties.TimeLeft] / 1000) | 0) / (INITIAL_TIME - 2));
-        updaterSet(scoreUpdater, game[GameProperties.Score]);
-        updaterSet(comboUpdater, game[GameProperties.Combo]);
+        uiUpdaterSet(uiPlayerHealthUpdater, ((game[GameProperties.TimeLeft] / 1000) | 0) / (INITIAL_TIME - 2));
+        uiUpdaterSet(uiScoreUpdater, game[GameProperties.Score]);
+        uiUpdaterSet(comboUpdater, game[GameProperties.Combo]);
         comboTime -= deltaTime;
         if (comboTime <= 0) {
             game[GameProperties.Combo] = 0;
