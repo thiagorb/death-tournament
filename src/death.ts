@@ -240,7 +240,7 @@ export const deathTurnRight = (death: Death) => {
 };
 
 export const deathIsAttacking = (death: Death) => {
-    return death[DeathProperties.Attacking];
+    return !deathIsDead(death) && death[DeathProperties.Attacking];
 };
 
 export const deathDie = (death: Death) => {
@@ -318,6 +318,10 @@ const DEATH_WIDTH = 50;
 const DEATH_HEIGHT = 100;
 const HOURGLASS_WIDTH = 30;
 export const deathCollidesWithHourglass = (death: Death, hourglass: Hourglass) => {
+    if (deathIsDead(death)) {
+        return false;
+    }
+
     const [hourglassX, hourglassY] = hourglassGetPosition(hourglass);
     const [deathX, deathY] = death[DeathProperties.Position];
 
@@ -337,8 +341,11 @@ const ATTACK_DURATION = 50;
 export const deathGetBoundingLeft = (death: Death) => death[DeathProperties.Position][0] - DEATH_WIDTH / 2;
 export const deathGetBoundingRight = (death: Death) => death[DeathProperties.Position][0] + DEATH_WIDTH / 2;
 
-export const deathGetAttackPower = (death: Death) => 1 + weaponGetAttack(weaponGetId(death[DeathProperties.Weapon]));
-export const deathGetDefense = (death: Death) => 4 + weaponGetDefense(weaponGetId(death[DeathProperties.Weapon]));
+export const deathGetAttackPower = (death: Death) =>
+    2 + 2 * weaponGetAttack(weaponGetId(death[DeathProperties.Weapon]));
+
+export const deathGetDefense = (death: Death) => 15 + 2 * weaponGetDefense(weaponGetId(death[DeathProperties.Weapon]));
+
 export const deathHit = (death: Death, power: number) => {
     death[DeathProperties.Health] -= power / deathGetDefense(death);
     if (deathIsDead(death)) {

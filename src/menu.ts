@@ -30,7 +30,7 @@ import { uiSetPlayerName, uiToggleOpponentHealth } from './ui';
 import { weaponGetRandomId } from './weapon';
 
 let selectedWeapon = 0;
-let smoothSelectedWeapon = -3;
+let smoothSelectedWeapon: number;
 export const menuStart = (program: Program, lastGame: Game = null) => {
     (document.querySelector('#high-score') as HTMLElement).innerText = storageGetHighscore() as any as string;
 
@@ -206,10 +206,10 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
 
             document.querySelectorAll('.game-ui').forEach(e => e.classList.add('hidden'));
             (document.querySelector('#menu-ui') as HTMLElement).classList.remove('hidden');
-            smoothSelectedWeapon = -3;
         },
         lastGame ? 3000 : 0
     );
+    smoothSelectedWeapon = lastGame ? -17 : -3;
 };
 
 const canStart = (menuScene: Game) => {
