@@ -147,7 +147,7 @@ export const personIsDead = (person: Person) => {
 };
 
 export const personHit = (person: Person, power: number) => {
-    const defense = 5;
+    const defense = 2.5;
     person[PersonProperties.Health] -= power / defense;
     if (personIsDead(person)) {
         animationStart(person[PersonProperties.DeadAnimation]);

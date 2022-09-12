@@ -38,6 +38,7 @@ const enum DeathProperties {
     FacingLeft,
     Attacking,
     AttackingTime,
+    HitSet,
     Opacity,
     Weapon,
     Health,
@@ -55,6 +56,7 @@ export type Death = {
     [DeathProperties.FacingLeft]: boolean;
     [DeathProperties.Attacking]: boolean;
     [DeathProperties.AttackingTime]: number;
+    [DeathProperties.HitSet]: WeakSet<object>;
     [DeathProperties.Opacity]: number;
     [DeathProperties.Weapon]: Weapon;
     [DeathProperties.Health]: number;
@@ -137,6 +139,7 @@ export const deathCreate = (position: Vec2, weapon: Weapon): Death => {
         [DeathProperties.FacingLeft]: false,
         [DeathProperties.Attacking]: false,
         [DeathProperties.AttackingTime]: 0,
+        [DeathProperties.HitSet]: null,
         [DeathProperties.Opacity]: 0,
         [DeathProperties.Weapon]: weapon,
         [DeathProperties.Health]: 1,
@@ -150,7 +153,11 @@ export const deathCreate = (position: Vec2, weapon: Weapon): Death => {
                 animationFrameItemCreate(leftArm1, -3, attackPrepareSpeed),
                 animationFrameItemCreate(leftArm2, -2, attackPrepareSpeed),
             ],
-            () => ((death[DeathProperties.Attacking] = true), (death[DeathProperties.AttackingTime] = 0))
+            () => {
+                death[DeathProperties.Attacking] = true;
+                death[DeathProperties.AttackingTime] = 0;
+                death[DeathProperties.HitSet] = new WeakSet();
+            }
         ),
         animationFrameCreate(
             [animationFrameItemCreate(leftArm1, -0.7, attackSpeed), animationFrameItemCreate(leftArm2, 0, attackSpeed)],
@@ -237,7 +244,6 @@ export const deathIsAttacking = (death: Death) => {
 };
 
 export const deathDie = (death: Death) => {
-    debugger;
     death[DeathProperties.Health] = 0;
     animationStart(death[DeathProperties.DeadAnimation]);
 };
@@ -291,6 +297,15 @@ export const deathIsHitting = (death: Death, boundingLeft: number, boundingRight
     return attackLeft < boundingRight && attackRight >= boundingLeft;
 };
 
+export const deathRegisterHit = (death: Death, target: object): boolean => {
+    if (death[DeathProperties.HitSet].has(target)) {
+        return false;
+    }
+
+    death[DeathProperties.HitSet].add(target);
+    return true;
+};
+
 const DEATH_WIDTH = 50;
 const DEATH_HEIGHT = 100;
 const HOURGLASS_WIDTH = 30;
@@ -313,10 +328,9 @@ export const deathIsFacingLeft = (death: Death) => death[DeathProperties.FacingL
 export const deathGetBoundingLeft = (death: Death) => death[DeathProperties.Position][0] - DEATH_WIDTH / 2;
 export const deathGetBoundingRight = (death: Death) => death[DeathProperties.Position][0] + DEATH_WIDTH / 2;
 
-export const deathGetAttackPower = (death: Death) => weaponGetAttack(weaponGetId(death[DeathProperties.Weapon]));
-export const deathGetDefense = (death: Death) => 10 + weaponGetDefense(weaponGetId(death[DeathProperties.Weapon]));
+export const deathGetAttackPower = (death: Death) => 1 + weaponGetAttack(weaponGetId(death[DeathProperties.Weapon]));
+export const deathGetDefense = (death: Death) => 4 + weaponGetDefense(weaponGetId(death[DeathProperties.Weapon]));
 export const deathHit = (death: Death, power: number) => {
-    debugger;
     death[DeathProperties.Health] -= power / deathGetDefense(death);
     if (deathIsDead(death)) {
         deathDie(death);
@@ -326,7 +340,6 @@ export const deathHit = (death: Death, power: number) => {
 export const deathGetHealth = (death: Death) => death[DeathProperties.Health];
 
 export const deathIncreaseHealth = (death: Death, amount: number) => {
-    debugger;
     death[DeathProperties.Health] += amount;
     if (deathIsDead(death)) {
         deathDie(death);

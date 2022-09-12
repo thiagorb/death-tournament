@@ -118,7 +118,7 @@ export const dogIsDead = (dog: Dog) => {
 };
 
 export const dogHit = (dog: Dog, power: number) => {
-    const defense = 3;
+    const defense = 2;
     dog[DogProperties.Health] -= power / defense;
     if (dogIsDead(dog)) {
         animationStart(dog[DogProperties.DeadAnimation]);

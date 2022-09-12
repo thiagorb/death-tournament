@@ -55,5 +55,9 @@ export const weaponGetDefense = (weaponId: number) => statsMap[weaponGetStatsId(
 export const weaponGetType = (weaponId: number) => weaponId % typesCount;
 export const weaponGetRange = (weaponId: number) => types[weaponGetType(weaponId)][WeaponTypeStatsProperty.Range];
 export const weaponGetGap = (weaponId: number) => types[weaponGetType(weaponId)][WeaponTypeStatsProperty.Gap];
-export const weaponGetRandomId = (random: number): number => (random ** 1.5 * weaponTotalTypes()) | 0;
+export const weaponGetRandomId = (random: number): number => {
+    const value = (random ** 1.5 * weaponTotalTypes()) | 0;
+    console.log({ randomWeaponId: value });
+    return value;
+};
 export const weaponGetModelType = (weaponId: number) => weaponId % Object.values(types).length;

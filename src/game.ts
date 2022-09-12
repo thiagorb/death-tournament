@@ -18,6 +18,7 @@ import {
     deathIsDead,
     deathIsFacingLeft,
     deathIsHitting,
+    deathRegisterHit,
     deathStep,
     deathWalk,
 } from './death';
@@ -141,7 +142,8 @@ export const gamePeopleStep = (game: Game, deltaTime: number) => {
     for (const person of game[GameProperties.People]) {
         if (
             !personIsDead(person) &&
-            deathIsHitting(game[GameProperties.Death], personGetLeft(person), personGetRight(person))
+            deathIsHitting(game[GameProperties.Death], personGetLeft(person), personGetRight(person)) &&
+            deathRegisterHit(game[GameProperties.Death], person)
         ) {
             createHitIndicator(personGetPosition(person));
             personHit(person, deathGetAttackPower(game[GameProperties.Death]));
@@ -208,7 +210,11 @@ export const gameHourglasssStep = (game: Game, deltaTime: number) => {
 export const gameDogStep = (game: Game, deltaTime: number) => {
     for (const dog of game[GameProperties.Dogs]) {
         dogStep(dog, deltaTime);
-        if (!dogIsDead(dog) && deathIsHitting(game[GameProperties.Death], dogGetLeft(dog), dogGetRight(dog))) {
+        if (
+            !dogIsDead(dog) &&
+            deathIsHitting(game[GameProperties.Death], dogGetLeft(dog), dogGetRight(dog)) &&
+            deathRegisterHit(game[GameProperties.Death], dog)
+        ) {
             createHitIndicator(dogGetPosition(dog));
             dogHit(dog, deathGetAttackPower(game[GameProperties.Death]));
             if (dogIsDead(dog)) {
@@ -276,12 +282,18 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
                 deathAttack(enemy);
             }
 
-            if (deathIsHitting(enemy, deathGetBoundingLeft(player), deathGetBoundingRight(player))) {
+            if (
+                deathIsHitting(enemy, deathGetBoundingLeft(player), deathGetBoundingRight(player)) &&
+                deathRegisterHit(enemy, player)
+            ) {
                 deathHit(player, deathGetAttackPower(enemy));
                 createHitIndicator(deathGetPosition(player));
             }
 
-            if (deathIsHitting(player, deathGetBoundingLeft(enemy), deathGetBoundingRight(enemy))) {
+            if (
+                deathIsHitting(player, deathGetBoundingLeft(enemy), deathGetBoundingRight(enemy)) &&
+                deathRegisterHit(player, enemy)
+            ) {
                 deathHit(enemy, deathGetAttackPower(player));
                 createHitIndicator(deathGetPosition(enemy));
                 uiUpdaterSet(uiOpponentUpdater, deathGetHealth(enemy));
@@ -450,8 +462,8 @@ const weaponColors: Array<ColorRGB> = [
 ];
 
 export const weaponCreate = (weaponId: number): Weapon => {
-    const model = modelGetWeapons()[weaponId];
     const modelType = weaponGetModelType(weaponId);
+    const model = modelGetWeapons()[modelType];
     const bladeColor = weaponColors[1 + weaponGetAttack(weaponId)];
     const snathColor = weaponColors[weaponGetDefense(weaponId)];
     const colorOverrides = [

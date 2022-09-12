@@ -1,6 +1,5 @@
 ## Next Steps
 
--   prevent hitting the same object more than twice per attack
 -   save collected weapons in local storage when not logged in to near
 
 ## Feature ideas
