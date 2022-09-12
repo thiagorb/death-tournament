@@ -26,7 +26,7 @@ const enum PersonProperties {
     DeadAnimation,
     FacingLeft,
     Animatable,
-    Dead,
+    Health,
     DeadTime,
     Opacity,
 }
@@ -37,7 +37,7 @@ export type Person = {
     [PersonProperties.DeadAnimation]: Animation;
     [PersonProperties.FacingLeft]: boolean;
     [PersonProperties.Animatable]: Animatable;
-    [PersonProperties.Dead]: boolean;
+    [PersonProperties.Health]: number;
     [PersonProperties.DeadTime]: number;
     [PersonProperties.Opacity]: number;
 };
@@ -69,7 +69,7 @@ export const personCreate = (position: Vec2): Person => {
         [PersonProperties.WalkAnimation]: null,
         [PersonProperties.DeadAnimation]: null,
         [PersonProperties.FacingLeft]: false,
-        [PersonProperties.Dead]: false,
+        [PersonProperties.Health]: 1,
         [PersonProperties.DeadTime]: 0,
         [PersonProperties.Opacity]: 0,
     };
@@ -143,12 +143,15 @@ export const personWalk = (person: Person) => {
 };
 
 export const personIsDead = (person: Person) => {
-    return person[PersonProperties.Dead];
+    return person[PersonProperties.Health] <= 0;
 };
 
-export const personDie = (person: Person) => {
-    animationStart(person[PersonProperties.DeadAnimation]);
-    person[PersonProperties.Dead] = true;
+export const personHit = (person: Person, power: number) => {
+    const defense = 5;
+    person[PersonProperties.Health] -= power / defense;
+    if (personIsDead(person)) {
+        animationStart(person[PersonProperties.DeadAnimation]);
+    }
 };
 
 export const personTurnLeft = (person: Person) => {
@@ -168,7 +171,7 @@ export const personSetPositionX = (person: Person, x: number) => {
 };
 
 export const personStep = (person: Person, deltaTime: number) => {
-    if (person[PersonProperties.Dead]) {
+    if (personIsDead(person)) {
         person[PersonProperties.DeadTime] += deltaTime;
     } else {
         person[PersonProperties.Position][0] += (person[PersonProperties.FacingLeft] ? -1 : 1) * deltaTime * 0.2;
@@ -182,7 +185,7 @@ export const personStep = (person: Person, deltaTime: number) => {
 
     animatableBeginStep(person[PersonProperties.Animatable]);
 
-    if (person[PersonProperties.Dead]) {
+    if (personIsDead(person)) {
         animationStep(person[PersonProperties.DeadAnimation], deltaTime);
     } else {
         animationStep(person[PersonProperties.WalkAnimation], deltaTime);

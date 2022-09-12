@@ -25,7 +25,7 @@ const enum DogProperties {
     Animatable,
     WalkAnimation,
     DeadAnimation,
-    Dead,
+    Health,
     FacingLeft,
     DeadTime,
     Opacity,
@@ -36,7 +36,7 @@ export type Dog = {
     [DogProperties.Animatable]: Animatable;
     [DogProperties.WalkAnimation]: Animation;
     [DogProperties.DeadAnimation]: Animation;
-    [DogProperties.Dead]: boolean;
+    [DogProperties.Health]: number;
     [DogProperties.FacingLeft]: boolean;
     [DogProperties.DeadTime]: number;
     [DogProperties.Opacity]: number;
@@ -68,7 +68,7 @@ export const dogCreate = (position: Vec2): Dog => {
         ]),
         [DogProperties.WalkAnimation]: null,
         [DogProperties.DeadAnimation]: null,
-        [DogProperties.Dead]: false,
+        [DogProperties.Health]: 1,
         [DogProperties.FacingLeft]: false,
         [DogProperties.DeadTime]: 0,
         [DogProperties.Opacity]: 0,
@@ -114,12 +114,15 @@ export const dogCreate = (position: Vec2): Dog => {
 };
 
 export const dogIsDead = (dog: Dog) => {
-    return dog[DogProperties.Dead];
+    return dog[DogProperties.Health] <= 0;
 };
 
-export const dogDie = (dog: Dog) => {
-    animationStart(dog[DogProperties.DeadAnimation]);
-    dog[DogProperties.Dead] = true;
+export const dogHit = (dog: Dog, power: number) => {
+    const defense = 3;
+    dog[DogProperties.Health] -= power / defense;
+    if (dogIsDead(dog)) {
+        animationStart(dog[DogProperties.DeadAnimation]);
+    }
 };
 
 export const dogTurnLeft = (dog: Dog) => {
@@ -143,7 +146,7 @@ export const dogDraw = (dog: Dog, program: Program) => {
 };
 
 export const dogStep = (dog: Dog, deltaTime: number) => {
-    if (dog[DogProperties.Dead]) {
+    if (dogIsDead(dog)) {
         dog[DogProperties.DeadTime] += deltaTime;
     } else {
         dog[DogProperties.Position][0] += (dog[DogProperties.FacingLeft] ? -1 : 1) * deltaTime * 0.2;

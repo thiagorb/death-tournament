@@ -18,7 +18,7 @@ import {
 import {
     Dog,
     dogCreate,
-    dogDie,
+    dogHit,
     dogDraw,
     dogGetDeadTime,
     dogGetLeft,
@@ -37,7 +37,7 @@ import { nearClaimWeapon, nearGetSignedIn } from './near';
 import {
     Person,
     personCreate,
-    personDie,
+    personHit,
     personDraw,
     personGetDeadTime,
     personGetLeft,
@@ -141,9 +141,12 @@ export const gamePeopleStep = (game: Game, deltaTime: number) => {
             deathIsHitting(game[GameProperties.Death], personGetLeft(person), personGetRight(person))
         ) {
             createHitIndicator(personGetPosition(person));
-            personDie(person);
-            game[GameProperties.Score] += ++game[GameProperties.Combo];
-            game[GameProperties.TimeLeft] += 400;
+            personHit(person, 1);
+            if (personIsDead(person)) {
+                game[GameProperties.Combo]++;
+                game[GameProperties.TimeLeft] += 400;
+            }
+            game[GameProperties.Score] += game[GameProperties.Combo];
         }
         personStep(person, deltaTime);
         if (personGetDeadTime(person) > 2000 || gameIsOutOfArea(personGetPosition(person))) {
@@ -204,8 +207,10 @@ export const gameDogStep = (game: Game, deltaTime: number) => {
         dogStep(dog, deltaTime);
         if (!dogIsDead(dog) && deathIsHitting(game[GameProperties.Death], dogGetLeft(dog), dogGetRight(dog))) {
             createHitIndicator(dogGetPosition(dog));
-            dogDie(dog);
-            increaseTime(game, -5);
+            dogHit(dog, 1);
+            if (dogIsDead(dog)) {
+                increaseTime(game, -5);
+            }
         }
 
         if (dogGetDeadTime(dog) > 2000 || gameIsOutOfArea(dogGetPosition(dog))) {
