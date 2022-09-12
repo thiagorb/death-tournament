@@ -1,5 +1,4 @@
 import * as modelData from '../art/death.svg';
-import * as scytheModelData from '../art/scythe-curved.svg';
 import {
     Animatable,
     animatableBeginStep,
@@ -24,7 +23,8 @@ import { GAME_WIDTH } from './game';
 import { glSetGlobalOpacity, Program } from './gl';
 import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
 import { Hourglass, hourglassGetPosition } from './hourglass';
-import { Models, models, Object, objectCreate } from './model';
+import { Models, models, objectCreate } from './model';
+import { Weapon, weaponGetAttack, weaponGetDefense, weaponGetGap, weaponGetObject, weaponGetRange } from './weapon';
 
 const enum DeathProperties {
     Position,
@@ -38,8 +38,9 @@ const enum DeathProperties {
     FacingLeft,
     Attacking,
     AttackingTime,
-    Fading,
     Opacity,
+    Weapon,
+    Health,
 }
 
 export type Death = {
@@ -54,11 +55,12 @@ export type Death = {
     [DeathProperties.FacingLeft]: boolean;
     [DeathProperties.Attacking]: boolean;
     [DeathProperties.AttackingTime]: number;
-    [DeathProperties.Fading]: boolean;
     [DeathProperties.Opacity]: number;
+    [DeathProperties.Weapon]: Weapon;
+    [DeathProperties.Health]: number;
 };
 
-export const deathCreate = (position: Vec2, weaponObject: Object): Death => {
+export const deathCreate = (position: Vec2, weapon: Weapon): Death => {
     const REST_LEFT_1 = 0;
     const REST_LEFT_2 = -1.5;
     const REST_RIGHT_1 = 0;
@@ -67,7 +69,7 @@ export const deathCreate = (position: Vec2, weaponObject: Object): Death => {
     const leftArm2 = animationElementCreate(REST_LEFT_2);
     const rightArm1 = animationElementCreate(REST_RIGHT_1);
     const rightArm2 = animationElementCreate(REST_RIGHT_2);
-    const weapon = animationElementCreate();
+    const weaponAnimationElement = animationElementCreate();
     const bodyTranslate = animationElementCreate();
 
     const restPositionLeftArm = [
@@ -102,7 +104,7 @@ export const deathCreate = (position: Vec2, weaponObject: Object): Death => {
         [DeathProperties.AttackCooldown]: 0,
         [DeathProperties.AnimatableRight]: animatableCreate(
             objectCreate(models[Models.Death], {
-                [modelData.weaponLeftComponentId]: weaponObject,
+                [modelData.weaponLeftComponentId]: weapon && weaponGetObject(weapon),
                 [modelData.weaponRightComponentId]: null,
             }),
             [
@@ -110,21 +112,21 @@ export const deathCreate = (position: Vec2, weaponObject: Object): Death => {
                 boundElementCreate(leftArm2, modelData.leftArm2ComponentId),
                 boundElementCreate(rightArm1, modelData.rightArm1ComponentId),
                 boundElementCreate(rightArm2, modelData.rightArm2ComponentId),
-                boundElementCreate(weapon, modelData.weaponLeftComponentId),
+                boundElementCreate(weaponAnimationElement, modelData.weaponLeftComponentId),
                 boundElementCreate(bodyTranslate, modelData.bodyComponentId, AnimatedProperty.TranslationY),
             ]
         ),
         [DeathProperties.AnimatableLeft]: animatableCreate(
             objectCreate(models[Models.Death], {
                 [modelData.weaponLeftComponentId]: null,
-                [modelData.weaponRightComponentId]: weaponObject,
+                [modelData.weaponRightComponentId]: weapon && weaponGetObject(weapon),
             }),
             [
                 boundElementCreate(rightArm1, modelData.leftArm1ComponentId),
                 boundElementCreate(rightArm2, modelData.leftArm2ComponentId),
                 boundElementCreate(leftArm1, modelData.rightArm1ComponentId),
                 boundElementCreate(leftArm2, modelData.rightArm2ComponentId),
-                boundElementCreate(weapon, modelData.weaponLeftComponentId),
+                boundElementCreate(weaponAnimationElement, modelData.weaponLeftComponentId),
                 boundElementCreate(bodyTranslate, modelData.bodyComponentId, AnimatedProperty.TranslationY),
             ]
         ),
@@ -135,8 +137,9 @@ export const deathCreate = (position: Vec2, weaponObject: Object): Death => {
         [DeathProperties.FacingLeft]: false,
         [DeathProperties.Attacking]: false,
         [DeathProperties.AttackingTime]: 0,
-        [DeathProperties.Fading]: false,
         [DeathProperties.Opacity]: 0,
+        [DeathProperties.Weapon]: weapon,
+        [DeathProperties.Health]: 1,
     };
 
     const attackPrepareSpeed = 0.02;
@@ -163,7 +166,7 @@ export const deathCreate = (position: Vec2, weaponObject: Object): Death => {
                 animationFrameItemCreate(leftArm2, 0, 0.01),
                 animationFrameItemCreate(rightArm1, 0, 0.01),
                 animationFrameItemCreate(rightArm2, 0, 0.01),
-                animationFrameItemCreate(weapon, 0.6, 0.002),
+                animationFrameItemCreate(weaponAnimationElement, 0.6, 0.002),
                 animationFrameItemCreate(bodyTranslate, 60, 0.05),
             ],
             () => animationStart(death[DeathProperties.DeadAnimation])
@@ -233,15 +236,16 @@ export const deathIsAttacking = (death: Death) => {
     return death[DeathProperties.Attacking];
 };
 
-export const deathStartFade = (death: Death) => {
-    death[DeathProperties.Fading] = true;
+export const deathDie = (death: Death) => {
+    debugger;
+    death[DeathProperties.Health] = 0;
     animationStart(death[DeathProperties.DeadAnimation]);
 };
 
-export const deathIsFading = (death: Death) => death[DeathProperties.Fading];
+export const deathIsDead = (death: Death) => death[DeathProperties.Health] <= 0;
 
 export const deathStep = (death: Death, deltaTime: number) => {
-    const opacityDirection = death[DeathProperties.Fading] ? -0.5 : 1;
+    const opacityDirection = deathIsDead(death) ? -0.5 : 1;
     death[DeathProperties.Opacity] = Math.max(
         0,
         Math.min(1, death[DeathProperties.Opacity] + 0.002 * deltaTime * opacityDirection)
@@ -268,12 +272,14 @@ export const deathStep = (death: Death, deltaTime: number) => {
     animationPause(death[DeathProperties.WalkAnimation]);
 };
 
-const ATTACK_GAP = 20;
 const ATTACK_WIDTH = 1;
-const getAttackLeft = (death: Death) =>
-    death[DeathProperties.Position][0] +
-    (death[DeathProperties.FacingLeft] ? -1 : 1) * (ATTACK_GAP + death[DeathProperties.AttackingTime] * 1.3) -
-    ATTACK_WIDTH / 2;
+const getAttackLeft = (death: Death) => {
+    const gap = weaponGetGap(death[DeathProperties.Weapon]);
+    const range = weaponGetRange(death[DeathProperties.Weapon]);
+    const direction = death[DeathProperties.FacingLeft] ? -1 : 1;
+    const attackOrigin = death[DeathProperties.Position][0] + direction * gap;
+    return attackOrigin + death[DeathProperties.AttackingTime] * direction * range - ATTACK_WIDTH;
+};
 
 export const deathIsHitting = (death: Death, boundingLeft: number, boundingRight: number) => {
     if (!death[DeathProperties.Attacking]) {
@@ -306,3 +312,23 @@ export const deathIsFacingLeft = (death: Death) => death[DeathProperties.FacingL
 
 export const deathGetBoundingLeft = (death: Death) => death[DeathProperties.Position][0] - DEATH_WIDTH / 2;
 export const deathGetBoundingRight = (death: Death) => death[DeathProperties.Position][0] + DEATH_WIDTH / 2;
+
+export const deathGetAttackPower = (death: Death) => weaponGetAttack(death[DeathProperties.Weapon]);
+export const deathGetDefense = (death: Death) => 10 + weaponGetDefense(death[DeathProperties.Weapon]);
+export const deathHit = (death: Death, power: number) => {
+    debugger;
+    death[DeathProperties.Health] -= power / deathGetDefense(death);
+    if (deathIsDead(death)) {
+        deathDie(death);
+    }
+};
+
+export const deathGetHealth = (death: Death) => death[DeathProperties.Health];
+
+export const deathIncreaseHealth = (death: Death, amount: number) => {
+    debugger;
+    death[DeathProperties.Health] += amount;
+    if (deathIsDead(death)) {
+        deathDie(death);
+    }
+};

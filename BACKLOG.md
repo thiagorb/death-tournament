@@ -1,13 +1,13 @@
 ## Next Steps
 
--   Make weapon colors change stats (better snaths increase defense, better blades increase attack)
 -   Make probability of scythe inversely proportional to how good it is
 -   Prevent selecting player as its own opponent
+-   prevent hitting the same object more than twice per attack
 
 ## Feature ideas
 
+-   drop weapon and animate
 -   add more people types (different clothes, women, etc)
--   make dog stop and change direction
 
 ## Performance improvement ideas
 

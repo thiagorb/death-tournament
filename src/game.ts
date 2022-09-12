@@ -5,25 +5,28 @@ import {
     deathCollidesWithHourglass,
     deathCreate,
     deathDraw,
+    deathGetAttackPower,
     deathGetBoundingLeft,
     deathGetBoundingRight,
+    deathGetHealth,
     deathGetPosition,
+    deathHit,
+    deathIncreaseHealth,
+    deathIsDead,
     deathIsFacingLeft,
-    deathIsFading,
     deathIsHitting,
-    deathStartFade,
     deathStep,
     deathWalk,
 } from './death';
 import {
     Dog,
     dogCreate,
-    dogHit,
     dogDraw,
     dogGetDeadTime,
     dogGetLeft,
     dogGetPosition,
     dogGetRight,
+    dogHit,
     dogIsDead,
     dogStep,
     dogTurnLeft,
@@ -37,12 +40,12 @@ import { nearClaimWeapon, nearGetSignedIn } from './near';
 import {
     Person,
     personCreate,
-    personHit,
     personDraw,
     personGetDeadTime,
     personGetLeft,
     personGetPosition,
     personGetRight,
+    personHit,
     personIsDead,
     personStep,
     personTurnLeft,
@@ -86,7 +89,6 @@ export const enum GameProperties {
     NextHourglass,
     NextDog,
     NextEnemy,
-    TimeLeft,
     TimePassed,
     Combo,
     Opponent,
@@ -97,13 +99,11 @@ export type Game = ReturnType<typeof gameCreate>;
 export const enum OpponentProperties {
     WeaponType,
     Name,
-    Health,
 }
 
 export type Opponent = {
     [OpponentProperties.WeaponType]: number;
     [OpponentProperties.Name]: string;
-    [OpponentProperties.Health]: 1;
 };
 
 export const gameCreate = (weaponType: number) => ({
@@ -118,7 +118,6 @@ export const gameCreate = (weaponType: number) => ({
     [GameProperties.NextDog]: 5000,
     // [GameProperties.NextEnemy]: (15 + 30 * Math.random()) * 1000,
     [GameProperties.NextEnemy]: 1 * Math.random() * 1000,
-    [GameProperties.TimeLeft]: INITIAL_TIME * 1000,
     // [GameProperties.TimePassed]: 3600000,
     [GameProperties.TimePassed]: 0,
     [GameProperties.Combo]: 0,
@@ -127,7 +126,7 @@ export const gameCreate = (weaponType: number) => ({
 
 const createHitIndicator = (position: Vec2) => createIndicator('HIT', position[0], position[1] + 50, 'hit');
 const increaseTime = (game: Game, amount: number) => {
-    game[GameProperties.TimeLeft] += amount * 1000;
+    deathIncreaseHealth(game[GameProperties.Death], amount / INITIAL_TIME);
     const deathPosition = deathGetPosition(game[GameProperties.Death]);
     const type = amount > 0 ? 'time-bonus' : 'time-penalty';
     const sign = amount > 0 ? '+' : '';
@@ -141,10 +140,10 @@ export const gamePeopleStep = (game: Game, deltaTime: number) => {
             deathIsHitting(game[GameProperties.Death], personGetLeft(person), personGetRight(person))
         ) {
             createHitIndicator(personGetPosition(person));
-            personHit(person, 1);
+            personHit(person, deathGetAttackPower(game[GameProperties.Death]));
             if (personIsDead(person)) {
                 game[GameProperties.Combo]++;
-                game[GameProperties.TimeLeft] += 400;
+                deathIncreaseHealth(game[GameProperties.Death], 0.4 / INITIAL_TIME);
             }
             game[GameProperties.Score] += game[GameProperties.Combo];
         }
@@ -207,7 +206,7 @@ export const gameDogStep = (game: Game, deltaTime: number) => {
         dogStep(dog, deltaTime);
         if (!dogIsDead(dog) && deathIsHitting(game[GameProperties.Death], dogGetLeft(dog), dogGetRight(dog))) {
             createHitIndicator(dogGetPosition(dog));
-            dogHit(dog, 1);
+            dogHit(dog, deathGetAttackPower(game[GameProperties.Death]));
             if (dogIsDead(dog)) {
                 increaseTime(game, -5);
             }
@@ -236,7 +235,7 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
     const player = game[GameProperties.Death];
     const enemy = game[GameProperties.Enemy];
     if (enemy) {
-        if (!gameIsOver(game) && !deathIsFading(enemy)) {
+        if (!gameIsOver(game) && !deathIsDead(enemy)) {
             const playerX = deathGetPosition(player)[0];
             const playerDeltaX = playerX - deathGetPosition(enemy)[0];
             let desiredX;
@@ -274,16 +273,16 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
             }
 
             if (deathIsHitting(enemy, deathGetBoundingLeft(player), deathGetBoundingRight(player))) {
+                deathHit(player, deathGetAttackPower(enemy));
                 createHitIndicator(deathGetPosition(player));
             }
 
             if (deathIsHitting(player, deathGetBoundingLeft(enemy), deathGetBoundingRight(enemy))) {
-                game[GameProperties.Opponent][OpponentProperties.Health] -= 0.1;
+                deathHit(enemy, deathGetAttackPower(player));
                 createHitIndicator(deathGetPosition(enemy));
-                uiUpdaterSet(uiOpponentUpdater, game[GameProperties.Opponent][OpponentProperties.Health]);
-                if (game[GameProperties.Opponent][OpponentProperties.Health] <= 0) {
+                uiUpdaterSet(uiOpponentUpdater, deathGetHealth(enemy));
+                if (deathIsDead(enemy)) {
                     uiToggleOpponentHealth(false);
-                    deathStartFade(enemy);
                     claimWeapon();
                 }
             }
@@ -304,7 +303,7 @@ export const gameEnemyStep = (game: Game, deltaTime: number) => {
         game[GameProperties.Enemy] = enemy;
         game[GameProperties.NextEnemy] = Infinity;
         uiToggleOpponentHealth(true, game[GameProperties.Opponent][OpponentProperties.Name]);
-        uiUpdaterSet(uiOpponentUpdater, game[GameProperties.Opponent][OpponentProperties.Health]);
+        uiUpdaterSet(uiOpponentUpdater, deathGetHealth(enemy));
     }
 };
 
@@ -401,9 +400,9 @@ export const gameStart = (game: Game, program: Program) => {
         gameStep(game, deltaTime * relativeSpeed);
         gameRender(game, program);
 
-        game[GameProperties.TimeLeft] = Math.max(0, game[GameProperties.TimeLeft] - deltaTime);
+        deathIncreaseHealth(game[GameProperties.Death], -(deltaTime * 0.001) / INITIAL_TIME);
         game[GameProperties.TimePassed] += deltaTime;
-        uiUpdaterSet(uiPlayerHealthUpdater, ((game[GameProperties.TimeLeft] / 1000) | 0) / (INITIAL_TIME - 2));
+        uiUpdaterSet(uiPlayerHealthUpdater, deathGetHealth(game[GameProperties.Death]));
         uiUpdaterSet(uiScoreUpdater, game[GameProperties.Score]);
         uiUpdaterSet(comboUpdater, game[GameProperties.Combo]);
         comboTime -= deltaTime;
@@ -412,20 +411,18 @@ export const gameStart = (game: Game, program: Program) => {
             comboTime = 0;
         }
 
-        if (game[GameProperties.TimeLeft] > 0) {
-            requestAnimationFrame(loop);
-        } else {
-            deathStartFade(game[GameProperties.Death]);
+        if (deathIsDead(game[GameProperties.Death])) {
             document.querySelectorAll('.after-game').forEach(e => e.classList.remove('hidden'));
-
             const score = game[GameProperties.Score];
             storageSetHighscore(Math.max(storageGetHighscore(), score));
             (document.querySelector('#last-score') as HTMLElement).innerText = score as any as string;
             menuStart(program, game);
+        } else {
+            requestAnimationFrame(loop);
         }
     };
 
     requestAnimationFrame((time: number) => loop((previousTime = time)));
 };
 
-export const gameIsOver = (game: Game) => game[GameProperties.TimeLeft] <= 0;
+export const gameIsOver = (game: Game) => deathIsDead(game[GameProperties.Death]);

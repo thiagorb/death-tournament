@@ -10,7 +10,7 @@ import {
     OpponentProperties,
     VIRTUAL_WIDTH,
 } from './game';
-import { glSetGlobalOpacity, Program } from './gl';
+import { getVirtualScreenWidth, glSetGlobalOpacity, Program } from './gl';
 import { matrixRotate, matrixScale, matrixSetIdentity, matrixTranslate, vectorCreate } from './glm';
 import { Object, objectApplyTransforms, objectDraw, objectGetRootTransform } from './model';
 import {
@@ -26,7 +26,7 @@ import {
 } from './near';
 import { storageGetHighscore } from './storage';
 import { uiSetPlayerName, uiToggleOpponentHealth } from './ui';
-import { weaponCreate, weaponTotalTypes } from './weapon';
+import { weaponCreate, weaponGetObject, weaponTotalTypes } from './weapon';
 
 export const menuStart = (program: Program, lastGame: Game = null) => {
     (document.querySelector('#high-score') as HTMLElement).innerText = storageGetHighscore() as any as string;
@@ -49,7 +49,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
     const updatePlayerWeapons = (newWeaponsType: Array<number>) => {
         playerWeaponsType = [...new Set([...initialWeapons(), ...newWeaponsType])];
         playerWeaponsType.sort((a, b) => a - b).reverse();
-        playerWeapons = playerWeaponsType.map(type => weaponCreate(type));
+        playerWeapons = playerWeaponsType.map(weaponCreate).map(weaponGetObject);
         selectedWeapon = 0;
     };
 
@@ -106,7 +106,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
             const shift = delta + i;
             const distance = 1 - Math.abs(shift / 3);
             matrixSetIdentity(matrix);
-            matrixTranslate(matrix, VIRTUAL_WIDTH / 2 - 100, shift * 60);
+            matrixTranslate(matrix, getVirtualScreenWidth() / 2 - 150, shift * 60);
             matrixScale(matrix, Math.max(0, distance), Math.max(0, distance));
             matrixTranslate(matrix, 0, shift * 60);
             matrixRotate(matrix, menuScene[GameProperties.TimePassed] * 0.001);
@@ -223,7 +223,6 @@ const formatPlayerName = (name: string) => {
 const opponentFromNearOpponent = (opponent: NearOpponent): Opponent => ({
     [OpponentProperties.WeaponType]: opponent?.weaponType || (Math.random() * weaponTotalTypes()) | 0,
     [OpponentProperties.Name]: formatPlayerName(opponent?.playerId || 'ENEMY'),
-    [OpponentProperties.Health]: 1,
 });
 
-const initialWeapons = () => [1, 2];
+const initialWeapons = () => [0, 1];
