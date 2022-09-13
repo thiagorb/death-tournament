@@ -2,7 +2,7 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   sodipodi:docname="person.svg"
+   sodipodi:docname="woman"
    inkscape:version="1.2.1 (2ed6d7ae0b, 2022-08-22, custom)"
    id="svg10609"
    version="1.1"
@@ -24,9 +24,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="16.676773"
-     inkscape:cx="152.90728"
-     inkscape:cy="86.557514"
+     inkscape:zoom="2.0845966"
+     inkscape:cx="72.915785"
+     inkscape:cy="155.66561"
      inkscape:window-width="1846"
      inkscape:window-height="1016"
      inkscape:window-x="74"
@@ -64,7 +64,7 @@
 }</desc>
     </path>
     <path
-       style="fill:#000080;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       style="fill:#ffa7ca;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
        d="M 39.4378 36.4647 L 37.9953 43.0743 L 46.7256 42.976 L 45.789 36.4009 L 44.0092 35.4131 L 41.4307 35.3853 L 39.4378 36.4647"
        id="leftArm1"
        sodipodi:nodetypes="ccccccc"
@@ -160,7 +160,7 @@
 }</desc>
     </path>
     <path
-       style="fill:#2b0000;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       style="fill:#ffa7ca;stroke:none;stroke-width:1.03588;stroke-opacity:1;fill-opacity:1"
        d="M 30.2553 68.2649 L 37.5255 67.8448 L 41.5284 66.1849 L 43.0219 38.3349 L 39.9904 32.8636 L 26.8553 33.1181 L 23.6861 44.9705 L 24.9655 66.3975"
        id="body"
        sodipodi:nodetypes="cccccccc"
@@ -201,7 +201,7 @@
 }</desc>
     </path>
     <path
-       style="fill:#000080;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
+       style="fill:#ffa7ca;fill-opacity:1;stroke:none;stroke-width:1.03588;stroke-opacity:1"
        d="M 22.7328 36.3031 L 21.0471 42.8549 L 29.7751 43.0792 L 29.082 36.4739 L 27.3398 35.4211 L 24.7641 35.298 L 22.7328 36.3031"
        id="rightArm1"
        sodipodi:nodetypes="ccccccc"

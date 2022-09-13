@@ -25,8 +25,8 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="2.099937"
-     inkscape:cx="210.0063"
-     inkscape:cy="224.53055"
+     inkscape:cx="161.43341"
+     inkscape:cy="225.00675"
      inkscape:window-width="1846"
      inkscape:window-height="1016"
      inkscape:window-x="74"
@@ -40,14 +40,14 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
-       style="fill:#663800;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
+       style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
        d="m 16.832617,15.719112 68.969402,51.915989 -2.57169,3.90869 L 14.197981,17.6184"
        id="snath"
        inkscape:transform-center-x="1.1757999"
        inkscape:transform-center-y="-0.032210026"
        sodipodi:nodetypes="cccc" />
     <path
-       style="fill:#a7a7a7;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
+       style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:1.13682;stroke-opacity:1"
        d="m 78.560609,65.921441 -8.73252,11.59134 -18.94481,11.04922 14.8289,-1.56823 11.74819,-7.8008 6.10279,-9.64937"
        id="blade"
        sodipodi:nodetypes="cccccc"

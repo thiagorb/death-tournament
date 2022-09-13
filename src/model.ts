@@ -5,8 +5,10 @@ import * as scytheModelData from '../art/scythe.svg';
 import * as scytheCurvedModelData from '../art/scythe-curved.svg';
 import * as scytheDoubleModelData from '../art/scythe-double.svg';
 import * as dogModelData from '../art/dog.svg';
-import * as personModelData from '../art/person.svg';
+import * as manModelData from '../art/man.svg';
+import * as womanModelData from '../art/woman.svg';
 import * as hourglassModelData from '../art/hourglass.svg';
+import { COLOR_PRECISION, COORDINATES_PRECISION } from './config';
 
 export const enum Models {
     Death,
@@ -14,7 +16,8 @@ export const enum Models {
     ScytheCurved,
     ScytheDouble,
     Dog,
-    Person,
+    Man,
+    Woman,
     Hourglass,
 }
 
@@ -26,7 +29,8 @@ export const modelsInit = (program: Program) => {
         [Models.ScytheCurved]: modelCreate(program, scytheCurvedModelData.model),
         [Models.ScytheDouble]: modelCreate(program, scytheDoubleModelData.model),
         [Models.Dog]: modelCreate(program, dogModelData.model),
-        [Models.Person]: modelCreate(program, personModelData.model),
+        [Models.Man]: modelCreate(program, manModelData.model),
+        [Models.Woman]: modelCreate(program, womanModelData.model),
         [Models.Hourglass]: modelCreate(program, hourglassModelData.model),
     };
     models = m;
@@ -200,8 +204,8 @@ export const objectDraw = (object: Object, program: Program) => {
 };
 
 const modelMeshFromPolygon = (program: Program, polygon: Polygon, loaded: boolean): ModelMesh => {
-    const transformCoordinate = (c: number) => c / (loaded ? 10 : 1);
-    const transformColor = (c: number) => c / (loaded ? 99 : 1);
+    const transformCoordinate = (c: number) => c / (loaded ? COORDINATES_PRECISION : 1);
+    const transformColor = (c: number) => c / (loaded ? COLOR_PRECISION : 1);
 
     return {
         [ModelMeshProperty.Mesh]: glMeshCreate(

@@ -1,4 +1,5 @@
-import * as modelData from '../art/person.svg';
+import * as manModelData from '../art/man.svg';
+import * as womanModelData from '../art/woman.svg';
 import {
     Animatable,
     animatableBeginStep,
@@ -16,7 +17,7 @@ import {
     animationStep,
     boundElementCreate,
 } from './animation';
-import { glSetGlobalOpacity, Program } from './gl';
+import { ColorRGB, glSetGlobalOpacity, Program } from './gl';
 import { matrixScale, matrixSetIdentity, matrixTranslateVector, Vec2 } from './glm';
 import { Models, models, objectCreate } from './model';
 
@@ -42,6 +43,77 @@ export type Person = {
     [PersonProperties.Opacity]: number;
 };
 
+const beige = [0.86, 0.8, 0.72];
+const clothesColors = [beige, [0.27, 0.38, 0.55], [0.3, 0.3, 0.3]];
+const shoesColors = [beige, [0.3, 0.3, 0.3]];
+const skinColors = [
+    [0.63, 0.4, 0.37],
+    [0.35, 0.18, 0.16],
+];
+const hairColors = [
+    [0.98, 0.91, 0.63],
+    [0.14, 0.07, 0.04],
+];
+
+const manColorOverrides = () => {
+    const sleevesColor = clothesColors[(Math.random() * 4) | 0] as ColorRGB;
+    const shirtColor = clothesColors[(Math.random() * 4) | 0] as ColorRGB;
+    const pantsColor = clothesColors[(Math.random() * 4) | 0] as ColorRGB;
+    const shoesColor = shoesColors[(Math.random() * 3) | 0] as ColorRGB;
+    const skinColor = skinColors[(Math.random() * 3) | 0] as ColorRGB;
+
+    return {
+        [manModelData.leftArm1ComponentId]: sleevesColor,
+        [manModelData.rightArm1ComponentId]: sleevesColor,
+        [manModelData.bodyComponentId]: shirtColor,
+
+        [manModelData.leftLeg1ComponentId]: pantsColor,
+        [manModelData.leftLeg2ComponentId]: pantsColor,
+        [manModelData.rightLeg1ComponentId]: pantsColor,
+        [manModelData.rightLeg2ComponentId]: pantsColor,
+
+        [manModelData.leftLeg3ComponentId]: shoesColor,
+        [manModelData.rightLeg3ComponentId]: shoesColor,
+
+        [manModelData.leftArm2ComponentId]: skinColor,
+        [manModelData.leftArm3ComponentId]: skinColor,
+        [manModelData.rightArm2ComponentId]: skinColor,
+        [manModelData.rightArm3ComponentId]: skinColor,
+        [manModelData.faceComponentId]: skinColor,
+        [manModelData.noseComponentId]: skinColor && (skinColor.map(c => Math.min(1, c * 1.2)) as ColorRGB),
+        [manModelData.hairComponentId]: hairColors[(Math.random() * 3) | 0] as ColorRGB,
+    };
+};
+
+const womanColorOverrides = () => {
+    const sleevesColor = clothesColors[(Math.random() * 4) | 0] as ColorRGB;
+    const shirtColor = clothesColors[(Math.random() * 4) | 0] as ColorRGB;
+    const pantsColor = clothesColors[(Math.random() * 4) | 0] as ColorRGB;
+    const shoesColor = shoesColors[(Math.random() * 3) | 0] as ColorRGB;
+    const skinColor = skinColors[(Math.random() * 3) | 0] as ColorRGB;
+    const hairColor = hairColors[(Math.random() * 3) | 0] as ColorRGB;
+
+    return {
+        [womanModelData.leftArm1ComponentId]: sleevesColor,
+        [womanModelData.rightArm1ComponentId]: sleevesColor,
+        [womanModelData.bodyComponentId]: shirtColor,
+        [womanModelData.leftLeg1ComponentId]: pantsColor,
+        [womanModelData.leftLeg2ComponentId]: pantsColor,
+        [womanModelData.rightLeg1ComponentId]: pantsColor,
+        [womanModelData.rightLeg2ComponentId]: pantsColor,
+        [womanModelData.leftLeg3ComponentId]: shoesColor,
+        [womanModelData.rightLeg3ComponentId]: shoesColor,
+        [womanModelData.leftArm2ComponentId]: skinColor,
+        [womanModelData.leftArm3ComponentId]: skinColor,
+        [womanModelData.rightArm2ComponentId]: skinColor,
+        [womanModelData.rightArm3ComponentId]: skinColor,
+        [womanModelData.faceComponentId]: skinColor,
+        [womanModelData.noseComponentId]: skinColor && (skinColor.map(c => Math.min(1, c * 1.2)) as ColorRGB),
+        [womanModelData.hairComponentId]: hairColor,
+        [womanModelData.hair2ComponentId]: hairColor,
+    };
+};
+
 export const personCreate = (position: Vec2): Person => {
     const leftArm1 = animationElementCreate();
     const leftArm2 = animationElementCreate();
@@ -53,19 +125,34 @@ export const personCreate = (position: Vec2): Person => {
     const rightLeg2 = animationElementCreate();
     const body = animationElementCreate();
 
+    const animatable =
+        Math.random() > 0.5
+            ? animatableCreate(objectCreate(models[Models.Man], {}, manColorOverrides()), [
+                  boundElementCreate(leftArm1, manModelData.leftArm1ComponentId),
+                  boundElementCreate(leftArm2, manModelData.leftArm3ComponentId),
+                  boundElementCreate(rightArm1, manModelData.rightArm1ComponentId),
+                  boundElementCreate(rightArm2, manModelData.rightArm3ComponentId),
+                  boundElementCreate(leftLeg1, manModelData.leftLeg1ComponentId),
+                  boundElementCreate(leftLeg2, manModelData.leftLeg2ComponentId),
+                  boundElementCreate(rightLeg1, manModelData.rightLeg1ComponentId),
+                  boundElementCreate(rightLeg2, manModelData.rightLeg2ComponentId),
+                  boundElementCreate(body, manModelData.bodyComponentId),
+              ])
+            : animatableCreate(objectCreate(models[Models.Woman], {}, womanColorOverrides()), [
+                  boundElementCreate(leftArm1, womanModelData.leftArm1ComponentId),
+                  boundElementCreate(leftArm2, womanModelData.leftArm3ComponentId),
+                  boundElementCreate(rightArm1, womanModelData.rightArm1ComponentId),
+                  boundElementCreate(rightArm2, womanModelData.rightArm3ComponentId),
+                  boundElementCreate(leftLeg1, womanModelData.leftLeg1ComponentId),
+                  boundElementCreate(leftLeg2, womanModelData.leftLeg2ComponentId),
+                  boundElementCreate(rightLeg1, womanModelData.rightLeg1ComponentId),
+                  boundElementCreate(rightLeg2, womanModelData.rightLeg2ComponentId),
+                  boundElementCreate(body, womanModelData.bodyComponentId),
+              ]);
+
     const person: Person = {
         [PersonProperties.Position]: position,
-        [PersonProperties.Animatable]: animatableCreate(objectCreate(models[Models.Person]), [
-            boundElementCreate(leftArm1, modelData.leftArm1ComponentId),
-            boundElementCreate(leftArm2, modelData.leftArm3ComponentId),
-            boundElementCreate(rightArm1, modelData.rightArm1ComponentId),
-            boundElementCreate(rightArm2, modelData.rightArm3ComponentId),
-            boundElementCreate(leftLeg1, modelData.leftLeg1ComponentId),
-            boundElementCreate(leftLeg2, modelData.leftLeg2ComponentId),
-            boundElementCreate(rightLeg1, modelData.rightLeg1ComponentId),
-            boundElementCreate(rightLeg2, modelData.rightLeg2ComponentId),
-            boundElementCreate(body, modelData.bodyComponentId),
-        ]),
+        [PersonProperties.Animatable]: animatable,
         [PersonProperties.WalkAnimation]: null,
         [PersonProperties.DeadAnimation]: null,
         [PersonProperties.FacingLeft]: false,
@@ -91,7 +178,7 @@ export const personCreate = (position: Vec2): Person => {
         ),
     ]);
 
-    const walkSpeed = 0.55;
+    const walkSpeed = 0.6;
     person[PersonProperties.WalkAnimation] = animationCreate([
         animationFrameCreate([
             animationFrameItemCreate(leftArm1, -1, 0.01 * walkSpeed),
@@ -122,6 +209,8 @@ export const personCreate = (position: Vec2): Person => {
 
     return person;
 };
+
+const createMan = () => {};
 
 export const personDraw = (person: Person, program: Program) => {
     glSetGlobalOpacity(program, person[PersonProperties.Opacity]);

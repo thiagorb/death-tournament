@@ -122,9 +122,7 @@ export const gameCreate = (weaponType: number) => ({
     [GameProperties.NextPerson]: 1000,
     [GameProperties.NextHourglass]: 3000,
     [GameProperties.NextDog]: 5000,
-    // [GameProperties.NextEnemy]: (15 + 30 * Math.random()) * 1000,
-    [GameProperties.NextEnemy]: 1 * Math.random() * 1000,
-    // [GameProperties.TimePassed]: 3600000,
+    [GameProperties.NextEnemy]: (15 + 30 * Math.random()) * 1000,
     [GameProperties.TimePassed]: 0,
     [GameProperties.Combo]: 0,
     [GameProperties.Opponent]: null as Opponent,
@@ -134,7 +132,7 @@ const createHitIndicator = (position: Vec2) => createIndicator('HIT', position[0
 const increaseTime = (game: Game, amount: number) => {
     deathIncreaseHealth(game[GameProperties.Death], amount / INITIAL_TIME);
     const deathPosition = deathGetPosition(game[GameProperties.Death]);
-    const type = amount > 0 ? 'time-bonus' : 'time-penalty';
+    const type = amount > 0 ? 'bonus' : 'penalty';
     const sign = amount > 0 ? '+' : '';
     createIndicator(`${sign}${amount}s`, deathPosition[0], deathPosition[1] + 120, type);
 };
@@ -417,7 +415,7 @@ export const gameStart = (game: Game, program: Program) => {
         const deltaTime = time - previousTime;
         previousTime = time;
 
-        const relativeSpeed = 0.6 + Math.min(0.4, ((game[GameProperties.TimePassed] * 0.00005) | 0) / 10);
+        const relativeSpeed = 0.6 + Math.min(0.3, ((game[GameProperties.TimePassed] * 0.00004) | 0) / 10);
         gameStep(game, deltaTime * relativeSpeed);
         gameRender(game, program);
 
@@ -463,7 +461,6 @@ const weaponColors: Array<ColorRGB> = [
     [0.75, 0.54, 0.44], // bronze
     [0.81, 0.82, 0.84], // steel
     [0.83, 0.69, 0.22], // gold
-    [1, 0, 0], // red
 ];
 
 export const weaponCreate = (weaponId: number): Weapon => {

@@ -53,7 +53,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
         updatePlayerWeapons(playerWeaponsType);
     });
 
-    const initialWeapons = () => (monetizationEnabled ? [0, 1] : [0, 1, 12]);
+    const initialWeapons = () => (monetizationEnabled ? [0, 1, 12] : [0, 1]);
 
     const incrementSelectedWeapon = (increment: number) => {
         selectedWeapon = Math.max(0, Math.min(playerWeapons.length - 1, selectedWeapon + increment));

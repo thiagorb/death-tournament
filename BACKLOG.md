@@ -1,12 +1,7 @@
 ## Next Steps
 
-## Feature ideas
-
--   drop weapon and animate
--   add more people types (different clothes, women, etc)
--   add goodish weapon for coil subscribers
-
-## Performance improvement ideas
+-   redeploy contracts
+-   test after resetting data
 
 ## Size reduction ideas
 

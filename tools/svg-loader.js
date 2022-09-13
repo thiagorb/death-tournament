@@ -1,5 +1,6 @@
 const { XMLParser } = require('fast-xml-parser');
 const earcut = require('earcut');
+const { COLOR_PRECISION, COORDINATES_PRECISION } = require('../src/config');
 
 module.exports.default = function (source) {
     const options = this.getOptions();
@@ -196,8 +197,8 @@ module.exports.default = function (source) {
     return statements.join('\n\n');
 };
 
-const transformColorComponent = c => Math.round(c * 99);
-const transformCoordinate = c => Math.round(c * 10);
+const transformColorComponent = c => Math.round(c * COLOR_PRECISION);
+const transformCoordinate = c => Math.round(c * COORDINATES_PRECISION);
 
 const getNodes = nodes => {
     if (!nodes) {

@@ -39,7 +39,7 @@
             height: -webkit-fill-available;
         }
 
-        .health-bar {
+        .bar {
             --progress: 0;
             position: relative;
             height: 15px;
@@ -47,7 +47,7 @@
             border-radius: 15px;
         }
 
-        .health-bar:before {
+        .bar:before {
             background: hsl(calc(var(--progress) * 120) 50% 50%);
             display: block;
             content: '';
@@ -84,7 +84,7 @@
             gap: 20px;
         }
 
-        .game-ui, #menu-ui, .player-name, .health-bar {
+        .game-ui, #menu-ui, .player-name, .bar {
             transition: 0.5s opacity, 0.5s filter, 0.5s transform;
         }
 
@@ -94,7 +94,7 @@
             transform: translateY(10px) scale(0.9);
         }
 
-        .hidden .button {
+        .hidden .btn {
             cursor: initial;
         }
 
@@ -102,18 +102,18 @@
             text-align: right;
         }
 
-        .button {
+        .btn {
             border-radius: 20px;
             cursor: pointer;
             box-shadow: 0px 0px 0px 5px rgba(128, 0, 255, 0.3);
         }
 
-        .button[data-text]:before {
+        .btn[data-text]:before {
             content: attr(data-text);
             display: block;
         }
 
-        .button:before, .button-label {
+        .btn:before, .btn-label {
             padding: 0.5em 1em;
             background-color: slateblue;
         }
@@ -140,11 +140,11 @@
             color: #ff8;
         }
 
-        .time-penalty {
+        .penalty {
             color: #f88;
         }
 
-        .time-bonus {
+        .bonus {
             color: #8f8;
         }
 
@@ -168,8 +168,8 @@
         <div id="screen" style="position: absolute; left: 0; top: 0; transform-origin: 0 0;">
             <div id="game-ui" class="hidden game-ui">
                 <div style="position: absolute; display: grid; gap: 5px; top: 20px; left: 50%; transform: translateX(-100%) translateX(150px); overflow: visible; grid-template-columns: auto 300px;">
-                    <div id="player-name" class="player-name"></div><div id="player-health" class="health-bar"></div>
-                    <div id="opponent-name" class="player-name"></div><div id="opponent-health" class="health-bar hidden"></div>
+                    <div id="player-name" class="player-name"></div><div id="player-health" class="bar"></div>
+                    <div id="opponent-name" class="player-name"></div><div id="opponent-health" class="bar hidden"></div>
                 </div>
                 <div id="score">SCORE</div>
             </div>
@@ -181,13 +181,13 @@
                     <div class="hidden after-game">SCORE</div><div id="last-score" class="hidden after-game">0</div>
                     <div>HIGH-SCORE</div><div id="high-score">0</div>
                 </div>
-                <div id="start-game" class="button" data-text="START"></div>
-                <div id="sign-in" class="button" style="display: none;" data-text="SIGN IN WITH NEAR"></div>
-                <div id="network-id" class="button" style="display: none;">
-                    <div data-network-id="mainnet" class="button-label">MAIN NET</div>
-                    <div data-network-id="testnet" class="button-label">TEST NET</div>
+                <div id="start-game" class="btn" data-text="START"></div>
+                <div id="sign-in" class="btn" style="display: none;" data-text="SIGN IN WITH NEAR"></div>
+                <div id="network-id" class="btn" style="display: none;">
+                    <div data-network-id="mainnet" class="btn-label">MAIN NET</div>
+                    <div data-network-id="testnet" class="btn-label">TEST NET</div>
                 </div>
-                <div id="sign-out" class="button" style="display: none;" data-text="SIGN OUT"></div>
+                <div id="sign-out" class="btn" style="display: none;" data-text="SIGN OUT"></div>
                 <span id="account-id" style="display: none"></span>
             </div>
         </div>
