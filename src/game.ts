@@ -112,8 +112,8 @@ export type Opponent = {
     [OpponentProperties.Name]: string;
 };
 
-export const gameCreate = (weaponType: number) => ({
-    [GameProperties.Death]: deathCreate(vectorCreate(0, FLOOR_LEVEL), weaponCreate(weaponType)),
+export const gameCreate = (weaponType: number, initialHealth: number = 1) => ({
+    [GameProperties.Death]: deathCreate(vectorCreate(0, FLOOR_LEVEL), weaponCreate(weaponType), initialHealth),
     [GameProperties.People]: new Set<Person>(),
     [GameProperties.Hourglasses]: new Set<Hourglass>(),
     [GameProperties.Dogs]: new Set<Dog>(),

@@ -82,7 +82,7 @@ export const menuStart = (program: Program, lastGame: Game = null) => {
                     })
                     .then((opponent: NearOpponent) => {
                         document.querySelectorAll('.game-ui').forEach(e => e.classList.remove('hidden'));
-                        const game = gameCreate(playerWeaponsType[selectedWeapon]);
+                        const game = gameCreate(playerWeaponsType[selectedWeapon], 1.1);
 
                         game[GameProperties.Opponent] = opponentFromNearOpponent(opponent);
                         gameStart(game, program);

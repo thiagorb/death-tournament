@@ -66,7 +66,7 @@ export type Death = {
 
 const ATTACK_START = -3;
 const ATTACK_END = -0.7;
-export const deathCreate = (position: Vec2, weapon: Weapon): Death => {
+export const deathCreate = (position: Vec2, weapon: Weapon, initialHealth: number = 1): Death => {
     const REST_LEFT_1 = 0;
     const REST_LEFT_2 = -1.5;
     const REST_RIGHT_1 = 0;
@@ -145,7 +145,7 @@ export const deathCreate = (position: Vec2, weapon: Weapon): Death => {
         [DeathProperties.HitSet]: null,
         [DeathProperties.Opacity]: 0,
         [DeathProperties.Weapon]: weapon,
-        [DeathProperties.Health]: 1,
+        [DeathProperties.Health]: initialHealth,
         [DeathProperties.AttackingArm]: leftArm1,
     };
 
